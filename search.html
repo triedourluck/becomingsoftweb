@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>becomingsoft — buscar</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    .user {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #eee;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    .user:hover {
+      background: #fafafa;
+    }
+
+    .alias {
+      font-weight: 600;
+    }
+
+    .back {
+      margin-top: 16px;
+      font-size: 13px;
+      color: #666;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Buscar fakes</h1>
+
+    <input id="search" placeholder="Escribe un alias…" />
+
+    <div id="results"></div>
+
+    <div class="back" onclick="goBack()">Volver a mi perfil</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
+      measurementId: "G-ZVBQBWYZ7M"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const searchInput = document.getElementById("search");
+    const resultsEl = document.getElementById("results");
+
+    let allUsers = [];
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const snap = await getDocs(collection(db, "users"));
+      allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    });
+
+    searchInput.addEventListener("input", () => {
+      const term = searchInput.value.toLowerCase();
+
+      resultsEl.innerHTML = "";
+
+      allUsers
+        .filter(u => u.alias.toLowerCase().includes(term))
+        .forEach(u => {
+          const div = document.createElement("div");
+          div.className = "user";
+          div.innerHTML = `<div class="alias">@${u.alias}</div>`;
+          div.onclick = () => {
+            window.location.href = `user.html?uid=${u.id}`;
+          };
+          resultsEl.appendChild(div);
+        });
+    });
+
+    window.goBack = function () {
+      window.location.href = "profile.html";
+    };
+  </script>
+</body>
+</html>
