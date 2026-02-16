@@ -87,6 +87,19 @@
 
     /* 📱 MOBILE — NO TOCAR (tu layout original) */
     @media (max-width:700px) {
+      /* Orden correcto en mobile */
+.right {
+  display: flex;
+  flex-direction: column;
+}
+
+.right > div:first-child {
+  order: 2; /* Spotify abajo */
+}
+
+.right > div:last-child {
+  order: 1; /* Enviar mensaje arriba */
+}
       .container { margin:0; border-radius:0; }
 
       .layout { grid-template-columns:1fr; }
