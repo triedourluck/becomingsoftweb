@@ -2,94 +2,91 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — entrar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Entrar — becomingsoft</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#f5f5f5;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
     }
 
-    .card {
-      background: white;
-      padding: 40px 32px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      width: 320px;
-      text-align: center;
+    .card{
+      background:white;
+      padding:40px;
+      border-radius:20px;
+      width:320px;
+      text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
     }
 
-    .logo {
-      font-size: 28px;
-      font-weight: 600;
-      margin-bottom: 4px;
+    h1{
+      margin:0;
+      font-size:32px;
     }
 
-    .subtitle {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 24px;
+    .sub{
+      color:#777;
+      font-size:14px;
+      margin-bottom:24px;
     }
 
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 12px;
-      border-radius: 12px;
-      border: 1px solid #ddd;
-      font-size: 14px;
-      box-sizing: border-box;
+    input{
+      width:100%;
+      padding:12px;
+      margin-bottom:12px;
+      border-radius:12px;
+      border:1px solid #ddd;
+      font-size:14px;
+      box-sizing:border-box;
     }
 
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 14px;
-      background: #111;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      margin-top: 4px;
+    button{
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:14px;
+      background:black;
+      color:white;
+      font-size:15px;
+      cursor:pointer;
     }
 
-    .link {
-      display: block;
-      margin-top: 14px;
-      font-size: 13px;
-      color: #333;
-      text-decoration: underline;
-      cursor: pointer;
+    .link{
+      margin-top:12px;
+      display:block;
+      font-size:14px;
+      text-decoration:underline;
+      color:#333;
+      cursor:pointer;
     }
 
-    .loading {
-      margin-top: 14px;
-      font-size: 13px;
-      color: #555;
-      display: none;
+    .loading{
+      margin-top:10px;
+      font-size:14px;
+      color:#666;
+      display:none;
     }
   </style>
 </head>
-
 <body>
-  <div class="card">
-    <div class="logo">becomingsoft</div>
-    <div class="subtitle">a soft place to exist quietly</div>
 
-    <input id="alias" placeholder="Alias" />
-    <input id="password" type="password" placeholder="Contraseña" />
+  <div class="card">
+    <h1>becomingsoft</h1>
+    <div class="sub">a soft place to exist quietly</div>
+
+    <input id="alias" placeholder="Alias"/>
+    <input id="pass" type="password" placeholder="Contraseña"/>
 
     <button onclick="login()">Entrar</button>
 
-    <a class="link" href="index.html">Volver al inicio</a>
-
-    <div id="loading" class="loading">Entrando... 🌷</div>
+    <div class="link" onclick="goHome()">Volver al inicio</div>
+    <div class="loading" id="loading">Entrando… 🌷</div>
   </div>
 
   <script type="module">
@@ -110,37 +107,54 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    window.goHome = () => {
+      window.location.href = "index.html";
+    };
+
     window.login = async () => {
       const alias = document.getElementById("alias").value.trim();
-      const pass = document.getElementById("password").value.trim();
+      const pass = document.getElementById("pass").value.trim();
       const loading = document.getElementById("loading");
 
-      if (!alias || !pass) return alert("Completa los campos");
+      if (!alias || !pass) {
+        alert("Completa alias y contraseña");
+        return;
+      }
 
       loading.style.display = "block";
 
       try {
+        // 🔎 buscar usuario por alias en Firestore
         const q = query(collection(db, "users"), where("alias", "==", alias));
         const snap = await getDocs(q);
 
-        if (snap.empty) throw new Error("alias-not-found");
+        if (snap.empty) {
+          loading.style.display = "none";
+          alert("Alias no encontrado");
+          return;
+        }
 
         const userData = snap.docs[0].data();
         const email = userData.email;
 
+        if (!email) {
+          loading.style.display = "none";
+          alert("Usuario sin email registrado");
+          return;
+        }
+
+        // 🔐 login real en Firebase Auth
         await signInWithEmailAndPassword(auth, email, pass);
 
         window.location.href = "profile.html";
-      } catch (e) {
-        loading.style.display = "none";
 
-        if (e.message === "alias-not-found") {
-          alert("Ese alias no existe");
-        } else {
-          alert("Contraseña incorrecta o error al iniciar sesión");
-        }
+      } catch (err) {
+        loading.style.display = "none";
+        alert("Contraseña incorrecta o error al iniciar sesión");
+        console.error(err);
       }
     };
   </script>
+
 </body>
 </html>
