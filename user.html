@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — mensajes</title>
+  <title>becomingsoft — perfil</title>
 
   <style>
     body {
@@ -22,26 +22,75 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    h1 {
-      margin-top: 0;
+    .top {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #ddd;
+      object-fit: cover;
+    }
+
+    .alias {
+      font-size: 20px;
       font-weight: 600;
     }
 
-    .msg {
-      border: 1px solid #eee;
-      border-radius: 12px;
-      padding: 12px;
+    .follow-btn {
+      margin-top: 6px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .space {
+      margin-top: 24px;
+    }
+
+    .msg-box {
+      margin-top: 24px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      padding: 10px;
+      font-family: inherit;
+      resize: none;
       margin-bottom: 10px;
     }
 
-    .meta {
+    .options {
       font-size: 12px;
       color: #666;
-      margin-bottom: 4px;
+      margin-bottom: 10px;
+    }
+
+    .send-btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      cursor: pointer;
+      font-size: 13px;
     }
 
     .back {
-      margin-top: 16px;
+      margin-top: 20px;
       font-size: 13px;
       color: #666;
       cursor: pointer;
@@ -51,17 +100,38 @@
 </head>
 <body>
   <div class="container">
-    <h1>Mensajes</h1>
+    <div class="top">
+      <img id="avatar" class="avatar" />
+      <div>
+        <div class="alias" id="alias">...</div>
+        <button id="followBtn" class="follow-btn" onclick="toggleFollow()">Follow</button>
+      </div>
+    </div>
 
-    <div id="list"></div>
+    <div class="space">
+      <h3 id="spaceName">tu espacio</h3>
+    </div>
 
-    <div class="back" onclick="goBack()">Volver a mi perfil</div>
+    <div class="msg-box">
+      <h4>Enviar mensaje</h4>
+      <textarea id="text" placeholder="Escribe algo suave…"></textarea>
+
+      <div class="options">
+        <label>
+          <input type="checkbox" id="anon" /> Enviar como anónimo
+        </label>
+      </div>
+
+      <button class="send-btn" onclick="sendMsg()">Enviar</button>
+    </div>
+
+    <div class="back" onclick="goBack()">Volver</div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -77,7 +147,17 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const listEl = document.getElementById("list");
+    const params = new URLSearchParams(window.location.search);
+    const targetUid = params.get("uid");
+
+    const aliasEl = document.getElementById("alias");
+    const spaceEl = document.getElementById("spaceName");
+    const avatarEl = document.getElementById("avatar");
+    const followBtn = document.getElementById("followBtn");
+
+    let currentUid = null;
+    let currentAlias = null;
+    let isFollowing = false;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -85,31 +165,63 @@
         return;
       }
 
-      const q = query(
-        collection(db, "messages"),
-        where("to", "==", user.uid),
-        orderBy("createdAt", "desc")
-      );
+      currentUid = user.uid;
 
-      const snap = await getDocs(q);
+      const [targetSnap, currentSnap] = await Promise.all([
+        getDoc(doc(db, "users", targetUid)),
+        getDoc(doc(db, "users", currentUid))
+      ]);
 
-      snap.forEach(doc => {
-        const data = doc.data();
+      if (targetSnap.exists()) {
+        const data = targetSnap.data();
+        aliasEl.textContent = data.alias;
+        spaceEl.textContent = data.spaceName || "tu espacio";
+        if (data.photoURL) avatarEl.src = data.photoURL;
+      }
 
-        const div = document.createElement("div");
-        div.className = "msg";
-        div.innerHTML = `
-          <div class="meta">${data.fromAlias || "Anónimo"}</div>
-          <div>${data.text}</div>
-        `;
-
-        listEl.appendChild(div);
-      });
+      if (currentSnap.exists()) {
+        const data = currentSnap.data();
+        currentAlias = data.alias;
+        isFollowing = data.following?.includes(targetUid);
+        followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+      }
     });
 
-    window.goBack = () => {
-      window.location.href = "profile.html";
+    window.toggleFollow = async () => {
+      const currentRef = doc(db, "users", currentUid);
+      const targetRef = doc(db, "users", targetUid);
+
+      if (isFollowing) {
+        await updateDoc(currentRef, { following: arrayRemove(targetUid) });
+        await updateDoc(targetRef, { followers: arrayRemove(currentUid) });
+        isFollowing = false;
+      } else {
+        await updateDoc(currentRef, { following: arrayUnion(targetUid) });
+        await updateDoc(targetRef, { followers: arrayUnion(currentUid) });
+        isFollowing = true;
+      }
+
+      followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
     };
+
+    window.sendMsg = async () => {
+      const text = document.getElementById("text").value.trim();
+      const anon = document.getElementById("anon").checked;
+
+      if (!text) return;
+
+      await addDoc(collection(db, "messages"), {
+        to: targetUid,
+        text,
+        fromAlias: anon ? null : currentAlias,
+        createdAt: serverTimestamp()
+      });
+
+      document.getElementById("text").value = "";
+      alert("Mensaje enviado 🌷");
+    };
+
+    window.goBack = () => window.history.back();
   </script>
 </body>
 </html>
