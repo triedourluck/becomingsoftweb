@@ -409,6 +409,10 @@ window.sendMessage = async () => {
   document.getElementById("msgInput").value="";
   alert("Mensaje enviado 💌");
 };
+document.getElementById("searchInput")
+  .addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchUser();
+  });
 </script>
 </body>
 </html>
