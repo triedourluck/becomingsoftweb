@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — user</title>
+  <title>becomingsoft — mensajes</title>
 
   <style>
     body {
@@ -14,7 +14,7 @@
     }
 
     .container {
-      max-width: 900px;
+      max-width: 700px;
       margin: 40px auto;
       background: white;
       border-radius: 20px;
@@ -22,60 +22,26 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    .top {
-      display: flex;
-      gap: 24px;
-      align-items: center;
-    }
-
-    .avatar {
-      width: 90px;
-      height: 90px;
-      border-radius: 50%;
-      background: #ddd;
-      object-fit: cover;
-    }
-
-    .alias {
-      font-size: 22px;
+    h1 {
+      margin-top: 0;
       font-weight: 600;
     }
 
-    .space {
-      margin-top: 32px;
-    }
-
-    .space h2 {
-      font-size: 16px;
-      margin-bottom: 12px;
-      font-weight: 600;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
-
-    .grid div {
-      background: #eee;
-      height: 120px;
+    .msg {
+      border: 1px solid #eee;
       border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
     }
 
-    .follow-btn {
-      margin-top: 10px;
-      padding: 8px 14px;
-      border: none;
-      border-radius: 10px;
-      background: #111;
-      color: white;
-      cursor: pointer;
-      font-size: 13px;
+    .meta {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 4px;
     }
 
     .back {
-      margin-top: 20px;
+      margin-top: 16px;
       font-size: 13px;
       color: #666;
       cursor: pointer;
@@ -85,29 +51,17 @@
 </head>
 <body>
   <div class="container">
-    <div class="top">
-      <img id="avatar" class="avatar" />
-      <div>
-        <div class="alias" id="alias">...</div>
-        <button class="follow-btn" id="followBtn" onclick="toggleFollow()">Follow</button>
-      </div>
-    </div>
+    <h1>Mensajes</h1>
 
-    <div class="space">
-      <h2 id="spaceName">tu espacio</h2>
-      <div class="grid">
-        <div></div><div></div><div></div>
-        <div></div><div></div><div></div>
-      </div>
-    </div>
+    <div id="list"></div>
 
-    <div class="back" onclick="goBack()">Volver a buscar</div>
+    <div class="back" onclick="goBack()">Volver a mi perfil</div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, query, where, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -123,17 +77,7 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const aliasEl = document.getElementById("alias");
-    const spaceEl = document.getElementById("spaceName");
-    const avatarEl = document.getElementById("avatar");
-    const followBtn = document.getElementById("followBtn");
-
-    let currentUid = null;
-    let targetUid = null;
-    let isFollowing = false;
-
-    const params = new URLSearchParams(window.location.search);
-    targetUid = params.get("uid");
+    const listEl = document.getElementById("list");
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -141,50 +85,30 @@
         return;
       }
 
-      currentUid = user.uid;
+      const q = query(
+        collection(db, "messages"),
+        where("to", "==", user.uid),
+        orderBy("createdAt", "desc")
+      );
 
-      const targetSnap = await getDoc(doc(db, "users", targetUid));
-      const currentSnap = await getDoc(doc(db, "users", currentUid));
+      const snap = await getDocs(q);
 
-      if (targetSnap.exists()) {
-        const data = targetSnap.data();
-        aliasEl.textContent = data.alias;
-        spaceEl.textContent = data.spaceName || "tu espacio";
-        if (data.photoURL) avatarEl.src = data.photoURL;
-      }
+      snap.forEach(doc => {
+        const data = doc.data();
 
-      if (currentSnap.exists()) {
-        const currentData = currentSnap.data();
-        isFollowing = currentData.following?.includes(targetUid);
-        updateButton();
-      }
+        const div = document.createElement("div");
+        div.className = "msg";
+        div.innerHTML = `
+          <div class="meta">${data.fromAlias || "Anónimo"}</div>
+          <div>${data.text}</div>
+        `;
+
+        listEl.appendChild(div);
+      });
     });
 
-    function updateButton() {
-      followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-    }
-
-    window.toggleFollow = async function () {
-      if (!currentUid || !targetUid) return;
-
-      const currentRef = doc(db, "users", currentUid);
-      const targetRef = doc(db, "users", targetUid);
-
-      if (isFollowing) {
-        await updateDoc(currentRef, { following: arrayRemove(targetUid) });
-        await updateDoc(targetRef, { followers: arrayRemove(currentUid) });
-        isFollowing = false;
-      } else {
-        await updateDoc(currentRef, { following: arrayUnion(targetUid) });
-        await updateDoc(targetRef, { followers: arrayUnion(currentUid) });
-        isFollowing = true;
-      }
-
-      updateButton();
-    };
-
-    window.goBack = function () {
-      window.location.href = "search.html";
+    window.goBack = () => {
+      window.location.href = "profile.html";
     };
   </script>
 </body>
