@@ -43,7 +43,7 @@
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="container" id="container">
 
     <div class="top">
       <img id="avatar" class="avatar" />
@@ -88,7 +88,6 @@
 
     </div>
 
-    <!-- 🔘 CERRAR SESIÓN + ENGRANAJE -->
     <div class="logout-row">
       <button class="logout" onclick="logout()">Cerrar sesión</button>
       <button class="logout" onclick="goSettings()">⚙️</button>
@@ -117,6 +116,7 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
+    const containerEl = document.getElementById("container");
     const avatarEl = document.getElementById("avatar");
     const avatarInput = document.getElementById("avatarInput");
     const aliasEl = document.getElementById("alias");
@@ -136,6 +136,24 @@
       window.location.href = "settings.html";
     };
 
+    function applyTheme(theme){
+      if(!theme) return;
+
+      if(theme.bgColor) document.body.style.background = theme.bgColor;
+      if(theme.textColor) document.body.style.color = theme.textColor;
+      if(theme.buttonColor){
+        document.querySelectorAll(".logout, .save-btn").forEach(btn=>{
+          btn.style.background = theme.buttonColor;
+        });
+      }
+
+      if(theme.bgImage){
+        document.body.style.backgroundImage = `url(${theme.bgImage})`;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+      }
+    }
+
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "login.html"; return; }
 
@@ -150,6 +168,8 @@
 
       const dataSnap = await getDoc(refUser);
       const d = dataSnap.data();
+
+      applyTheme(d.theme);
 
       aliasEl.textContent = d.alias || "sin alias";
       if (d.photoURL) avatarEl.src = d.photoURL;
