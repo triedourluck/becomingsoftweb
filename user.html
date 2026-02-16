@@ -152,8 +152,22 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const params = new URLSearchParams(window.location.search);
-    const viewedUid = params.get("uid");
+const params = new URLSearchParams(window.location.search);
+
+let viewedUid = params.get("uid");
+const aliasParam = params.get("alias");
+
+if (!viewedUid && aliasParam) {
+  const q = query(collection(db, "users"), where("alias", "==", aliasParam));
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    alert("usuario no encontrado");
+    throw new Error("alias no existe");
+  }
+
+  viewedUid = snap.docs[0].id;
+}
 
     const avatarEl = document.getElementById("avatar");
     const aliasEl = document.getElementById("alias");
