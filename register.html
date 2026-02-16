@@ -18,16 +18,17 @@
 
     .card {
       background: white;
-      padding: 40px 36px;
-      border-radius: 22px;
+      padding: 40px 32px;
+      border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
       width: 320px;
       text-align: center;
     }
 
-    h1 {
-      margin: 0;
+    .logo {
       font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 4px;
     }
 
     .subtitle {
@@ -50,7 +51,7 @@
       width: 100%;
       padding: 12px;
       border: none;
-      border-radius: 14px;
+      border-radius: 12px;
       background: #111;
       color: white;
       font-size: 15px;
@@ -58,37 +59,35 @@
       margin-top: 6px;
     }
 
-    .link {
-      display: block;
+    .back {
+      display: inline-block;
       margin-top: 14px;
       font-size: 14px;
-      color: #333;
+      color: #111;
       text-decoration: underline;
       cursor: pointer;
     }
 
-    .status {
+    .error {
       margin-top: 10px;
-      font-size: 14px;
-      color: #666;
-      min-height: 18px;
+      font-size: 13px;
+      color: #c00;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>becomingsoft</h1>
+    <div class="logo">becomingsoft</div>
     <div class="subtitle">a soft place to exist quietly</div>
 
     <input id="alias" placeholder="Crea tu alias" />
-    <input id="email" placeholder="Tu email" type="email" />
-    <input id="password" placeholder="Crea tu contraseña" type="password" />
+    <input id="password" type="password" placeholder="Crea tu contraseña" />
 
     <button onclick="register()">Crear cuenta</button>
 
-    <span class="link" onclick="goHome()">Volver al inicio</span>
+    <div class="back" onclick="goHome()">Volver al inicio</div>
 
-    <div class="status" id="status"></div>
+    <div id="error" class="error"></div>
   </div>
 
   <script type="module">
@@ -110,41 +109,41 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const statusEl = document.getElementById("status");
+    const aliasInput = document.getElementById("alias");
+    const passInput = document.getElementById("password");
+    const errorEl = document.getElementById("error");
+
+    window.goHome = () => {
+      window.location.href = "index.html";
+    };
 
     window.register = async () => {
-      const alias = document.getElementById("alias").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
+      const alias = aliasInput.value.trim().toLowerCase();
+      const password = passInput.value.trim();
 
-      if (!alias || !email || !password) {
-        statusEl.textContent = "Completa todos los campos";
+      errorEl.textContent = "";
+
+      if (!alias || !password) {
+        errorEl.textContent = "Completa todos los campos";
         return;
       }
 
       try {
-        statusEl.textContent = "Creando cuenta… 🌷";
+        const email = `${alias}@becomingsoft.com`;
 
         const cred = await createUserWithEmailAndPassword(auth, email, password);
 
         await setDoc(doc(db, "users", cred.user.uid), {
           alias,
-          email,
           followers: [],
           following: [],
-          photos: ["", "", "", "", "", ""],
-          createdAt: Date.now()
+          photos: ["", "", "", "", "", ""]
         });
 
         window.location.href = "profile.html";
       } catch (err) {
-        statusEl.textContent = "No se pudo crear la cuenta";
-        console.error(err);
+        errorEl.textContent = "No se pudo crear la cuenta";
       }
-    };
-
-    window.goHome = () => {
-      window.location.href = "index.html";
     };
   </script>
 </body>
