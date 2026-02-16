@@ -3,80 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — registro</title>
+  <title>becomingsoft — crear cuenta</title>
 
   <style>
     body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      color: #111;
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#f5f5f5;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
     }
 
     .card {
-      background: white;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      width: 320px;
-      text-align: center;
+      background:white;
+      padding:40px;
+      border-radius:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+      width:320px;
+      text-align:center;
     }
 
     h1 {
-      font-weight: 500;
-      margin-bottom: 4px;
+      margin:0 0 6px 0;
+      font-size:28px;
+      font-weight:600;
     }
 
     p {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 24px;
+      margin:0 0 24px 0;
+      color:#666;
+      font-size:14px;
+    }
+
+    input, button {
+      width:100%;
+      box-sizing:border-box; /* ← esto iguala tamaños */
+      padding:12px;
+      margin-bottom:12px;
+      border-radius:12px;
+      font-size:14px;
     }
 
     input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      font-size: 14px;
+      border:1px solid #ddd;
     }
 
     button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #111;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    button:hover {
-      opacity: 0.85;
-    }
-
-    .msg {
-      margin-top: 12px;
-      font-size: 12px;
+      border:none;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      font-weight:600;
     }
 
     .back {
-      margin-top: 14px;
-      font-size: 12px;
-      color: #666;
-      cursor: pointer;
-      text-decoration: underline;
+      display:block;
+      margin-top:8px;
+      font-size:13px;
+      color:#666;
+      text-decoration:underline;
+      cursor:pointer;
     }
   </style>
 </head>
 <body>
+
   <div class="card">
     <h1>becomingsoft</h1>
     <p>a soft place to exist quietly</p>
@@ -86,15 +79,15 @@
 
     <button onclick="register()">Crear cuenta</button>
 
-    <div class="msg" id="msg"></div>
-
-    <div class="back" onclick="goBack()">Volver al inicio</div>
+    <span class="back" onclick="window.location.href='login.html'">
+      Volver al inicio
+    </span>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -102,52 +95,33 @@
       projectId: "becomingsoft-84e72",
       storageBucket: "becomingsoft-84e72.firebasestorage.app",
       messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
-      measurementId: "G-ZVBQBWYZ7M"
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
     };
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.register = async function () {
+    window.register = async () => {
       const alias = document.getElementById("alias").value.trim();
       const password = document.getElementById("password").value.trim();
-      const msg = document.getElementById("msg");
 
-      if (!alias || !password) {
-        msg.textContent = "Completa todos los campos ✨";
-        return;
-      }
+      if (!alias || !password) return alert("Completa los campos");
 
-      const fakeEmail = `${alias}@becomingsoft.com`;
+      const emailFake = `${alias}@soft.com`;
 
-      try {
-        const userCred = await createUserWithEmailAndPassword(auth, fakeEmail, password);
-        const uid = userCred.user.uid;
+      const cred = await createUserWithEmailAndPassword(auth, emailFake, password);
 
-        await setDoc(doc(db, "users", uid), {
-          alias,
-          photoURL: "",
-          spaceName: "tu espacio",
-          followers: [],
-          following: [],
-          createdAt: new Date()
-        });
+      await setDoc(doc(db, "users", cred.user.uid), {
+        alias,
+        followers: [],
+        following: [],
+        photos: ["","","","","",""]
+      });
 
-        msg.textContent = "Cuenta creada 🌷";
-
-        setTimeout(() => {
-          window.location.href = "login.html";
-        }, 900);
-      } catch (err) {
-        msg.textContent = "Error: " + err.message;
-      }
-    };
-
-    window.goBack = function () {
-      window.location.href = "index.html";
+      window.location.href = "profile.html";
     };
   </script>
+
 </body>
 </html>
