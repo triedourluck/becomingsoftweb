@@ -146,7 +146,11 @@
       followersBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=followers`;
       followingBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=following`;
 
-      if (d.photos) d.photos.forEach((url,i)=>{ if(photoEls[i]) photoEls[i].src = url; });
+      // 🔥 CARGAR FOTOS CORRECTAMENTE
+      const photos = d.photos || ["", "", "", ""];
+      photos.forEach((url, i) => {
+        if (photoEls[i] && url) photoEls[i].src = url;
+      });
 
       if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
     });
@@ -169,6 +173,7 @@
       el.onclick = () => { photoIndex = i; photoInput.click(); };
     });
 
+    // 🔥 FIX REAL: guardar array de fotos correctamente
     photoInput.onchange = async () => {
       const file = photoInput.files[0];
       if (!file) return;
@@ -178,11 +183,13 @@
       const url = await getDownloadURL(storageRef);
 
       const snap = await getDoc(doc(db, "users", uid));
-      const data = snap.data();
-      const photos = data.photos || ["","","",""];
+      const data = snap.data() || {};
+
+      const photos = data.photos || ["", "", "", ""];
       photos[photoIndex] = url;
 
       await updateDoc(doc(db, "users", uid), { photos });
+
       photoEls[photoIndex].src = url;
     };
 
