@@ -43,24 +43,24 @@
 
   .layout { grid-template-columns:1fr; }
 
-  /* GRID móvil 3x2 con posiciones exactas */
+  /* GRID móvil EXACTO */
   .photos {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  grid-template-areas:
-    "p1 p2 p5"
-    "p4 p3 p6";
-}
-
-/* asignación correcta */
-#p1 { grid-area:p1; }
-#p2 { grid-area:p2; }
-#p3 { grid-area:p3; } /* TEXTO → centro fila 2 */
-#p4 { grid-area:p4; } /* MONJE → izquierda fila 2 */
-#p5 { grid-area:p5; } /* LOTO → derecha fila 1 */
-#p6 { grid-area:p6; } /* CAMA → derecha fila 2 */
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas:
+      "p1 p2 p5"
+      "p4 p3 p6";
+  }
 
   .photo { height:120px; }
+
+  /* asignación posiciones */
+  #p1 { grid-area: p1; }
+  #p2 { grid-area: p2; }
+  #p3 { grid-area: p3; } /* TEXTO centro abajo */
+  #p4 { grid-area: p4; } /* MONJE izquierda abajo */
+  #p5 { grid-area: p5; } /* LOTO arriba derecha */
+  #p6 { grid-area: p6; } /* CAMA derecha abajo */
 
   .right { order:2; }
   .spotify { order:3; }
