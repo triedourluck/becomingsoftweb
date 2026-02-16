@@ -19,18 +19,8 @@
     .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; }
     .alias { font-size:20px; font-weight:600; }
     .stats { font-size:13px; color:#666; margin-top:4px; }
-    .stats span { margin-right:12px; cursor:pointer; }
 
-    .follow-btn {
-      margin-top:8px;
-      padding:8px 14px;
-      border:none;
-      border-radius:10px;
-      background:#111;
-      color:white;
-      cursor:pointer;
-      font-size:13px;
-    }
+    .follow-btn { margin-top:8px; padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:13px; }
 
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
 
@@ -45,7 +35,7 @@
 
     .back { margin-top:24px; font-size:13px; color:#666; cursor:pointer; }
 
-    /* 📱 MOBILE — mismo comportamiento que profile */
+    /* 📱 MOBILE — igual que profile */
     @media (max-width:700px) {
       .container { margin:0; border-radius:0; }
 
@@ -55,13 +45,11 @@
       .photos { grid-template-columns:repeat(3,1fr); }
       .photo { height:120px; }
 
-      /* 🔄 INTERCAMBIO VISUAL SOLO MÓVIL */
-      #p3 { order:3; }
-  #p4 { order:5; }
-  #p6 { order:4; }
+      /* 🔄 intercambio visual móvil */
+      #p3 { order:4; }
+      #p4 { order:3; }
 
       .right { order:2; }
-      .spotify { order:3; }
     }
   </style>
 </head>
@@ -74,14 +62,14 @@
       <button onclick="goSearch()">ir</button>
     </div>
 
+    <!-- PERFIL -->
     <div class="top">
       <img id="avatar" class="avatar" />
 
       <div>
         <div class="alias" id="alias">...</div>
-
         <div class="stats">
-          <span id="followersBtn">0 followers</span>
+          <span id="followersBtn">0 followers</span> ·
           <span id="followingBtn">0 following</span>
         </div>
 
@@ -105,19 +93,16 @@
 
       <!-- DERECHA -->
       <div class="right">
+        <div id="spotifyEmbed" class="spotify"></div>
 
-        <!-- MENSAJE -->
         <div>
           <h3>Enviar mensaje</h3>
           <textarea placeholder="Escribe algo suave..."></textarea>
-          <br /><br />
+          <br><br>
           <button class="follow-btn">Enviar</button>
         </div>
-
-        <!-- SPOTIFY -->
-        <div class="spotify" id="spotifyEmbed"></div>
-
       </div>
+
     </div>
 
     <div class="back" onclick="history.back()">Volver</div>
@@ -142,20 +127,7 @@
     const db = getFirestore(app);
 
     const params = new URLSearchParams(window.location.search);
-    let viewedUid = params.get("uid");
-    const aliasParam = params.get("alias");
-
-    if (!viewedUid && aliasParam) {
-      const q = query(collection(db, "users"), where("alias", "==", aliasParam));
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        alert("usuario no encontrado");
-        throw new Error("alias no existe");
-      }
-
-      viewedUid = snap.docs[0].id;
-    }
+    const viewedUid = params.get("uid");
 
     const avatarEl = document.getElementById("avatar");
     const aliasEl = document.getElementById("alias");
@@ -200,9 +172,6 @@
 
       followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
       followingBtn.textContent = `${viewedData.following?.length || 0} following`;
-
-      followersBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=followers`;
-      followingBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=following`;
 
       if (viewedData.spotifyEmbed) spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
 
