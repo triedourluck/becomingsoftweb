@@ -11,7 +11,14 @@
     .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
 
     /* BUSCADOR */
-    .search { display:flex; gap:10px; margin-bottom:20px; }
+    .search {
+  position:absolute;
+  top:20px;
+  right:24px;
+  display:flex;
+  gap:8px;
+  width:auto;
+}
     .search input { flex:1; padding:10px; border-radius:12px; border:1px solid #ddd; }
     .search button { padding:10px 16px; border:none; border-radius:12px; background:#111; color:white; cursor:pointer; }
 
@@ -22,10 +29,31 @@
 
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
 
-    .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    /* ===== DESKTOP PHOTO ORDER ===== */
+    .photos {
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      grid-template-areas:
+        "p1 p2"
+        "p4 p3"
+        "p5 p6";
+    }
+
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; cursor:pointer; }
 
+    #p1 { grid-area:p1; }
+    #p2 { grid-area:p2; }
+    #p3 { grid-area:p3; }
+    #p4 { grid-area:p4; }
+    #p5 { grid-area:p5; }
+    #p6 { grid-area:p6; }
+
     .right { display:flex; flex-direction:column; gap:20px; }
+
+    /* ===== DESKTOP ORDER: SPOTIFY ARRIBA, MENSAJE ABAJO ===== */
+    .spotify { order:1; }
+    .message { order:2; }
 
     textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
 
@@ -38,13 +66,12 @@
 
     .hidden { display:none; }
 
-    /* 📱 MOBILE */
+    /* 📱 MOBILE — NO CAMBIAR NADA */
     @media (max-width:700px) {
       .container { margin:0; border-radius:0; }
 
       .layout { grid-template-columns:1fr; }
 
-      /* GRID móvil EXACTO */
       .photos {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -55,7 +82,6 @@
 
       .photo { height:120px; }
 
-      /* asignación posiciones */
       #p1 { grid-area: p1; }
       #p2 { grid-area: p2; }
       #p3 { grid-area: p3; }
@@ -64,7 +90,10 @@
       #p6 { grid-area: p6; }
 
       .right { order:2; }
-      .spotify { order:3; }
+
+      /* en mobile: mensaje arriba, spotify abajo (como estaba) */
+      .message { order:1; }
+      .spotify { order:2; }
     }
   </style>
 </head>
@@ -109,17 +138,17 @@
       <!-- DERECHA -->
       <div class="right">
 
-        <!-- MENSAJE -->
-        <div>
-          <h3>Envíame un mensaje</h3>
-          <textarea placeholder="Escribe algo suave..."></textarea>
-        </div>
-
         <!-- SPOTIFY -->
         <div class="spotify">
           <div id="spotifyEmbed"></div>
           <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify" />
           <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
+        </div>
+
+        <!-- MENSAJE -->
+        <div class="message">
+          <h3>Envíame un mensaje</h3>
+          <textarea placeholder="Escribe algo suave..."></textarea>
         </div>
 
       </div>
@@ -192,16 +221,8 @@
       if (d.photoURL) avatarEl.src = d.photoURL;
 
       const photos = d.photos || [];
-      const ordered = [
-        photos[0],
-        photos[1],
-        photos[4],
-        photos[2],
-        photos[3],
-        photos[5]
-      ];
 
-      ordered.forEach((url,i)=>{
+      photos.forEach((url,i)=>{
         if(url && photoEls[i]) photoEls[i].src = url;
       });
 
