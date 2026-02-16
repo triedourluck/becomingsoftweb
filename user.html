@@ -285,20 +285,78 @@ const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById
 
 let viewedUid = null;
 
-onAuthStateChanged(auth, async (user)=>{
-  if(!user) return location.href="login.html";
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return location.href = "login.html";
 
   const params = new URLSearchParams(window.location.search);
-  viewedUid = params.get("uid");
+  let viewedUid = params.get("uid");
 
-  if(!viewedUid){
+  // si no viene uid → buscar por alias
+  if (!viewedUid) {
     const aliasParam = params.get("alias");
-    if(aliasParam){
-      const q = query(collection(db,"users"), where("alias","==",aliasParam));
+
+    if (aliasParam) {
+      const q = query(collection(db, "users"), where("alias", "==", aliasParam));
       const snap = await getDocs(q);
-      if(!snap.empty) viewedUid = snap.docs[0].id;
+
+      if (!snap.empty) viewedUid = snap.docs[0].id;
     }
   }
+
+  // si aún no hay usuario → volver al perfil
+  if (!viewedUid || user.uid === viewedUid) {
+    location.href = "profile.html";
+    return;
+  }
+
+  const myRef = doc(db, "users", user.uid);
+  const viewedRef = doc(db, "users", viewedUid);
+
+  const [mySnap, viewedSnap] = await Promise.all([
+    getDoc(myRef),
+    getDoc(viewedRef)
+  ]);
+
+  const myData = mySnap.data();
+  const viewedData = viewedSnap.data();
+
+  // 🔹 UI básica
+  aliasEl.textContent = viewedData.alias || "sin alias";
+  followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
+  followingBtn.textContent = `${viewedData.following?.length || 0} following`;
+
+  if (viewedData.photoURL) avatarEl.src = viewedData.photoURL;
+  if (viewedData.spotifyEmbed && spotifyEmbedEl)
+    spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
+
+  (viewedData.photos || []).forEach((url, i) => {
+    if (url && photoEls[i]) photoEls[i].src = url;
+  });
+
+  // 🔹 navegación followers / following (ARREGLADO)
+  followersBtn.onclick = () => {
+    window.location.href = `list.html?uid=${viewedUid}&type=followers`;
+  };
+
+  followingBtn.onclick = () => {
+    window.location.href = `list.html?uid=${viewedUid}&type=following`;
+  };
+
+  // 🔹 follow / unfollow
+  const isFollowing = myData.following?.includes(viewedUid);
+  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+
+  followBtn.onclick = async () => {
+    if (isFollowing) {
+      await updateDoc(myRef, { following: arrayRemove(viewedUid) });
+      await updateDoc(viewedRef, { followers: arrayRemove(user.uid) });
+    } else {
+      await updateDoc(myRef, { following: arrayUnion(viewedUid) });
+      await updateDoc(viewedRef, { followers: arrayUnion(user.uid) });
+    }
+    location.reload();
+  };
+});
 
   if(!viewedUid) return location.href="profile.html";
   if(user.uid===viewedUid) return location.href="profile.html";
