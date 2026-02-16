@@ -359,6 +359,10 @@ textarea,
       if (!alias) return;
       window.location.href = `user.html?alias=${alias}`;
     };
+    document.getElementById("searchInput")
+  .addEventListener("keydown", (e) => {
+    if (e.key === "Enter") searchUser();
+  });
   </script>
 </body>
 </html>
