@@ -17,7 +17,13 @@
     .alias { font-size:20px; font-weight:600; }
 
     .stats { font-size:13px; color:#666; margin-top:4px; }
-    .stats span { cursor:pointer; margin-right:12px; text-decoration:underline; }
+    .stats span {
+  cursor: pointer;
+  margin-right: 12px;
+  text-decoration: none;   /* quita el subrayado */
+  color: inherit;          /* mantiene la misma tipografía/color original */
+  font-weight: normal;     /* asegura que no cambie el estilo */
+}
 
     .follow-btn { margin-top:8px; padding:6px 12px; border:none; border-radius:8px; background:#111; color:white; cursor:pointer; font-size:12px; }
 
