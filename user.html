@@ -22,7 +22,6 @@
       box-shadow:0 10px 30px rgba(0,0,0,0.08);
     }
 
-    /* 🔎 BUSCADOR — igual a profile */
     .search{
       display:flex;
       gap:10px;
@@ -123,7 +122,6 @@
       cursor:pointer;
     }
 
-    /* 📱 MOBILE — EXACTAMENTE IGUAL A PROFILE */
     @media (max-width:700px){
 
       .container{
@@ -135,7 +133,6 @@
         grid-template-columns:1fr;
       }
 
-      /* grid 3 columnas */
       .photos{
         grid-template-columns:repeat(3,1fr);
       }
@@ -144,7 +141,6 @@
         height:120px;
       }
 
-      /* ORDEN EXACTO */
       #p1{ order:1; }
       #p2{ order:2; }
       #p5{ order:3; }
@@ -161,7 +157,7 @@
 <body>
 <div class="container">
 
-  <!-- 🔎 BUSCADOR -->
+  <!-- BUSCADOR -->
   <div class="search">
     <input id="searchInput" placeholder="buscar usuario"/>
     <button onclick="searchUser()">ir</button>
@@ -173,14 +169,19 @@
 
     <div>
       <div id="alias" class="alias">...</div>
-      <div id="stats" class="stats">0 followers · 0 following</div>
+
+      <!-- 👇 AHORA CLICKEABLE -->
+      <div class="stats">
+        <span id="followersBtn" style="cursor:pointer">0 followers</span> ·
+        <span id="followingBtn" style="cursor:pointer">0 following</span>
+      </div>
+
       <button id="followBtn" class="follow-btn">Follow</button>
     </div>
   </div>
 
   <div class="layout">
 
-    <!-- FOTOS -->
     <div class="photos">
       <img id="p1" class="photo"/>
       <img id="p2" class="photo"/>
@@ -190,16 +191,13 @@
       <img id="p6" class="photo"/>
     </div>
 
-    <!-- DERECHA -->
     <div class="right">
 
-      <!-- MENSAJE -->
       <div>
         <h3>Envíame un mensaje</h3>
         <textarea placeholder="Escribe algo suave..."></textarea>
       </div>
 
-      <!-- SPOTIFY ABAJO -->
       <div id="spotifyEmbed" class="spotify"></div>
 
     </div>
@@ -230,11 +228,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* UID A VER */
 const params = new URLSearchParams(window.location.search);
 let viewedUid = params.get("uid");
 
-/* 🔎 BUSCAR */
 window.searchUser = async () => {
   const alias = document.getElementById("searchInput").value.trim();
   if (!alias) return;
@@ -249,7 +245,8 @@ window.searchUser = async () => {
 
 const avatarEl = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
-const statsEl = document.getElementById("stats");
+const followersBtn = document.getElementById("followersBtn");
+const followingBtn = document.getElementById("followingBtn");
 const followBtn = document.getElementById("followBtn");
 const spotifyEmbedEl = document.getElementById("spotifyEmbed");
 const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
@@ -267,7 +264,17 @@ onAuthStateChanged(auth, async (user)=>{
   const viewedData = viewedSnap.data();
 
   aliasEl.textContent = viewedData.alias || "sin alias";
-  statsEl.textContent = `${viewedData.followers?.length||0} followers · ${viewedData.following?.length||0} following`;
+
+  followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
+  followingBtn.textContent = `${viewedData.following?.length || 0} following`;
+
+  followersBtn.onclick = () => {
+    window.location.href = `list.html?uid=${viewedUid}&type=followers`;
+  };
+
+  followingBtn.onclick = () => {
+    window.location.href = `list.html?uid=${viewedUid}&type=following`;
+  };
 
   if(viewedData.photoURL) avatarEl.src = viewedData.photoURL;
   if(viewedData.spotifyEmbed) spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
