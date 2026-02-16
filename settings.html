@@ -101,7 +101,61 @@
     <div class="back" onclick="goBack()">Volver al perfil</div>
   </div>
 
+<!-- 🔥 ZONA PELIGROSA -->
+<div class="danger-zone">
+  <h3>Eliminar cuenta</h3>
+
+  <p class="warning">
+    Esta acción eliminará permanentemente tu cuenta, fotos, alias y todos tus datos.
+    <br><br>
+    <strong>No se puede deshacer ni recuperar.</strong>
+  </p>
+
+  <button class="delete-btn" onclick="deleteAccount()">
+    Eliminar mi cuenta
+  </button>
+</div>
+
   <script type="module">
+  import { getAuth, deleteUser } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+window.deleteAccount = async () => {
+  const user = auth.currentUser;
+  if (!user) return alert("No hay sesión activa");
+
+  // ⚠️ PRIMERA CONFIRMACIÓN
+  const confirm1 = confirm(
+    "¿Estás segura de que quieres eliminar tu cuenta?\n\nEsta acción es PERMANENTE."
+  );
+  if (!confirm1) return;
+
+  // ⚠️ SEGUNDA CONFIRMACIÓN (definitiva)
+  const confirm2 = confirm(
+    "Última confirmación:\n\nTu cuenta, fotos, alias y datos serán eliminados para siempre.\n\nNo podrás recuperarlos."
+  );
+  if (!confirm2) return;
+
+  try {
+    // 1️⃣ borrar documento en Firestore
+    await deleteDoc(doc(db, "users", user.uid));
+
+    // 2️⃣ borrar usuario en Auth
+    await deleteUser(user);
+
+    alert("Cuenta eliminada definitivamente.");
+    window.location.href = "index.html";
+  } catch (err) {
+    console.error(err);
+
+    if (err.code === "auth/requires-recent-login") {
+      alert("Por seguridad, vuelve a iniciar sesión antes de eliminar tu cuenta.");
+      window.location.href = "login.html";
+    } else {
+      alert("Error al eliminar la cuenta.");
+    }
+  }
+};
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
     import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
