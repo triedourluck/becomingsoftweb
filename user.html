@@ -190,17 +190,24 @@
     const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
 
     /* 🔎 BUSCAR */
-    window.goSearch = async () => {
-      const alias = document.getElementById("searchInput").value.trim();
-      if (!alias) return;
+    import { collection, query, where, getDocs } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-      const q = query(collection(db, "users"), where("alias", "==", alias));
-      const snap = await getDocs(q);
+window.searchUser = async () => {
+  const alias = document.getElementById("searchInput").value.trim();
+  if (!alias) return;
 
-      if (snap.empty) return alert("usuario no encontrado");
+  const q = query(collection(db, "users"), where("alias", "==", alias));
+  const snap = await getDocs(q);
 
-      window.location.href = `user.html?uid=${snap.docs[0].id}`;
-    };
+  if (snap.empty) {
+    alert("usuario no encontrado");
+    return;
+  }
+
+  const uid = snap.docs[0].id;
+  window.location.href = `user.html?uid=${uid}`;
+};
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) return window.location.href = "login.html";
