@@ -3,83 +3,202 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft</title>
+  <title>becomingsoft — profile</title>
 
   <style>
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
       background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
       color: #111;
     }
 
-    .card {
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
       background: white;
-      padding: 40px;
-      border-radius: 16px;
+      border-radius: 20px;
+      padding: 32px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      width: 320px;
-      text-align: center;
     }
 
-    h1 {
-      font-weight: 500;
-      margin-bottom: 4px;
+    .top {
+      display: flex;
+      gap: 24px;
+      align-items: center;
     }
 
-    p {
-      font-size: 12px;
+    .avatar {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: #ddd;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    .alias {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .stats {
+      font-size: 13px;
       color: #666;
-      margin-bottom: 24px;
+      margin-top: 4px;
     }
 
-    .btn {
-      width: 100%;
-      padding: 12px;
+    .edit-btn {
+      margin-top: 8px;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 8px;
+      background: #eee;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .space {
+      margin-top: 32px;
+    }
+
+    .space h2 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .grid div {
+      background: #eee;
+      height: 120px;
+      border-radius: 12px;
+    }
+
+    .logout {
+      margin-top: 24px;
+      padding: 10px 14px;
       border: none;
       border-radius: 10px;
-      font-size: 14px;
-      cursor: pointer;
-      margin-bottom: 10px;
-      transition: 0.2s ease;
-    }
-
-    .primary {
       background: #111;
       color: white;
+      cursor: pointer;
     }
 
-    .secondary {
-      background: #eee;
-      color: #111;
-    }
-
-    .btn:hover {
-      opacity: 0.85;
+    .hidden-input {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>becomingsoft</h1>
-    <p>a soft place to exist quietly</p>
+  <div class="container">
+    <div class="top">
+      <img id="avatar" class="avatar" />
+      <input type="file" id="fileInput" class="hidden-input" accept="image/*" />
 
-    <button class="btn primary" onclick="goLogin()">Iniciar sesión</button>
-    <button class="btn secondary" onclick="goRegister()">Crear cuenta</button>
+      <div>
+        <div class="alias" id="alias">...</div>
+        <div class="stats">0 followers · 0 following</div>
+        <button class="edit-btn" onclick="editSpaceName()">Editar nombre del espacio</button>
+      </div>
+    </div>
+
+    <div class="space">
+      <h2 id="spaceName">tu espacio</h2>
+      <div class="grid">
+        <div></div><div></div><div></div>
+        <div></div><div></div><div></div>
+      </div>
+    </div>
+
+    <button class="logout" onclick="logout()">Cerrar sesión</button>
   </div>
 
-  <script>
-    function goLogin() {
-      window.location.href = "login.html";
-    }
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
-    function goRegister() {
-      window.location.href = "register.html";
-    }
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
+      measurementId: "G-ZVBQBWYZ7M"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
+    const aliasEl = document.getElementById("alias");
+    const spaceEl = document.getElementById("spaceName");
+    const avatarEl = document.getElementById("avatar");
+    const fileInput = document.getElementById("fileInput");
+
+    let currentUid = null;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      currentUid = user.uid;
+
+      const refDoc = doc(db, "users", user.uid);
+      const snap = await getDoc(refDoc);
+
+      if (snap.exists()) {
+        const data = snap.data();
+        aliasEl.textContent = data.alias;
+        spaceEl.textContent = data.spaceName || "tu espacio";
+
+        if (data.photoURL) avatarEl.src = data.photoURL;
+      }
+    });
+
+    avatarEl.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file || !currentUid) return;
+
+      const storageRef = ref(storage, `avatars/${currentUid}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
+      await updateDoc(doc(db, "users", currentUid), {
+        photoURL: url
+      });
+
+      avatarEl.src = url;
+    });
+
+    window.editSpaceName = async function () {
+      const newName = prompt("Nuevo nombre para tu espacio:");
+      if (!newName || !currentUid) return;
+
+      await updateDoc(doc(db, "users", currentUid), {
+        spaceName: newName
+      });
+
+      spaceEl.textContent = newName;
+    };
+
+    window.logout = async function () {
+      await signOut(auth);
+      window.location.href = "login.html";
+    };
   </script>
 </body>
 </html>
