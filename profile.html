@@ -53,8 +53,9 @@
       margin-right: 10px;
     }
 
-    .edit-btn {
+    .edit-btn, .search-btn {
       margin-top: 8px;
+      margin-right: 6px;
       padding: 6px 10px;
       border: none;
       border-radius: 8px;
@@ -112,7 +113,8 @@
           <span id="followersBtn">0 followers</span>
           <span id="followingBtn">0 following</span>
         </div>
-        <button class="edit-btn" onclick="editSpaceName()">Editar nombre del espacio</button>
+        <button class="edit-btn" onclick="editSpaceName()">Editar espacio</button>
+        <button class="search-btn" onclick="goSearch()">Buscar usuarios</button>
       </div>
     </div>
 
@@ -208,6 +210,10 @@
       spaceEl.textContent = newName;
     };
 
+    window.goSearch = function () {
+      window.location.href = "search.html";
+    };
+
     window.logout = async function () {
       await signOut(auth);
       window.location.href = "login.html";
@@ -215,4 +221,3 @@
   </script>
 </body>
 </html>
-
