@@ -40,32 +40,32 @@
 
     /* 📱 MOBILE */
     @media (max-width:700px) {
-  .container { margin:0; border-radius:0; }
+      .container { margin:0; border-radius:0; }
 
-  .layout { grid-template-columns:1fr; }
+      .layout { grid-template-columns:1fr; }
 
-  /* GRID móvil EXACTO */
-  .photos {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-areas:
-      "p1 p2 p5"
-      "p4 p3 p6";
-  }
+      /* GRID móvil EXACTO */
+      .photos {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-areas:
+          "p1 p2 p5"
+          "p4 p3 p6";
+      }
 
-  .photo { height:120px; }
+      .photo { height:120px; }
 
-  /* asignación posiciones */
-  #p1 { grid-area: p1; }
-  #p2 { grid-area: p2; }
-  #p3 { grid-area: p3; } /* TEXTO centro abajo */
-  #p4 { grid-area: p4; } /* MONJE izquierda abajo */
-  #p5 { grid-area: p5; } /* LOTO arriba derecha */
-  #p6 { grid-area: p6; } /* CAMA derecha abajo */
+      /* asignación posiciones */
+      #p1 { grid-area: p1; }
+      #p2 { grid-area: p2; }
+      #p3 { grid-area: p3; }
+      #p4 { grid-area: p4; }
+      #p5 { grid-area: p5; }
+      #p6 { grid-area: p6; }
 
-  .right { order:2; }
-  .spotify { order:3; }
-}
+      .right { order:2; }
+      .spotify { order:3; }
+    }
   </style>
 </head>
 <body>
@@ -84,7 +84,10 @@
 
       <div>
         <div class="alias" id="alias">...</div>
-        <div class="stats" id="stats">0 followers · 0 following</div>
+        <div class="stats">
+          <span id="followersBtn">0 followers</span> ·
+          <span id="followingBtn">0 following</span>
+        </div>
       </div>
     </div>
 
@@ -153,7 +156,8 @@
     const avatarEl = document.getElementById("avatar");
     const avatarInput = document.getElementById("avatarInput");
     const aliasEl = document.getElementById("alias");
-    const statsEl = document.getElementById("stats");
+    const followersBtn = document.getElementById("followersBtn");
+    const followingBtn = document.getElementById("followingBtn");
 
     const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
     const photoInput = document.getElementById("photoInput");
@@ -173,24 +177,33 @@
       const d = snap.data();
 
       aliasEl.textContent = d.alias;
-      statsEl.textContent = `${d.followers?.length || 0} followers · ${d.following?.length || 0} following`;
+
+      followersBtn.textContent = `${d.followers?.length || 0} followers`;
+      followingBtn.textContent = `${d.following?.length || 0} following`;
+
+      followersBtn.onclick = () => {
+        window.location.href = `list.html?uid=${uid}&type=followers`;
+      };
+
+      followingBtn.onclick = () => {
+        window.location.href = `list.html?uid=${uid}&type=following`;
+      };
 
       if (d.photoURL) avatarEl.src = d.photoURL;
 
       const photos = d.photos || [];
-/* orden visual correcto móvil */
-const ordered = [
-  photos[0], // ⭐
-  photos[1], // chica
-  photos[4], // LOTO arriba derecha
-  photos[2], // MONJE abajo izquierda
-  photos[3], // TEXTO centro abajo
-  photos[5]  // CAMA derecha abajo
-];
+      const ordered = [
+        photos[0],
+        photos[1],
+        photos[4],
+        photos[2],
+        photos[3],
+        photos[5]
+      ];
 
-ordered.forEach((url,i)=>{
-  if(url && photoEls[i]) photoEls[i].src = url;
-});
+      ordered.forEach((url,i)=>{
+        if(url && photoEls[i]) photoEls[i].src = url;
+      });
 
       if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
     });
