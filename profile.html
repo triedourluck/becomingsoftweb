@@ -8,12 +8,12 @@
   <style>
     body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
 
-    .container {
-      max-width:900px;
-      margin:40px auto;
-      background:white;
-      border-radius:20px;
-      padding:32px;
+    .container { 
+      max-width:900px; 
+      margin:40px auto; 
+      background:white; 
+      border-radius:20px; 
+      padding:32px; 
       box-shadow:0 10px 30px rgba(0,0,0,0.08);
       position:relative;
     }
@@ -21,32 +21,29 @@
     /* BUSCADOR — esquina superior derecha DENTRO del recuadro */
     .search {
       position:absolute;
-      top:24px;
+      top:20px;
       right:24px;
       display:flex;
       gap:8px;
-      width:auto;
     }
 
-    .search input {
+    .search input { 
       width:160px;
-      padding:8px 10px;
-      border-radius:10px;
-      border:1px solid #ddd;
-      font-size:13px;
+      padding:8px 10px; 
+      border-radius:10px; 
+      border:1px solid #ddd; 
     }
 
-    .search button {
-      padding:8px 12px;
-      border:none;
-      border-radius:10px;
-      background:#111;
-      color:white;
-      cursor:pointer;
-      font-size:12px;
+    .search button { 
+      padding:8px 12px; 
+      border:none; 
+      border-radius:10px; 
+      background:#111; 
+      color:white; 
+      cursor:pointer; 
     }
 
-    .top { display:flex; gap:20px; align-items:center; margin-top:20px; }
+    .top { display:flex; gap:20px; align-items:center; margin-top:10px; }
     .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; cursor:pointer; }
     .alias { font-size:20px; font-weight:600; }
 
@@ -55,8 +52,25 @@
 
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
 
-    .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    /* GRID DESKTOP EXACTO PEDIDO */
+    .photos { 
+      display:grid; 
+      grid-template-columns:repeat(2,1fr); 
+      gap:12px;
+      grid-template-areas:
+        "p1 p2"
+        "p6 p5"
+        "p3 p4";
+    }
+
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; cursor:pointer; }
+
+    #p1 { grid-area:p1; }
+    #p2 { grid-area:p2; }
+    #p3 { grid-area:p3; }
+    #p4 { grid-area:p4; }
+    #p5 { grid-area:p5; }
+    #p6 { grid-area:p6; }
 
     .right { display:flex; flex-direction:column; gap:20px; }
 
@@ -71,39 +85,18 @@
 
     .hidden { display:none; }
 
-    /* ================= DESKTOP ================= */
-    @media (min-width:701px) {
-      .photos {
-        grid-template-areas:
-          "p1 p2"
-          "p4 p5"
-          "p3 p6";
-      }
-
-      #p1 { grid-area:p1; }
-      #p2 { grid-area:p2; }
-      #p3 { grid-area:p3; }
-      #p4 { grid-area:p4; } /* MONJE */
-      #p5 { grid-area:p5; } /* FLOR */
-      #p6 { grid-area:p6; }
-
-      /* Spotify ARRIBA del mensaje SOLO desktop */
-      .right { flex-direction:column; }
-      .spotify { order:1; }
-      .message-box { order:2; }
-    }
-
-    /* ================= MOBILE ================= */
+    /* 📱 MOBILE — NO TOCAR (tu layout original) */
     @media (max-width:700px) {
       .container { margin:0; border-radius:0; }
 
       .layout { grid-template-columns:1fr; }
 
       .photos {
+        display: grid;
         grid-template-columns: repeat(3, 1fr);
         grid-template-areas:
-          "p1 p2 p5"
-          "p4 p3 p6";
+          "p1 p2 p3"
+          "p6 p5 p4";
       }
 
       .photo { height:120px; }
@@ -116,7 +109,6 @@
       #p6 { grid-area: p6; }
 
       .right { order:2; }
-      .spotify { order:3; }
     }
   </style>
 </head>
@@ -161,15 +153,15 @@
       <!-- DERECHA -->
       <div class="right">
 
-        <!-- SPOTIFY -->
+        <!-- SPOTIFY ARRIBA EN DESKTOP -->
         <div class="spotify">
           <div id="spotifyEmbed"></div>
           <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify" />
           <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
         </div>
 
-        <!-- MENSAJE -->
-        <div class="message-box">
+        <!-- MENSAJE ABAJO -->
+        <div>
           <h3>Envíame un mensaje</h3>
           <textarea placeholder="Escribe algo suave..."></textarea>
         </div>
