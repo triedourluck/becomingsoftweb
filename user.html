@@ -258,8 +258,7 @@ import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
 import {
   getFirestore, doc, getDoc, updateDoc,
   arrayUnion, arrayRemove,
-  collection, query, where, getDocs,
-  addDoc, serverTimestamp
+  collection, query, where, getDocs
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -275,15 +274,13 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// elementos UI
 const avatarEl = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const followersBtn = document.getElementById("followersBtn");
 const followingBtn = document.getElementById("followingBtn");
 const followBtn = document.getElementById("followBtn");
-const spotifyEmbedEl = document.getElementById("spotifyEmbed");
-const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
-
-let viewedUid = null;
+const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return location.href = "login.html";
@@ -291,20 +288,18 @@ onAuthStateChanged(auth, async (user) => {
   const params = new URLSearchParams(window.location.search);
   let viewedUid = params.get("uid");
 
-  // si no viene uid → buscar por alias
+  // buscar por alias si no hay uid
   if (!viewedUid) {
     const aliasParam = params.get("alias");
-
     if (aliasParam) {
       const q = query(collection(db, "users"), where("alias", "==", aliasParam));
       const snap = await getDocs(q);
-
       if (!snap.empty) viewedUid = snap.docs[0].id;
     }
   }
 
-  // si aún no hay usuario → volver al perfil
-  if (!viewedUid || user.uid === viewedUid) {
+  // si sigue vacío o soy yo → volver a perfil propio
+  if (!viewedUid || viewedUid === user.uid) {
     location.href = "profile.html";
     return;
   }
@@ -320,29 +315,27 @@ onAuthStateChanged(auth, async (user) => {
   const myData = mySnap.data();
   const viewedData = viewedSnap.data();
 
-  // 🔹 UI básica
-  aliasEl.textContent = viewedData.alias || "sin alias";
+  // ===== cargar UI =====
+  aliasEl.textContent = viewedData.alias || "...";
   followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
   followingBtn.textContent = `${viewedData.following?.length || 0} following`;
 
   if (viewedData.photoURL) avatarEl.src = viewedData.photoURL;
-  if (viewedData.spotifyEmbed && spotifyEmbedEl)
-    spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
 
   (viewedData.photos || []).forEach((url, i) => {
     if (url && photoEls[i]) photoEls[i].src = url;
   });
 
-  // 🔹 navegación followers / following (ARREGLADO)
+  // ===== navegación followers / following =====
   followersBtn.onclick = () => {
-    window.location.href = `list.html?uid=${viewedUid}&type=followers`;
+    location.href = `list.html?uid=${viewedUid}&type=followers`;
   };
 
   followingBtn.onclick = () => {
-    window.location.href = `list.html?uid=${viewedUid}&type=following`;
+    location.href = `list.html?uid=${viewedUid}&type=following`;
   };
 
-  // 🔹 follow / unfollow
+  // ===== follow / unfollow =====
   const isFollowing = myData.following?.includes(viewedUid);
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
@@ -358,75 +351,17 @@ onAuthStateChanged(auth, async (user) => {
   };
 });
 
-  if(!viewedUid) return location.href="profile.html";
-  if(user.uid===viewedUid) return location.href="profile.html";
-
-  const myRef = doc(db,"users",user.uid);
-  const viewedRef = doc(db,"users",viewedUid);
-
-  const [mySnap, viewedSnap] = await Promise.all([getDoc(myRef), getDoc(viewedRef)]);
-  const myData = mySnap.data();
-  const viewedData = viewedSnap.data();
-
-  aliasEl.textContent = viewedData.alias || "sin alias";
-  followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
-  followingBtn.textContent = `${viewedData.following?.length || 0} following`;
-
-  if(viewedData.photoURL) avatarEl.src = viewedData.photoURL;
-  if(viewedData.spotifyEmbed) spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
-
-  (viewedData.photos||[]).forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
-
-  const isFollowing = myData.following?.includes(viewedUid);
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async ()=>{
-    if(isFollowing){
-      await updateDoc(myRef,{following:arrayRemove(viewedUid)});
-      await updateDoc(viewedRef,{followers:arrayRemove(user.uid)});
-    }else{
-      await updateDoc(myRef,{following:arrayUnion(viewedUid)});
-      await updateDoc(viewedRef,{followers:arrayUnion(user.uid)});
-    }
-    location.reload();
-  };
-});
-
+// buscador
 window.searchUser = async () => {
   const alias = document.getElementById("searchInput").value.trim();
-  if(!alias) return;
+  if (!alias) return;
 
-  const q = query(collection(db,"users"), where("alias","==",alias));
+  const q = query(collection(db, "users"), where("alias", "==", alias));
   const snap = await getDocs(q);
-  if(snap.empty) return alert("usuario no encontrado");
 
-  window.location.href = `user.html?uid=${snap.docs[0].id}`;
-};
+  if (snap.empty) return alert("usuario no encontrado");
 
-window.sendMessage = async () => {
-  const user = auth.currentUser;
-  if(!user) return alert("Debes iniciar sesión");
-
-  const text = document.getElementById("msgInput").value.trim();
-  if(!text) return alert("Mensaje vacío");
-
-  const who = document.querySelector('input[name="who"]:checked').value;
-
-  let fromAlias = null;
-  if(who === "alias"){
-    const snap = await getDoc(doc(db,"users",user.uid));
-    fromAlias = snap.data()?.alias || "sin alias";
-  }
-
-  await addDoc(collection(db,"messages"),{
-    to: viewedUid,
-    text,
-    fromAlias,
-    createdAt: serverTimestamp()
-  });
-
-  document.getElementById("msgInput").value = "";
-  alert("Mensaje enviado 💌");
+  location.href = `user.html?uid=${snap.docs[0].id}`;
 };
 </script>
 </body>
