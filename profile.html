@@ -48,6 +48,11 @@
       margin-top: 4px;
     }
 
+    .stats span {
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
     .edit-btn {
       margin-top: 8px;
       padding: 6px 10px;
@@ -103,7 +108,10 @@
 
       <div>
         <div class="alias" id="alias">...</div>
-        <div class="stats">0 followers · 0 following</div>
+        <div class="stats">
+          <span id="followersBtn">0 followers</span>
+          <span id="followingBtn">0 following</span>
+        </div>
         <button class="edit-btn" onclick="editSpaceName()">Editar nombre del espacio</button>
       </div>
     </div>
@@ -144,6 +152,8 @@
     const spaceEl = document.getElementById("spaceName");
     const avatarEl = document.getElementById("avatar");
     const fileInput = document.getElementById("fileInput");
+    const followersBtn = document.getElementById("followersBtn");
+    const followingBtn = document.getElementById("followingBtn");
 
     let currentUid = null;
 
@@ -162,6 +172,9 @@
         const data = snap.data();
         aliasEl.textContent = data.alias;
         spaceEl.textContent = data.spaceName || "tu espacio";
+
+        followersBtn.textContent = `${data.followers?.length || 0} followers`;
+        followingBtn.textContent = `${data.following?.length || 0} following`;
 
         if (data.photoURL) avatarEl.src = data.photoURL;
       }
@@ -202,3 +215,4 @@
   </script>
 </body>
 </html>
+
