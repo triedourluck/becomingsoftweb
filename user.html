@@ -340,7 +340,19 @@ onAuthStateChanged(auth, async (user) => {
   const [mySnap, viewedSnap] = await Promise.all([getDoc(myRef), getDoc(viewedRef)]);
   const myData = mySnap.data();
   const viewedData = viewedSnap.data();
+  // 🔒 permitir o no mensajes anónimos
+const allowAnonymous = viewedData.allowAnonymous ?? true;
 
+if (!allowAnonymous) {
+  // ocultar opción "Anónimo"
+  const anonOption = document.querySelector('input[value="anon"]')?.closest("label");
+  if (anonOption) anonOption.style.display = "none";
+
+  // forzar que quede seleccionado "Con mi alias"
+  const aliasRadio = document.querySelector('input[value="alias"]');
+  if (aliasRadio) aliasRadio.checked = true;
+}
+  
   aliasEl.textContent = viewedData.alias || "sin alias";
   followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
   followingBtn.textContent = `${viewedData.following?.length || 0} following`;
