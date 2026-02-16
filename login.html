@@ -1,132 +1,146 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Entrar — becomingsoft</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>becomingsoft — entrar</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f5f5f5;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
 
-.card{
-  background:white;
-  padding:40px;
-  border-radius:20px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  width:340px;
-  text-align:center;
-  box-sizing:border-box;
-}
+    .card {
+      background: white;
+      padding: 40px 32px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      width: 320px;
+      text-align: center;
+    }
 
-h1{ margin:0; font-size:32px; }
+    .logo {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
 
-.subtitle{
-  color:#777;
-  margin-bottom:30px;
-}
+    .subtitle {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 24px;
+    }
 
-input{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  font-size:14px;
-  box-sizing:border-box;
-}
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
 
-button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  cursor:pointer;
-  background:#000;
-  color:white;
-}
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 14px;
+      background: #111;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
 
-.link{
-  display:block;
-  margin-top:14px;
-  text-decoration:underline;
-  color:#444;
-  cursor:pointer;
-}
+    .link {
+      display: block;
+      margin-top: 14px;
+      font-size: 13px;
+      color: #333;
+      text-decoration: underline;
+      cursor: pointer;
+    }
 
-/* LOADING */
-.loading{
-  display:none;
-  margin-top:18px;
-  font-size:14px;
-  color:#666;
-}
-</style>
+    .loading {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #555;
+      display: none;
+    }
+  </style>
 </head>
 
 <body>
-<div class="card">
+  <div class="card">
+    <div class="logo">becomingsoft</div>
+    <div class="subtitle">a soft place to exist quietly</div>
 
-  <h1>becomingsoft</h1>
-  <div class="subtitle">a soft place to exist quietly</div>
+    <input id="alias" placeholder="Alias" />
+    <input id="password" type="password" placeholder="Contraseña" />
 
-  <input id="alias" placeholder="Alias">
-  <input id="password" type="password" placeholder="Contraseña">
+    <button onclick="login()">Entrar</button>
 
-  <button onclick="login()">Entrar</button>
+    <a class="link" href="index.html">Volver al inicio</a>
 
-  <div class="link" onclick="location.href='index.html'">
-    Volver al inicio
+    <div id="loading" class="loading">Entrando... 🌷</div>
   </div>
 
-  <div id="loading" class="loading">
-    Entrando… 🌷
-  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-</div>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+    };
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain: "becomingsoft-84e72.firebaseapp.com",
-  projectId: "becomingsoft-84e72",
-  storageBucket: "becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId: "605759003962",
-  appId: "1:605759003962:web:ea8603a8e97e42d2278403"
-};
+    window.login = async () => {
+      const alias = document.getElementById("alias").value.trim();
+      const pass = document.getElementById("password").value.trim();
+      const loading = document.getElementById("loading");
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+      if (!alias || !pass) return alert("Completa los campos");
 
-window.login = async () => {
-  const alias = document.getElementById("alias").value.trim();
-  const pass = document.getElementById("password").value.trim();
-  const loading = document.getElementById("loading");
+      loading.style.display = "block";
 
-  if (!alias || !pass) return alert("Completa los campos");
+      try {
+        const q = query(collection(db, "users"), where("alias", "==", alias));
+        const snap = await getDocs(q);
 
-  loading.style.display = "block";
+        if (snap.empty) throw new Error("alias-not-found");
 
-  try {
-    // usamos alias como email falso
-    await signInWithEmailAndPassword(auth, `${alias}@soft.com`, pass);
-    window.location.href = "profile.html";
-  } catch (e) {
-    loading.style.display = "none";
-    alert("No se pudo iniciar sesión");
-  }
-};
-</script>
+        const userData = snap.docs[0].data();
+        const email = userData.email;
+
+        await signInWithEmailAndPassword(auth, email, pass);
+
+        window.location.href = "profile.html";
+      } catch (e) {
+        loading.style.display = "none";
+
+        if (e.message === "alias-not-found") {
+          alert("Ese alias no existe");
+        } else {
+          alert("Contraseña incorrecta o error al iniciar sesión");
+        }
+      }
+    };
+  </script>
 </body>
 </html>
