@@ -53,7 +53,7 @@
       margin-right: 10px;
     }
 
-    .edit-btn, .search-btn {
+    .edit-btn, .search-btn, .inbox-btn {
       margin-top: 8px;
       margin-right: 6px;
       padding: 6px 10px;
@@ -76,14 +76,17 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
 
-    .grid div {
+    .photo {
       background: #eee;
-      height: 120px;
+      height: 140px;
       border-radius: 12px;
+      object-fit: cover;
+      width: 100%;
+      cursor: pointer;
     }
 
     .logout {
@@ -105,7 +108,7 @@
   <div class="container">
     <div class="top">
       <img id="avatar" class="avatar" />
-      <input type="file" id="fileInput" class="hidden-input" accept="image/*" />
+      <input type="file" id="avatarInput" class="hidden-input" accept="image/*" />
 
       <div>
         <div class="alias" id="alias">...</div>
@@ -114,16 +117,20 @@
           <span id="followingBtn">0 following</span>
         </div>
         <button class="edit-btn" onclick="editSpaceName()">Editar espacio</button>
-        <button class="search-btn" onclick="goSearch()">Buscar usuarios</button>
+        <button class="search-btn" onclick="goSearch()">Buscar</button>
+        <button class="inbox-btn" onclick="goInbox()">Mensajes</button>
       </div>
     </div>
 
     <div class="space">
       <h2 id="spaceName">tu espacio</h2>
       <div class="grid">
-        <div></div><div></div><div></div>
-        <div></div><div></div><div></div>
+        <img id="p1" class="photo" />
+        <img id="p2" class="photo" />
+        <img id="p3" class="photo" />
+        <img id="p4" class="photo" />
       </div>
+      <input type="file" id="photoInput" class="hidden-input" accept="image/*" />
     </div>
 
     <button class="logout" onclick="logout()">Cerrar sesión</button>
@@ -153,11 +160,15 @@
     const aliasEl = document.getElementById("alias");
     const spaceEl = document.getElementById("spaceName");
     const avatarEl = document.getElementById("avatar");
-    const fileInput = document.getElementById("fileInput");
+    const avatarInput = document.getElementById("avatarInput");
     const followersBtn = document.getElementById("followersBtn");
     const followingBtn = document.getElementById("followingBtn");
 
+    const photoEls = ["p1","p2","p3","p4"].map(id => document.getElementById(id));
+    const photoInput = document.getElementById("photoInput");
+
     let currentUid = null;
+    let currentPhotoIndex = 0;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
@@ -167,8 +178,7 @@
 
       currentUid = user.uid;
 
-      const refDoc = doc(db, "users", user.uid);
-      const snap = await getDoc(refDoc);
+      const snap = await getDoc(doc(db, "users", user.uid));
 
       if (snap.exists()) {
         const data = snap.data();
@@ -179,42 +189,65 @@
         followingBtn.textContent = `${data.following?.length || 0} following`;
 
         if (data.photoURL) avatarEl.src = data.photoURL;
+
+        if (data.photos) {
+          data.photos.forEach((url, i) => {
+            if (photoEls[i]) photoEls[i].src = url;
+          });
+        }
       }
     });
 
-    avatarEl.addEventListener("click", () => fileInput.click());
+    avatarEl.onclick = () => avatarInput.click();
 
-    fileInput.addEventListener("change", async () => {
-      const file = fileInput.files[0];
-      if (!file || !currentUid) return;
+    avatarInput.onchange = async () => {
+      const file = avatarInput.files[0];
+      if (!file) return;
 
       const storageRef = ref(storage, `avatars/${currentUid}`);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
 
-      await updateDoc(doc(db, "users", currentUid), {
-        photoURL: url
-      });
-
+      await updateDoc(doc(db, "users", currentUid), { photoURL: url });
       avatarEl.src = url;
+    };
+
+    photoEls.forEach((el, i) => {
+      el.onclick = () => {
+        currentPhotoIndex = i;
+        photoInput.click();
+      };
     });
 
-    window.editSpaceName = async function () {
+    photoInput.onchange = async () => {
+      const file = photoInput.files[0];
+      if (!file) return;
+
+      const storageRef = ref(storage, `spaces/${currentUid}/${currentPhotoIndex}`);
+      await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(storageRef);
+
+      const snap = await getDoc(doc(db, "users", currentUid));
+      const data = snap.data();
+      const photos = data.photos || ["","","",""];
+      photos[currentPhotoIndex] = url;
+
+      await updateDoc(doc(db, "users", currentUid), { photos });
+      photoEls[currentPhotoIndex].src = url;
+    };
+
+    window.editSpaceName = async () => {
       const newName = prompt("Nuevo nombre para tu espacio:");
-      if (!newName || !currentUid) return;
+      if (!newName) return;
 
-      await updateDoc(doc(db, "users", currentUid), {
-        spaceName: newName
-      });
-
+      await updateDoc(doc(db, "users", currentUid), { spaceName: newName });
       spaceEl.textContent = newName;
     };
 
-    window.goSearch = function () {
-      window.location.href = "search.html";
-    };
+    window.goSearch = () => window.location.href = "search.html";
+    window.goInbox = () => window.location.href = "inbox.html";
 
-    window.logout = async function () {
+    window.logout = async () => {
       await signOut(auth);
       window.location.href = "login.html";
     };
