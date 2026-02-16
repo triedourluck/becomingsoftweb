@@ -35,15 +35,25 @@
 
     .save-btn { margin-top:8px; padding:6px 12px; border:none; border-radius:8px; background:#111; color:white; cursor:pointer; font-size:12px; }
 
-    .logout-row { margin-top:24px; display:flex; gap:10px; }
-
-    .logout { padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
+    .logout { margin-top:24px; padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
 
     .hidden { display:none; }
+
+    .search-bar { display:flex; justify-content:flex-end; margin-bottom:16px; gap:8px; }
+
+    .search-bar input { padding:10px 12px; border-radius:12px; border:1px solid #ddd; font-size:14px; width:180px; outline:none; }
+
+    .search-bar button { padding:10px 14px; border:none; border-radius:12px; background:#111; color:white; font-size:14px; cursor:pointer; }
   </style>
 </head>
 <body>
-  <div class="container" id="container">
+  <div class="container">
+
+    <!-- BUSCAR USUARIO -->
+    <div class="search-bar">
+      <input id="searchInput" placeholder="buscar usuario" />
+      <button onclick="searchUser()">ir</button>
+    </div>
 
     <div class="top">
       <img id="avatar" class="avatar" />
@@ -61,6 +71,7 @@
 
     <div class="layout">
 
+      <!-- IZQUIERDA: 6 FOTOS -->
       <div class="left">
         <div class="photos">
           <img id="p1" class="photo" />
@@ -73,6 +84,7 @@
         <input type="file" id="photoInput" class="hidden" accept="image/*" />
       </div>
 
+      <!-- DERECHA -->
       <div class="right">
         <div class="spotify">
           <div id="spotifyEmbed"></div>
@@ -82,23 +94,19 @@
 
         <div>
           <h3>Enviar mensaje</h3>
-          <textarea style="width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px;" placeholder="Escribe algo suave..."></textarea>
+          <textarea placeholder="Escribe algo suave..." style="width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px;"></textarea>
         </div>
       </div>
 
     </div>
 
-    <div class="logout-row">
-      <button class="logout" onclick="logout()">Cerrar sesión</button>
-      <button class="logout" onclick="goSettings()">⚙️</button>
-    </div>
-
+    <button class="logout" onclick="logout()">Cerrar sesión</button>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -116,7 +124,6 @@
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    const containerEl = document.getElementById("container");
     const avatarEl = document.getElementById("avatar");
     const avatarInput = document.getElementById("avatarInput");
     const aliasEl = document.getElementById("alias");
@@ -132,28 +139,6 @@
     let uid = null;
     let photoIndex = 0;
 
-    window.goSettings = () => {
-      window.location.href = "settings.html";
-    };
-
-    function applyTheme(theme){
-      if(!theme) return;
-
-      if(theme.bgColor) document.body.style.background = theme.bgColor;
-      if(theme.textColor) document.body.style.color = theme.textColor;
-      if(theme.buttonColor){
-        document.querySelectorAll(".logout, .save-btn").forEach(btn=>{
-          btn.style.background = theme.buttonColor;
-        });
-      }
-
-      if(theme.bgImage){
-        document.body.style.backgroundImage = `url(${theme.bgImage})`;
-        document.body.style.backgroundSize = "cover";
-        document.body.style.backgroundPosition = "center";
-      }
-    }
-
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "login.html"; return; }
 
@@ -168,8 +153,6 @@
 
       const dataSnap = await getDoc(refUser);
       const d = dataSnap.data();
-
-      applyTheme(d.theme);
 
       aliasEl.textContent = d.alias || "sin alias";
       if (d.photoURL) avatarEl.src = d.photoURL;
@@ -235,6 +218,22 @@
     window.logout = async () => {
       await signOut(auth);
       window.location.href = "login.html";
+    };
+
+    window.searchUser = async () => {
+      const alias = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!alias) return;
+
+      const q = query(collection(db, "users"), where("alias", "==", alias));
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        alert("Usuario no encontrado");
+        return;
+      }
+
+      const userId = snap.docs[0].id;
+      window.location.href = `user.html?uid=${userId}`;
     };
   </script>
 </body>
