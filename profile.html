@@ -1,3 +1,4 @@
+<!-- ================= PROFILE.HTML ================= -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,238 +7,188 @@
   <title>becomingsoft — mi perfil</title>
 
   <style>
-    body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+    }
 
-    .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
 
-    .top { display:flex; gap:20px; align-items:center; }
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-bottom: 20px;
+    }
 
-    .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; cursor:pointer; }
+    .search-bar input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+    }
 
-    .alias { font-size:20px; font-weight:600; }
+    .search-bar button {
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      background: #111;
+      color: white;
+      cursor: pointer;
+    }
 
-    .stats { font-size:13px; color:#666; margin-top:4px; }
-    .stats span { cursor:pointer; margin-right:12px; }
+    .top {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
 
-    .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #ddd;
+    }
 
-    .left { display:flex; flex-direction:column; gap:16px; }
+    .alias { font-size: 20px; font-weight: 600; }
 
-    .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .stats { font-size: 13px; color: #666; margin-top: 4px; }
 
-    .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; cursor:pointer; }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+      align-items: start;
+    }
 
-    .right { display:flex; flex-direction:column; gap:20px; }
+    .photos {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
 
-    .spotify iframe { width:100%; border:none; border-radius:12px; }
+    .photo {
+      width: 100%;
+      height: 140px;
+      background: #eee;
+      border-radius: 12px;
+      object-fit: cover;
+    }
 
-    .spotify input { width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; margin-top:8px; }
+    .spotify iframe { width: 100%; border: none; border-radius: 12px; }
 
-    .save-btn { margin-top:8px; padding:6px 12px; border:none; border-radius:8px; background:#111; color:white; cursor:pointer; font-size:12px; }
+    textarea {
+      width: 100%;
+      height: 120px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
 
-    .logout { margin-top:24px; padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
+    .bottom-buttons {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+    }
 
-    .hidden { display:none; }
+    .btn {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      cursor: pointer;
+    }
 
-    .search-bar { display:flex; justify-content:flex-end; margin-bottom:16px; gap:8px; }
+    /* ================= MOBILE LAYOUT ================= */
+    @media (max-width: 640px) {
+      .container {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+      }
 
-    .search-bar input { padding:10px 12px; border-radius:12px; border:1px solid #ddd; font-size:14px; width:180px; outline:none; }
+      .layout {
+        grid-template-columns: 1fr;
+      }
 
-    .search-bar button { padding:10px 14px; border:none; border-radius:12px; background:#111; color:white; font-size:14px; cursor:pointer; }
+      .photos {
+        grid-template-columns: repeat(3, 1fr); /* 3x3 grid */
+      }
+
+      textarea {
+        height: 140px;
+      }
+
+      .bottom-buttons {
+        justify-content: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
 
-    <!-- BUSCAR USUARIO -->
+    <!-- SEARCH -->
     <div class="search-bar">
-      <input id="searchInput" placeholder="buscar usuario" />
-      <button onclick="searchUser()">ir</button>
+      <input placeholder="buscar usuario" />
+      <button>ir</button>
     </div>
 
+    <!-- TOP PROFILE -->
     <div class="top">
-      <img id="avatar" class="avatar" />
-      <input type="file" id="avatarInput" class="hidden" accept="image/*" />
-
+      <img class="avatar" />
       <div>
-        <div class="alias" id="alias">...</div>
-
-        <div class="stats">
-          <span id="followersBtn">0 followers</span>
-          <span id="followingBtn">0 following</span>
-        </div>
+        <div class="alias">thecreator</div>
+        <div class="stats">0 followers · 0 following</div>
       </div>
     </div>
 
+    <!-- MAIN LAYOUT -->
     <div class="layout">
 
-      <!-- IZQUIERDA: 6 FOTOS -->
-      <div class="left">
-        <div class="photos">
-          <img id="p1" class="photo" />
-          <img id="p2" class="photo" />
-          <img id="p3" class="photo" />
-          <img id="p4" class="photo" />
-          <img id="p5" class="photo" />
-          <img id="p6" class="photo" />
-        </div>
-        <input type="file" id="photoInput" class="hidden" accept="image/*" />
+      <!-- PHOTOS -->
+      <div class="photos">
+        <div class="photo"></div>
+        <div class="photo"></div>
+        <div class="photo"></div>
+        <div class="photo"></div>
+        <div class="photo"></div>
+        <div class="photo"></div>
+        <div class="photo"></div>
+        <div class="photo"></div>
+        <div class="photo"></div>
       </div>
 
-      <!-- DERECHA -->
-      <div class="right">
-        <div class="spotify">
-          <div id="spotifyEmbed"></div>
-          <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify" />
-          <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
-        </div>
+      <!-- RIGHT COLUMN (desktop) / BELOW (mobile) -->
+      <div>
+        <h3>Envíame un mensaje</h3>
+        <textarea placeholder="Escribe algo suave..."></textarea>
 
-        <div>
-          <h3>Enviar mensaje</h3>
-          <textarea placeholder="Escribe algo suave..." style="width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px;"></textarea>
+        <div style="margin-top:20px" class="spotify">
+          <!-- Spotify embed aquí -->
         </div>
       </div>
 
     </div>
 
-    <div style="display:flex; gap:10px; align-items:center; margin-top:24px;">
-      <button class="logout" onclick="logout()">Cerrar sesión</button>
-      <button class="logout" onclick="window.location.href='settings.html'" style="width:44px; padding:10px; display:flex; align-items:center; justify-content:center;">⚙️</button>
+    <!-- BOTTOM BUTTONS -->
+    <div class="bottom-buttons">
+      <button class="btn">Cerrar sesión</button>
+      <button class="btn">⚙️</button>
     </div>
+
   </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-      authDomain: "becomingsoft-84e72.firebaseapp.com",
-      projectId: "becomingsoft-84e72",
-      storageBucket: "becomingsoft-84e72.firebasestorage.app",
-      messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
-      measurementId: "G-ZVBQBWYZ7M"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    const avatarEl = document.getElementById("avatar");
-    const avatarInput = document.getElementById("avatarInput");
-    const aliasEl = document.getElementById("alias");
-    const followersBtn = document.getElementById("followersBtn");
-    const followingBtn = document.getElementById("followingBtn");
-
-    const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
-    const photoInput = document.getElementById("photoInput");
-
-    const spotifyEmbedEl = document.getElementById("spotifyEmbed");
-    const spotifyInput = document.getElementById("spotifyInput");
-
-    let uid = null;
-    let photoIndex = 0;
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = "login.html"; return; }
-
-      uid = user.uid;
-
-      const refUser = doc(db, "users", uid);
-      const snap = await getDoc(refUser);
-
-      if (!snap.exists()) {
-        await setDoc(refUser, { photos:["","","","","",""], followers:[], following:[] });
-      }
-
-      const dataSnap = await getDoc(refUser);
-      const d = dataSnap.data();
-
-      aliasEl.textContent = d.alias || "sin alias";
-      if (d.photoURL) avatarEl.src = d.photoURL;
-
-      followersBtn.textContent = `${d.followers?.length || 0} followers`;
-      followingBtn.textContent = `${d.following?.length || 0} following`;
-
-      followersBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=followers`;
-      followingBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=following`;
-
-      const photos = d.photos || ["","","","","",""];
-      photos.forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
-
-      if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
-    });
-
-    avatarEl.onclick = () => avatarInput.click();
-
-    avatarInput.onchange = async () => {
-      const file = avatarInput.files[0];
-      if (!file) return;
-
-      const storageRef = ref(storage, `avatars/${uid}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-
-      await updateDoc(doc(db, "users", uid), { photoURL: url });
-      avatarEl.src = url;
-    };
-
-    photoEls.forEach((el,i)=>{
-      el.onclick = () => { photoIndex = i; photoInput.click(); };
-    });
-
-    photoInput.onchange = async () => {
-      const file = photoInput.files[0];
-      if (!file) return;
-
-      const storageRef = ref(storage, `spaces/${uid}/${photoIndex}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-
-      const refUser = doc(db, "users", uid);
-      const snap = await getDoc(refUser);
-      const data = snap.data();
-
-      const photos = data.photos || ["","","","","",""];
-      photos[photoIndex] = url;
-
-      await updateDoc(refUser, { photos });
-      photoEls[photoIndex].src = url;
-    };
-
-    window.saveSpotify = async () => {
-      const embed = spotifyInput.value.trim();
-      if (!embed) return;
-
-      await updateDoc(doc(db, "users", uid), { spotifyEmbed: embed });
-      spotifyEmbedEl.innerHTML = embed;
-      spotifyInput.value = "";
-    };
-
-    window.logout = async () => {
-      await signOut(auth);
-      window.location.href = "login.html";
-    };
-
-    window.searchUser = async () => {
-      const alias = document.getElementById("searchInput").value.trim().toLowerCase();
-      if (!alias) return;
-
-      const q = query(collection(db, "users"), where("alias", "==", alias));
-      const snap = await getDocs(q);
-
-      if (snap.empty) {
-        alert("Usuario no encontrado");
-        return;
-      }
-
-      const userId = snap.docs[0].id;
-      window.location.href = `user.html?uid=${userId}`;
-    };
-  </script>
 </body>
 </html>
