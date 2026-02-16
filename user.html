@@ -180,6 +180,10 @@
     const params = new URLSearchParams(window.location.search);
     const viewedUid = params.get("uid");
 
+if (!viewedUid) {
+  window.location.href = "profile.html";
+}
+
     const avatarEl = document.getElementById("avatar");
     const aliasEl = document.getElementById("alias");
     const followersBtn = document.getElementById("followersBtn");
@@ -189,9 +193,6 @@
 
     const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
 
-    /* 🔎 BUSCAR */
-    import { collection, query, where, getDocs } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 window.searchUser = async () => {
   const alias = document.getElementById("searchInput").value.trim();
