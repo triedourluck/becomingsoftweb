@@ -263,32 +263,51 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const params = new URLSearchParams(window.location.search);
-let viewedUid = params.get("uid");
+onAuthStateChanged(auth, async (user) => {
+  const params = new URLSearchParams(window.location.search);
+  let viewedUid = params.get("uid");
 
-// si no viene uid, buscar por alias
-if (!viewedUid) {
-  const aliasParam = params.get("alias");
+  // si no viene uid, buscar por alias
+  if (!viewedUid) {
+    const aliasParam = params.get("alias");
 
-  if (aliasParam) {
-    const q = query(
-      collection(db, "users"),
-      where("alias", "==", aliasParam)
-    );
+    if (aliasParam) {
+      const q = query(
+        collection(db, "users"),
+        where("alias", "==", aliasParam)
+      );
 
-    const snap = await getDocs(q);
+      const snap = await getDocs(q);
 
-    if (!snap.empty) {
-      viewedUid = snap.docs[0].id;
+      if (!snap.empty) {
+        viewedUid = snap.docs[0].id;
+      }
     }
   }
-}
 
-// si aún no hay usuario → volver al perfil
-if (!viewedUid) {
-  window.location.href = "profile.html";
-}
+  // si aún no hay usuario → volver al perfil
+  if (!viewedUid) {
+    window.location.href = "profile.html";
+    return;
+  }
 
+  // 🔽 CARGAR DATOS DEL USUARIO
+  const snap = await getDoc(doc(db, "users", viewedUid));
+  if (!snap.exists()) return;
+
+  const d = snap.data();
+
+  aliasEl.textContent = d.alias || "...";
+  followersBtn.textContent = `${d.followers?.length || 0} followers`;
+  followingBtn.textContent = `${d.following?.length || 0} following`;
+
+  if (d.photoURL) avatarEl.src = d.photoURL;
+
+  const photos = d.photos || [];
+  photos.forEach((url, i) => {
+    if (url && photoEls[i]) photoEls[i].src = url;
+  });
+});
 window.searchUser = async () => {
   const alias = document.getElementById("searchInput").value.trim();
   if (!alias) return;
