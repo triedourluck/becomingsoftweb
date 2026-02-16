@@ -178,7 +178,19 @@
       if (d.photoURL) avatarEl.src = d.photoURL;
 
       const photos = d.photos || [];
-      photos.forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
+      /* orden móvil visual correcto */
+const ordered = [
+  photos[0], // p1 ⭐
+  photos[1], // p2 chica
+  photos[4], // LOTO arriba derecha
+  photos[3], // MONJE abajo izquierda
+  photos[2], // TEXTO centro abajo
+  photos[5]  // CAMA derecha abajo
+];
+
+ordered.forEach((url,i)=>{
+  if(url && photoEls[i]) photoEls[i].src = url;
+});
 
       if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
     });
