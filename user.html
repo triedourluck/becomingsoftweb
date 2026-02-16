@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>becomingsoft — perfil</title>
 
   <style>
@@ -19,28 +19,21 @@
     .stats { font-size:13px; color:#666; margin-top:4px; }
     .stats span { cursor:pointer; margin-right:12px; }
 
-    .follow-btn { margin-top:6px; padding:6px 12px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:13px; }
+    .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
 
-    /* layout */
-    .content { display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:24px; }
+    .left { display:flex; flex-direction:column; gap:16px; }
 
-    .photos { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
+    .spotify iframe { width:100%; border:none; border-radius:12px; }
+
+    .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
 
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; }
 
     .right { display:flex; flex-direction:column; gap:20px; }
 
-    .spotify iframe { width:100%; border:none; border-radius:12px; }
+    textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
 
-    .msg-box { border-top:1px solid #eee; padding-top:20px; }
-
-    textarea { width:100%; min-height:80px; border-radius:10px; border:1px solid #ddd; padding:10px; font-family:inherit; resize:none; margin-bottom:10px; }
-
-    .options { font-size:12px; color:#666; margin-bottom:10px; }
-
-    .send-btn { padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:13px; }
-
-    .back { margin-top:24px; font-size:13px; color:#666; cursor:pointer; text-decoration:underline; }
+    .btn { padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; width:max-content; }
   </style>
 </head>
 <body>
@@ -48,6 +41,7 @@
 
     <div class="top">
       <img id="avatar" class="avatar" />
+
       <div>
         <div class="alias" id="alias">...</div>
 
@@ -56,53 +50,34 @@
           <span id="followingBtn">0 following</span>
         </div>
 
-        <button id="followBtn" class="follow-btn" onclick="toggleFollow()">Follow</button>
+        <button id="followBtn" class="btn">Follow</button>
       </div>
     </div>
 
-    <div class="content">
+    <div class="layout">
+      <div class="left">
+        <div class="spotify" id="spotifyEmbed"></div>
 
-      <!-- fotos -->
-      <div class="photos">
-        <img id="p1" class="photo" />
-        <img id="p2" class="photo" />
-        <img id="p3" class="photo" />
-        <img id="p4" class="photo" />
-      </div>
-
-      <!-- derecha -->
-      <div class="right">
-
-        <!-- spotify embed -->
-        <div class="spotify" id="spotify"></div>
-
-        <!-- mensajes -->
-        <div class="msg-box">
-          <h4>Enviar mensaje</h4>
-
-          <textarea id="text" placeholder="Escribe algo suave…"></textarea>
-
-          <div class="options">
-            <label>
-              <input type="checkbox" id="anon" />
-              Enviar como anónimo
-            </label>
-          </div>
-
-          <button class="send-btn" onclick="sendMsg()">Enviar</button>
+        <div class="photos">
+          <img id="p1" class="photo" />
+          <img id="p2" class="photo" />
+          <img id="p3" class="photo" />
+          <img id="p4" class="photo" />
         </div>
-
       </div>
 
+      <div class="right">
+        <h3>Enviar mensaje</h3>
+        <textarea placeholder="Escribe algo suave..."></textarea>
+      </div>
     </div>
 
-    <div class="back" onclick="goBack()">Volver</div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -119,92 +94,63 @@
     const db = getFirestore(app);
 
     const params = new URLSearchParams(window.location.search);
-    const targetUid = params.get("uid");
+    const viewedUid = params.get("uid");
 
-    const aliasEl = document.getElementById("alias");
     const avatarEl = document.getElementById("avatar");
-    const followBtn = document.getElementById("followBtn");
+    const aliasEl = document.getElementById("alias");
     const followersBtn = document.getElementById("followersBtn");
     const followingBtn = document.getElementById("followingBtn");
-    const spotifyEl = document.getElementById("spotify");
-
+    const followBtn = document.getElementById("followBtn");
+    const spotifyEmbedEl = document.getElementById("spotifyEmbed");
     const photoEls = ["p1","p2","p3","p4"].map(id => document.getElementById(id));
 
-    let currentUid = null;
-    let currentAlias = null;
-    let isFollowing = false;
+    let myUid = null;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "login.html"; return; }
 
-      currentUid = user.uid;
+      myUid = user.uid;
 
-      const [targetSnap, currentSnap] = await Promise.all([
-        getDoc(doc(db, "users", targetUid)),
-        getDoc(doc(db, "users", currentUid))
-      ]);
-
-      if (targetSnap.exists()) {
-        const d = targetSnap.data();
-        aliasEl.textContent = d.alias;
-        if (d.photoURL) avatarEl.src = d.photoURL;
-
-        followersBtn.textContent = `${d.followers?.length || 0} followers`;
-        followingBtn.textContent = `${d.following?.length || 0} following`;
-
-        if (d.photos) d.photos.forEach((url,i)=>{ if(photoEls[i]) photoEls[i].src = url; });
-
-        // spotify embed guardado en perfil
-        if (d.spotifyEmbed) {
-          spotifyEl.innerHTML = d.spotifyEmbed;
-        }
+      // 🔥 SI ESTÁS INTENTANDO VER TU PROPIO PERFIL → REDIRIGE A profile.html
+      if (viewedUid === myUid) {
+        window.location.href = "profile.html";
+        return;
       }
 
-      if (currentSnap.exists()) {
-        const d = currentSnap.data();
-        currentAlias = d.alias;
-        isFollowing = d.following?.includes(targetUid);
-        followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-      }
+      const refUser = doc(db, "users", viewedUid);
+      const snap = await getDoc(refUser);
+      if (!snap.exists()) return;
+
+      const d = snap.data();
+
+      aliasEl.textContent = d.alias || "sin alias";
+      if (d.photoURL) avatarEl.src = d.photoURL;
+
+      followersBtn.textContent = `${d.followers?.length || 0} followers`;
+      followingBtn.textContent = `${d.following?.length || 0} following`;
+
+      followersBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=followers`;
+      followingBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=following`;
+
+      if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
+
+      const photos = d.photos || [];
+      photos.forEach((url,i)=>{ if(url) photoEls[i].src = url; });
+
+      // follow logic simple
+      followBtn.onclick = async () => {
+        const myRef = doc(db, "users", myUid);
+        const mySnap = await getDoc(myRef);
+        const myData = mySnap.data();
+
+        if (myData.following?.includes(viewedUid)) return;
+
+        await updateDoc(myRef, { following: [...(myData.following||[]), viewedUid] });
+        await updateDoc(refUser, { followers: [...(d.followers||[]), myUid] });
+
+        location.reload();
+      };
     });
-
-    followersBtn.onclick = () => window.location.href = `list.html?uid=${targetUid}&type=followers`;
-    followingBtn.onclick = () => window.location.href = `list.html?uid=${targetUid}&type=following`;
-
-    window.toggleFollow = async () => {
-      const currentRef = doc(db, "users", currentUid);
-      const targetRef = doc(db, "users", targetUid);
-
-      if (isFollowing) {
-        await updateDoc(currentRef, { following: arrayRemove(targetUid) });
-        await updateDoc(targetRef, { followers: arrayRemove(currentUid) });
-        isFollowing = false;
-      } else {
-        await updateDoc(currentRef, { following: arrayUnion(targetUid) });
-        await updateDoc(targetRef, { followers: arrayUnion(currentUid) });
-        isFollowing = true;
-      }
-
-      followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-    };
-
-    window.sendMsg = async () => {
-      const text = document.getElementById("text").value.trim();
-      const anon = document.getElementById("anon").checked;
-      if (!text) return;
-
-      await addDoc(collection(db, "messages"), {
-        to: targetUid,
-        text,
-        fromAlias: anon ? null : currentAlias,
-        createdAt: serverTimestamp()
-      });
-
-      document.getElementById("text").value = "";
-      alert("Mensaje enviado 🌷");
-    };
-
-    window.goBack = () => window.history.back();
   </script>
 </body>
 </html>
