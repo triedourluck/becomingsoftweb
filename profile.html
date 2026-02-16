@@ -47,18 +47,19 @@
   .photos {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+    grid-template-areas:
+      "p1 p2 p5"
+      "p6 p3 p4";
   }
 
   .photo { height:120px; }
 
-  /* 🔥 ORDEN EXACTO PEDIDO */
-  #p1 { grid-area: 1 / 1; }
-  #p2 { grid-area: 1 / 2; }
-  #p5 { grid-area: 1 / 3; } /* LOTO */
-
-  #p6 { grid-area: 2 / 1; } /* MONJE */
-  #p3 { grid-area: 2 / 2; } /* TEXTO */
-  #p4 { grid-area: 2 / 3; } /* CAMA */
+  #p1 { grid-area: p1; }
+  #p2 { grid-area: p2; }
+  #p3 { grid-area: p3; }
+  #p4 { grid-area: p4; }
+  #p5 { grid-area: p5; }
+  #p6 { grid-area: p6; }
 
   .right { order:2; }
   .spotify { order:3; }
