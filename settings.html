@@ -128,7 +128,14 @@
 
     <label>Imagen de fondo</label>
     <input type="file" id="bgImageInput" accept="image/*" />
-
+    
+<!-- permitir mensajes anónimos -->
+<label>Permitir mensajes anónimos</label>
+<label style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+  <input type="checkbox" id="allowAnonToggle" />
+  Activar / desactivar mensajes anónimos
+</label>
+    
     <button class="btn" onclick="saveTheme()">Guardar cambios</button>
 
     <!-- 🔥 eliminar cuenta ahora dentro del mismo recuadro -->
@@ -176,7 +183,8 @@
     const textColorEl = document.getElementById("textColor");
     const buttonColorEl = document.getElementById("buttonColor");
     const bgImageInput = document.getElementById("bgImageInput");
-
+    const allowAnonToggle = document.getElementById("allowAnonToggle");
+    
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = "login.html";
@@ -189,6 +197,7 @@
       const data = snap.data();
 
       if (data?.theme) {
+        allowAnonToggle.checked = data.allowAnonymous ?? true;
         bgColorEl.value = data.theme.bgColor || "";
         cardColorEl.value = data.theme.cardColor || "";
         textColorEl.value = data.theme.textColor || "";
@@ -214,7 +223,10 @@
 
       if (bgImageURL) theme.bgImage = bgImageURL;
 
-      await updateDoc(doc(db, "users", uid), { theme });
+      await updateDoc(doc(db, "users", uid), {
+  theme,
+  allowAnonymous: allowAnonToggle.checked
+});
 
       alert("Cambios guardados 🌿");
     };
