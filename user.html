@@ -8,7 +8,7 @@
   <style>
     body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
 
-    .container { max-width:700px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
+    .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
 
     .top { display:flex; gap:20px; align-items:center; }
 
@@ -21,9 +21,20 @@
 
     .follow-btn { margin-top:6px; padding:6px 12px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:13px; }
 
-    .space { margin-top:24px; }
+    /* 🔥 NUEVO LAYOUT EN DOS COLUMNAS */
+    .content { display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:24px; }
 
-    .msg-box { margin-top:24px; border-top:1px solid #eee; padding-top:20px; }
+    .photos { display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; }
+
+    .photo {
+      width:100%;
+      height:140px;
+      background:#eee;
+      border-radius:12px;
+      object-fit:cover;
+    }
+
+    .msg-box { border-top:1px solid #eee; padding-top:20px; }
 
     textarea { width:100%; min-height:80px; border-radius:10px; border:1px solid #ddd; padding:10px; font-family:inherit; resize:none; margin-bottom:10px; }
 
@@ -31,7 +42,7 @@
 
     .send-btn { padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:13px; }
 
-    .back { margin-top:20px; font-size:13px; color:#666; cursor:pointer; text-decoration:underline; }
+    .back { margin-top:24px; font-size:13px; color:#666; cursor:pointer; text-decoration:underline; }
   </style>
 </head>
 <body>
@@ -51,23 +62,31 @@
       </div>
     </div>
 
-    <div class="space">
-      <h3 id="spaceName">tu espacio</h3>
-    </div>
+    <!-- 🔥 DOS MITADES: FOTOS + MENSAJE -->
+    <div class="content">
 
-    <div class="msg-box">
-      <h4>Enviar mensaje</h4>
-
-      <textarea id="text" placeholder="Escribe algo suave…"></textarea>
-
-      <div class="options">
-        <label>
-          <input type="checkbox" id="anon" />
-          Enviar como anónimo
-        </label>
+      <div class="photos">
+        <img id="p1" class="photo" />
+        <img id="p2" class="photo" />
+        <img id="p3" class="photo" />
+        <img id="p4" class="photo" />
       </div>
 
-      <button class="send-btn" onclick="sendMsg()">Enviar</button>
+      <div class="msg-box">
+        <h4>Enviar mensaje</h4>
+
+        <textarea id="text" placeholder="Escribe algo suave…"></textarea>
+
+        <div class="options">
+          <label>
+            <input type="checkbox" id="anon" />
+            Enviar como anónimo
+          </label>
+        </div>
+
+        <button class="send-btn" onclick="sendMsg()">Enviar</button>
+      </div>
+
     </div>
 
     <div class="back" onclick="goBack()">Volver</div>
@@ -99,21 +118,19 @@
     const targetUid = params.get("uid");
 
     const aliasEl = document.getElementById("alias");
-    const spaceEl = document.getElementById("spaceName");
     const avatarEl = document.getElementById("avatar");
     const followBtn = document.getElementById("followBtn");
     const followersBtn = document.getElementById("followersBtn");
     const followingBtn = document.getElementById("followingBtn");
+
+    const photoEls = ["p1","p2","p3","p4"].map(id => document.getElementById(id));
 
     let currentUid = null;
     let currentAlias = null;
     let isFollowing = false;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+      if (!user) { window.location.href = "login.html"; return; }
 
       currentUid = user.uid;
 
@@ -125,11 +142,16 @@
       if (targetSnap.exists()) {
         const d = targetSnap.data();
         aliasEl.textContent = d.alias;
-        spaceEl.textContent = d.spaceName || "tu espacio";
         if (d.photoURL) avatarEl.src = d.photoURL;
 
         followersBtn.textContent = `${d.followers?.length || 0} followers`;
         followingBtn.textContent = `${d.following?.length || 0} following`;
+
+        if (d.photos) {
+          d.photos.forEach((url, i) => {
+            if (photoEls[i]) photoEls[i].src = url;
+          });
+        }
       }
 
       if (currentSnap.exists()) {
@@ -140,7 +162,6 @@
       }
     });
 
-    // 🔥 REDIRECCIÓN A list.html
     followersBtn.onclick = () =>
       window.location.href = `list.html?uid=${targetUid}&type=followers`;
 
