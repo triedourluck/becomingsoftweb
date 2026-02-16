@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>becomingsoft — wall</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      position: relative;
+    }
+
+    /* buscador */
+    .search {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .search input {
+      width: 160px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+    .search button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      cursor: pointer;
+    }
+
+    .top {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #ddd;
+      object-fit: cover;
+    }
+
+    .alias {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .wall {
+      margin-top: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .post {
+      border: 1px solid #eee;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fafafa;
+    }
+
+    .question {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .response {
+      font-size: 14px;
+      color: #444;
+      padding-top: 8px;
+      border-top: 1px dashed #ddd;
+      margin-top: 8px;
+    }
+
+    .empty {
+      text-align: center;
+      font-size: 13px;
+      color: #999;
+      margin-top: 40px;
+    }
+
+    /* mobile */
+    @media (max-width: 700px) {
+      .container {
+        margin: 0;
+        border-radius: 0;
+      }
+
+      .avatar {
+        width: 60px;
+        height: 60px;
+      }
+
+      .alias {
+        font-size: 18px;
+      }
+
+      .search {
+        top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- buscador -->
+    <div class="search">
+      <input id="searchInput" placeholder="buscar usuario" />
+      <button onclick="searchUser()">ir</button>
+    </div>
+
+    <!-- perfil arriba -->
+    <div class="top">
+      <img id="avatar" class="avatar" />
+      <div id="alias" class="alias">...</div>
+    </div>
+
+    <!-- muro de mensajes publicados -->
+    <div id="wall" class="wall"></div>
+
+    <div id="empty" class="empty" style="display:none;">
+      Aún no hay mensajes publicados 🌙
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+      getFirestore, collection, query, where, orderBy, getDocs,
+      doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const wallEl = document.getElementById("wall");
+    const emptyEl = document.getElementById("empty");
+    const avatarEl = document.getElementById("avatar");
+    const aliasEl = document.getElementById("alias");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // cargar datos del perfil
+      const userSnap = await getDoc(doc(db, "users", user.uid));
+      const userData = userSnap.data();
+
+      aliasEl.textContent = userData?.alias || "sin alias";
+      if (userData?.photoURL) avatarEl.src = userData.photoURL;
+
+      // traer SOLO mensajes publicados
+      const q = query(
+        collection(db, "messages"),
+        where("to", "==", user.uid),
+        where("published", "==", true),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        emptyEl.style.display = "block";
+        return;
+      }
+
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+
+        const div = document.createElement("div");
+        div.className = "post";
+        div.innerHTML = `
+          <div class="question">${data.text}</div>
+          ${data.response ? `<div class="response">${data.response}</div>` : ""}
+        `;
+
+        wallEl.appendChild(div);
+      });
+    });
+
+    // buscador
+    window.searchUser = async () => {
+      const alias = document.getElementById("searchInput").value.trim();
+      if (!alias) return;
+
+      const q = query(collection(db, "users"), where("alias", "==", alias));
+      const snap = await getDocs(q);
+
+      if (snap.empty) return alert("usuario no encontrado");
+
+      window.location.href = `user.html?uid=${snap.docs[0].id}`;
+    };
+
+    // enter para buscar
+    document.getElementById("searchInput").addEventListener("keydown", e => {
+      if (e.key === "Enter") searchUser();
+    });
+  </script>
+</body>
+</html>
