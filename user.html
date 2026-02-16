@@ -178,7 +178,17 @@
     const db = getFirestore(app);
 
     const params = new URLSearchParams(window.location.search);
-    const viewedUid = params.get("uid");
+    let viewedUid = params.get("uid");
+const aliasParam = params.get("alias");
+
+if (!viewedUid && aliasParam) {
+  const q = query(collection(db, "users"), where("alias", "==", aliasParam));
+  const snap = await getDocs(q);
+
+  if (!snap.empty) {
+    viewedUid = snap.docs[0].id;
+  }
+}
 
 if (!viewedUid) {
   window.location.href = "profile.html";
