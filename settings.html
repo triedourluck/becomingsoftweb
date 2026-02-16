@@ -73,6 +73,39 @@
       cursor:pointer;
       text-align:center;
     }
+
+    /* 🔥 zona peligrosa dentro del mismo card */
+    .danger-zone{
+      margin-top:30px;
+      padding:20px;
+      border-radius:12px;
+      background:#fff5f5;
+      border:1px solid #ffd6d6;
+    }
+
+    .danger-zone h3{
+      margin:0 0 10px 0;
+      color:#b00020;
+      font-size:16px;
+    }
+
+    .danger-zone p{
+      font-size:13px;
+      color:#555;
+      line-height:1.4;
+    }
+
+    .delete-btn{
+      margin-top:12px;
+      padding:10px 16px;
+      border:none;
+      border-radius:10px;
+      background:#b00020;
+      color:white;
+      cursor:pointer;
+      font-size:14px;
+      width:100%;
+    }
   </style>
 </head>
 <body>
@@ -98,67 +131,28 @@
 
     <button class="btn" onclick="saveTheme()">Guardar cambios</button>
 
+    <!-- 🔥 eliminar cuenta ahora dentro del mismo recuadro -->
+    <div class="danger-zone">
+      <h3>Eliminar cuenta</h3>
+
+      <p>
+        Esta acción eliminará permanentemente tu cuenta, fotos, alias y todos tus datos.
+        <br><br>
+        <strong>No se puede deshacer ni recuperar.</strong>
+      </p>
+
+      <button class="delete-btn" onclick="deleteAccount()">
+        Eliminar mi cuenta
+      </button>
+    </div>
+
     <div class="back" onclick="goBack()">Volver al perfil</div>
   </div>
 
-<!-- 🔥 ZONA PELIGROSA -->
-<div class="danger-zone">
-  <h3>Eliminar cuenta</h3>
-
-  <p class="warning">
-    Esta acción eliminará permanentemente tu cuenta, fotos, alias y todos tus datos.
-    <br><br>
-    <strong>No se puede deshacer ni recuperar.</strong>
-  </p>
-
-  <button class="delete-btn" onclick="deleteAccount()">
-    Eliminar mi cuenta
-  </button>
-</div>
-
   <script type="module">
-  import { getAuth, deleteUser } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-  import { deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-window.deleteAccount = async () => {
-  const user = auth.currentUser;
-  if (!user) return alert("No hay sesión activa");
-
-  // ⚠️ PRIMERA CONFIRMACIÓN
-  const confirm1 = confirm(
-    "¿Estás segura de que quieres eliminar tu cuenta?\n\nEsta acción es PERMANENTE."
-  );
-  if (!confirm1) return;
-
-  // ⚠️ SEGUNDA CONFIRMACIÓN (definitiva)
-  const confirm2 = confirm(
-    "Última confirmación:\n\nTu cuenta, fotos, alias y datos serán eliminados para siempre.\n\nNo podrás recuperarlos."
-  );
-  if (!confirm2) return;
-
-  try {
-    // 1️⃣ borrar documento en Firestore
-    await deleteDoc(doc(db, "users", user.uid));
-
-    // 2️⃣ borrar usuario en Auth
-    await deleteUser(user);
-
-    alert("Cuenta eliminada definitivamente.");
-    window.location.href = "index.html";
-  } catch (err) {
-    console.error(err);
-
-    if (err.code === "auth/requires-recent-login") {
-      alert("Por seguridad, vuelve a iniciar sesión antes de eliminar tu cuenta.");
-      window.location.href = "login.html";
-    } else {
-      alert("Error al eliminar la cuenta.");
-    }
-  }
-};
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
     const firebaseConfig = {
@@ -227,6 +221,34 @@ window.deleteAccount = async () => {
 
     window.goBack = () => {
       window.location.href = "profile.html";
+    };
+
+    window.deleteAccount = async () => {
+      const user = auth.currentUser;
+      if (!user) return alert("No hay sesión activa");
+
+      const confirm1 = confirm("¿Estás segura de que quieres eliminar tu cuenta? Esta acción es permanente.");
+      if (!confirm1) return;
+
+      const confirm2 = confirm(
+        "Última confirmación:\n\nTu cuenta y todos tus datos serán eliminados para siempre.\n\nNo podrás recuperarlos."
+      );
+      if (!confirm2) return;
+
+      try {
+        await deleteDoc(doc(db, "users", user.uid));
+        await deleteUser(user);
+
+        alert("Cuenta eliminada definitivamente.");
+        window.location.href = "index.html";
+      } catch (err) {
+        if (err.code === "auth/requires-recent-login") {
+          alert("Por seguridad, vuelve a iniciar sesión antes de eliminar tu cuenta.");
+          window.location.href = "login.html";
+        } else {
+          alert("Error al eliminar la cuenta: " + err.message);
+        }
+      }
     };
   </script>
 </body>
