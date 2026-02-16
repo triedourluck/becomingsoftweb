@@ -176,46 +176,50 @@
     const aliasEl = document.getElementById("alias");
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
 
-      // cargar datos del perfil
-      const userSnap = await getDoc(doc(db, "users", user.uid));
-      const userData = userSnap.data();
+  // 🔎 detectar qué wall mostrar
+  const params = new URLSearchParams(window.location.search);
+  const viewedUid = params.get("uid") || user.uid;
 
-      aliasEl.textContent = userData?.alias || "sin alias";
-      if (userData?.photoURL) avatarEl.src = userData.photoURL;
+  // cargar datos del perfil
+  const userSnap = await getDoc(doc(db, "users", viewedUid));
+  const userData = userSnap.data();
 
-      // traer SOLO mensajes publicados
-      const q = query(
-        collection(db, "messages"),
-        where("to", "==", user.uid),
-        where("published", "==", true),
-        orderBy("createdAt", "desc")
-      );
+  aliasEl.textContent = userData?.alias || "sin alias";
+  if (userData?.photoURL) avatarEl.src = userData.photoURL;
 
-      const snap = await getDocs(q);
+  // traer SOLO mensajes publicados de ese usuario
+  const q = query(
+    collection(db, "messages"),
+    where("to", "==", viewedUid),
+    where("published", "==", true),
+    orderBy("createdAt", "desc")
+  );
 
-      if (snap.empty) {
-        emptyEl.style.display = "block";
-        return;
-      }
+  const snap = await getDocs(q);
 
-      snap.forEach(docSnap => {
-        const data = docSnap.data();
+  if (snap.empty) {
+    emptyEl.style.display = "block";
+    return;
+  }
 
-        const div = document.createElement("div");
-        div.className = "post";
-        div.innerHTML = `
-          <div class="question">${data.text}</div>
-          ${data.response ? `<div class="response">${data.response}</div>` : ""}
-        `;
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
 
-        wallEl.appendChild(div);
-      });
-    });
+    const div = document.createElement("div");
+    div.className = "post";
+    div.innerHTML = `
+      <div class="question">${data.text}</div>
+      ${data.response ? `<div class="response">${data.response}</div>` : ""}
+    `;
+
+    wallEl.appendChild(div);
+  });
+});
 
     // buscador
     window.searchUser = async () => {
