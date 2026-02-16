@@ -151,6 +151,35 @@
 
       .right{ order:2; }
     }
+    /* opciones de envío */
+.send-options{
+  width:100%;
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+/* radios */
+.send-options label{
+  font-size:13px;
+  color:#555;
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+/* botón enviar */
+.send-btn{
+  padding:8px 14px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+}
   </style>
 </head>
 
@@ -214,12 +243,11 @@
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, updateDoc,
   arrayUnion, arrayRemove,
-  collection, query, where, getDocs
+  collection, query, where, getDocs,
+  addDoc, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
