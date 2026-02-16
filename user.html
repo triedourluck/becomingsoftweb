@@ -19,9 +19,15 @@
     .stats { font-size:13px; color:#666; margin-top:4px; }
     .stats span { cursor:pointer; margin-right:12px; }
 
+    .follow { margin-top:8px; padding:6px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
+
+    .back { margin-bottom:16px; font-size:13px; color:#666; cursor:pointer; text-decoration:underline; }
+
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
 
     .left { display:flex; flex-direction:column; gap:16px; }
+
+    .spotify iframe { width:100%; border:none; border-radius:12px; }
 
     .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
 
@@ -29,13 +35,15 @@
 
     .right { display:flex; flex-direction:column; gap:20px; }
 
-    .spotify iframe { width:100%; border:none; border-radius:12px; }
-
     textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
+
+    .send { padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
   </style>
 </head>
 <body>
   <div class="container">
+
+    <div class="back" onclick="history.back()">Volver</div>
 
     <div class="top">
       <img id="avatar" class="avatar" />
@@ -47,13 +55,16 @@
           <span id="followersBtn">0 followers</span>
           <span id="followingBtn">0 following</span>
         </div>
+
+        <button id="followBtn" class="follow"></button>
       </div>
     </div>
 
     <div class="layout">
 
-      <!-- IZQUIERDA: 6 FOTOS -->
       <div class="left">
+        <div class="spotify" id="spotifyEmbed"></div>
+
         <div class="photos">
           <img id="p1" class="photo" />
           <img id="p2" class="photo" />
@@ -64,14 +75,10 @@
         </div>
       </div>
 
-      <!-- DERECHA: SPOTIFY ARRIBA + MENSAJE ABAJO -->
-      <div class="right">
-        <div id="spotifyEmbed" class="spotify"></div>
-
-        <div>
-          <h3>Enviar mensaje</h3>
-          <textarea placeholder="Escribe algo suave..."></textarea>
-        </div>
+      <div class="right" id="messageBox">
+        <h3>Enviar mensaje</h3>
+        <textarea id="msg" placeholder="Escribe algo suave..."></textarea>
+        <button class="send" onclick="sendMsg()">Enviar</button>
       </div>
 
     </div>
@@ -80,7 +87,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -103,31 +110,95 @@
     const aliasEl = document.getElementById("alias");
     const followersBtn = document.getElementById("followersBtn");
     const followingBtn = document.getElementById("followingBtn");
-    const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
+    const followBtn = document.getElementById("followBtn");
+    const messageBox = document.getElementById("messageBox");
     const spotifyEmbedEl = document.getElementById("spotifyEmbed");
+
+    const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "login.html"; return; }
 
+      const myUid = user.uid;
+
       const snap = await getDoc(doc(db, "users", uid));
       if (!snap.exists()) return;
 
-      const d = snap.data();
+      const data = snap.data();
 
-      aliasEl.textContent = d.alias || "sin alias";
-      if (d.photoURL) avatarEl.src = d.photoURL;
+      aliasEl.textContent = data.alias || "sin alias";
+      if (data.photoURL) avatarEl.src = data.photoURL;
 
-      followersBtn.textContent = `${d.followers?.length || 0} followers`;
-      followingBtn.textContent = `${d.following?.length || 0} following`;
+      followersBtn.textContent = `${data.followers?.length || 0} followers`;
+      followingBtn.textContent = `${data.following?.length || 0} following`;
 
       followersBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=followers`;
       followingBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=following`;
 
-      const photos = d.photos || [];
+      const photos = data.photos || ["","","","","",""];
       photos.forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
 
-      if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
+      if (data.spotifyEmbed) spotifyEmbedEl.innerHTML = data.spotifyEmbed;
+
+      // lógica follow / mensaje
+      if (uid === myUid) {
+        followBtn.style.display = "none";
+        messageBox.style.display = "none";
+        return;
+      }
+
+      followBtn.style.display = "inline-block";
+      messageBox.style.display = "block";
+
+      const mySnap = await getDoc(doc(db, "users", myUid));
+      const myData = mySnap.data();
+
+      const isFollowing = myData.following?.includes(uid);
+      followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+
+      followBtn.onclick = async () => {
+        const myRef = doc(db, "users", myUid);
+        const otherRef = doc(db, "users", uid);
+
+        const mySnap2 = await getDoc(myRef);
+        const otherSnap2 = await getDoc(otherRef);
+
+        let myFollowing = mySnap2.data().following || [];
+        let otherFollowers = otherSnap2.data().followers || [];
+
+        if (myFollowing.includes(uid)) {
+          myFollowing = myFollowing.filter(id => id !== uid);
+          otherFollowers = otherFollowers.filter(id => id !== myUid);
+        } else {
+          myFollowing.push(uid);
+          otherFollowers.push(myUid);
+        }
+
+        await updateDoc(myRef, { following: myFollowing });
+        await updateDoc(otherRef, { followers: otherFollowers });
+
+        location.reload();
+      };
     });
+
+    window.sendMsg = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const text = document.getElementById("msg").value.trim();
+      if (!text) return;
+
+      await updateDoc(doc(db, "users", uid), {
+        inbox: arrayUnion({
+          text,
+          from: user.uid,
+          date: Date.now()
+        })
+      });
+
+      document.getElementById("msg").value = "";
+      alert("Mensaje enviado ✨");
+    };
   </script>
 </body>
 </html>
