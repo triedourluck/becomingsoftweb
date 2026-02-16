@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — perfil</title>
+  <title>becomingsoft — usuario</title>
 
   <style>
     body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
@@ -12,15 +12,16 @@
 
     .top { display:flex; gap:20px; align-items:center; }
 
-    .avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; background:#ddd; }
+    .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; }
 
     .alias { font-size:20px; font-weight:600; }
 
     .stats { font-size:13px; color:#666; margin-top:4px; }
+    .stats span { cursor:pointer; margin-right:12px; text-decoration:underline; }
+
+    .follow-btn { margin-top:8px; padding:6px 12px; border:none; border-radius:8px; background:#111; color:white; cursor:pointer; font-size:12px; }
 
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
-
-    .left { display:flex; flex-direction:column; gap:16px; }
 
     .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
 
@@ -30,41 +31,41 @@
 
     .spotify iframe { width:100%; border:none; border-radius:12px; }
 
-    textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
+    .send textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
 
-    .send { margin-top:8px; padding:8px 16px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
+    .send button { margin-top:8px; padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
 
-    .back { position:absolute; bottom:20px; left:24px; font-size:13px; color:#666; cursor:pointer; text-decoration:underline; }
+    .back { position:absolute; bottom:16px; left:20px; font-size:13px; text-decoration:underline; cursor:pointer; color:#666; }
 
-    .searchBox { position:fixed; right:24px; top:120px; background:white; padding:12px; border-radius:14px; box-shadow:0 8px 20px rgba(0,0,0,0.08); width:180px; }
-
-    .searchBox input { width:100%; padding:6px; border-radius:8px; border:1px solid #ddd; font-size:12px; }
-
-    .searchResult { font-size:12px; margin-top:6px; cursor:pointer; color:#333; }
+    .search { position:absolute; top:20px; right:20px; }
+    .search input { padding:8px 10px; border-radius:10px; border:1px solid #ddd; font-size:13px; }
   </style>
 </head>
 <body>
-
-  <div class="searchBox">
-    <input id="searchInput" placeholder="buscar usuario" />
-    <div id="searchResults"></div>
-  </div>
-
   <div class="container">
+
+    <div class="search">
+      <input id="searchInput" placeholder="Buscar usuario" />
+    </div>
 
     <div class="top">
       <img id="avatar" class="avatar" />
 
       <div>
         <div class="alias" id="alias">...</div>
-        <div class="stats" id="stats"></div>
-        <button id="followBtn" class="send" style="margin-top:8px; display:none;"></button>
+
+        <div class="stats">
+          <span id="followersBtn">0 followers</span>
+          <span id="followingBtn">0 following</span>
+        </div>
+
+        <button id="followBtn" class="follow-btn hidden">Follow</button>
       </div>
     </div>
 
     <div class="layout">
 
-      <div class="left">
+      <div>
         <div class="photos">
           <img id="p1" class="photo" />
           <img id="p2" class="photo" />
@@ -76,12 +77,12 @@
       </div>
 
       <div class="right">
-        <div id="spotify"></div>
+        <div class="spotify" id="spotifyEmbed"></div>
 
-        <div>
+        <div class="send">
           <h3>Enviar mensaje</h3>
-          <textarea id="msg"></textarea>
-          <button class="send" id="sendBtn">Enviar</button>
+          <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
+          <button id="sendBtn">Enviar</button>
         </div>
       </div>
 
@@ -93,7 +94,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -109,90 +110,105 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(window.location.search);
     const uid = params.get("uid");
 
     const aliasEl = document.getElementById("alias");
-    const statsEl = document.getElementById("stats");
+    const avatarEl = document.getElementById("avatar");
+    const followersBtn = document.getElementById("followersBtn");
+    const followingBtn = document.getElementById("followingBtn");
     const followBtn = document.getElementById("followBtn");
-    const spotifyEl = document.getElementById("spotify");
+    const spotifyEmbedEl = document.getElementById("spotifyEmbed");
+    const sendBtn = document.getElementById("sendBtn");
+    const msgInput = document.getElementById("msgInput");
 
-    const photos = ["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
+    const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
 
-    onAuthStateChanged(auth, async (user)=>{
-      if(!user) return location.href="login.html";
+    let myUid = null;
 
-      const myUid = user.uid;
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = "login.html"; return; }
 
-      // 🔴 CORRECCIÓN: si intento abrir mi propio perfil desde user.html
-      // redirigir al profile real
+      myUid = user.uid;
+
       if (uid === myUid) {
         window.location.href = "profile.html";
         return;
       }
 
-      const snap = await getDoc(doc(db,"users",uid));
-      if(!snap.exists()) return;
+      const snap = await getDoc(doc(db, "users", uid));
+      if (!snap.exists()) return;
 
       const data = snap.data();
 
       aliasEl.textContent = data.alias || "sin alias";
-      statsEl.textContent = `${data.followers?.length||0} followers · ${data.following?.length||0} following`;
+      if (data.photoURL) avatarEl.src = data.photoURL;
 
-      if(data.spotifyEmbed) spotifyEl.innerHTML = data.spotifyEmbed;
+      followersBtn.textContent = `${data.followers?.length || 0} followers`;
+      followingBtn.textContent = `${data.following?.length || 0} following`;
 
-      (data.photos||[]).forEach((url,i)=>{ if(url) photos[i].src=url; });
+      // 🔥 FIX: permitir navegar followers/following en CUALQUIER perfil
+      followersBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=followers`;
+      followingBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=following`;
 
-      followBtn.style.display="inline-block";
+      // follow state
+      const mySnap = await getDoc(doc(db, "users", myUid));
+      const myData = mySnap.data();
 
-      const isFollowing = (data.followers||[]).includes(myUid);
+      const isFollowing = myData.following?.includes(uid);
+
+      followBtn.classList.remove("hidden");
       followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
-      followBtn.onclick = async ()=>{
-        const myRef = doc(db,"users",myUid);
-        const otherRef = doc(db,"users",uid);
-
-        if(isFollowing){
-          await updateDoc(myRef,{ following: arrayRemove(uid) });
-          await updateDoc(otherRef,{ followers: arrayRemove(myUid) });
-          followBtn.textContent="Follow";
+      followBtn.onclick = async () => {
+        if (isFollowing) {
+          await updateDoc(doc(db, "users", myUid), { following: arrayRemove(uid) });
+          await updateDoc(doc(db, "users", uid), { followers: arrayRemove(myUid) });
+          followBtn.textContent = "Follow";
         } else {
-          await updateDoc(myRef,{ following: arrayUnion(uid) });
-          await updateDoc(otherRef,{ followers: arrayUnion(myUid) });
-          followBtn.textContent="Unfollow";
+          await updateDoc(doc(db, "users", myUid), { following: arrayUnion(uid) });
+          await updateDoc(doc(db, "users", uid), { followers: arrayUnion(myUid) });
+          followBtn.textContent = "Unfollow";
         }
+        location.reload();
       };
 
-      document.getElementById("sendBtn").onclick = async ()=>{
-        const text = document.getElementById("msg").value.trim();
-        if(!text) return;
+      const photos = data.photos || [];
+      photos.forEach((url,i)=>{ if(url) photoEls[i].src = url; });
 
-        const inboxRef = doc(db,"users",uid);
-        await updateDoc(inboxRef,{ inbox: arrayUnion({ text, from: myUid, date: Date.now() }) });
-        document.getElementById("msg").value="";
-      };
+      if (data.spotifyEmbed) spotifyEmbedEl.innerHTML = data.spotifyEmbed;
     });
 
-    const searchInput = document.getElementById("searchInput");
-    const searchResults = document.getElementById("searchResults");
+    // enviar mensaje
+    sendBtn.onclick = async () => {
+      const text = msgInput.value.trim();
+      if (!text) return;
 
-    searchInput.oninput = async ()=>{
-      const q = searchInput.value.trim();
-      searchResults.innerHTML="";
-      if(q.length<2) return;
-
-      const qs = query(collection(db,"users"), where("alias","==",q));
-      const snaps = await getDocs(qs);
-
-      snaps.forEach(docu=>{
-        const div = document.createElement("div");
-        div.className="searchResult";
-        div.textContent = "@" + docu.data().alias;
-        div.onclick = ()=> location.href = `user.html?uid=${docu.id}`;
-        searchResults.appendChild(div);
+      await addDoc(collection(db, "messages"), {
+        to: uid,
+        from: myUid,
+        text,
+        createdAt: Date.now()
       });
+
+      msgInput.value = "";
+      alert("Mensaje enviado 💌");
     };
+
+    // buscador simple
+    document.getElementById("searchInput").addEventListener("keydown", async (e) => {
+      if (e.key !== "Enter") return;
+
+      const value = e.target.value.trim().toLowerCase();
+      if (!value) return;
+
+      const snap = await getDocs(collection(db, "users"));
+      snap.forEach(docu => {
+        if (docu.data().alias?.toLowerCase() === value) {
+          window.location.href = `user.html?uid=${docu.id}`;
+        }
+      });
+    });
   </script>
 </body>
 </html>
-
