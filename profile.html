@@ -38,28 +38,28 @@
 
     .hidden { display:none; }
 
-    /* 📱 MOBILE */
-@media (max-width:700px) {
+    @media (max-width:700px) {
   .container { margin:0; border-radius:0; }
 
   .layout { grid-template-columns:1fr; }
 
+  /* GRID móvil 3x2 con posiciones exactas */
   .photos {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
     grid-template-areas:
       "p1 p2 p5"
-      "p6 p3 p4";
+      "p4 p3 p6";
   }
 
   .photo { height:120px; }
 
-  #p1 { grid-area: p1; }
-  #p2 { grid-area: p2; }
-  #p3 { grid-area: p3; }
-  #p4 { grid-area: p4; }
-  #p5 { grid-area: p5; }
-  #p6 { grid-area: p6; }
+  #p1 { grid-area:p1; }
+  #p2 { grid-area:p2; }
+  #p3 { grid-area:p3; } /* TEXTO */
+  #p4 { grid-area:p4; } /* MONJE */
+  #p5 { grid-area:p5; } /* LOTO */
+  #p6 { grid-area:p6; } /* CAMA */
 
   .right { order:2; }
   .spotify { order:3; }
