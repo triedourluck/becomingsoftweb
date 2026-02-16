@@ -194,16 +194,23 @@
     <div class="right">
 
       <div>
-        <h3>Envíame un mensaje</h3>
-        <textarea placeholder="Escribe algo suave..."></textarea>
-      </div>
+  <h3>Envíame un mensaje</h3>
 
-      <div id="spotifyEmbed" class="spotify"></div>
+  <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
-    </div>
+  <div class="send-options">
+    <label>
+      <input type="radio" name="who" value="anon" checked />
+      Anónimo
+    </label>
+
+    <label>
+      <input type="radio" name="who" value="alias" />
+      Con mi alias
+    </label>
+
+    <button class="send-btn" onclick="sendMessage()">Enviar</button>
   </div>
-
-  <div class="back" onclick="history.back()">Volver</div>
 </div>
 
 <script type="module">
