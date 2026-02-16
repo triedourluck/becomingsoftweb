@@ -39,7 +39,7 @@
     .hidden { display:none; }
 
     /* 📱 MOBILE */
-   @media (max-width:700px) {
+@media (max-width:700px) {
   .container { margin:0; border-radius:0; }
 
   .layout { grid-template-columns:1fr; }
@@ -48,9 +48,14 @@
   .photos { grid-template-columns:repeat(3,1fr); }
   .photo { height:120px; }
 
-  /* 🔄 CAMBIO VISUAL SOLO EN MÓVIL */
-  #p3 { order:4; }  /* monje baja */
-  #p4 { order:3; }  /* flor sube */
+  /* 🔄 ORDEN VISUAL REAL QUE QUIERES */
+  #p1 { order:1; }
+  #p2 { order:2; }
+  #p5 { order:3; } /* 🌸 loto arriba derecha */
+
+  #p4 { order:4; }
+  #p6 { order:5; } /* monje abajo centro */
+  #p3 { order:6; } /* texto baja */
 
   .right { order:2; }
   .spotify { order:3; }
