@@ -1,82 +1,151 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crear cuenta — becomingsoft</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>becomingsoft — crear cuenta</title>
 
-<style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f5f5f5;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
 
-.card{
-  background:white;
-  padding:40px;
-  border-radius:20px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  width:320px;
-  text-align:center;
-}
+    .card {
+      background: white;
+      padding: 40px 36px;
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      width: 320px;
+      text-align: center;
+    }
 
-h1{ margin:0; font-size:32px; }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
 
-.subtitle{
-  color:#777;
-  margin-bottom:30px;
-}
+    .subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+    }
 
-input{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  font-size:14px;
-}
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
 
-button{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  cursor:pointer;
-  background:#000;
-  color:white;
-}
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 14px;
+      background: #111;
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
 
-.link{
-  display:block;
-  margin-top:14px;
-  text-decoration:underline;
-  color:#444;
-  cursor:pointer;
-}
-</style>
+    .link {
+      display: block;
+      margin-top: 14px;
+      font-size: 14px;
+      color: #333;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #666;
+      min-height: 18px;
+    }
+  </style>
 </head>
-
 <body>
-<div class="card">
+  <div class="card">
+    <h1>becomingsoft</h1>
+    <div class="subtitle">a soft place to exist quietly</div>
 
-  <h1>becomingsoft</h1>
-  <div class="subtitle">a soft place to exist quietly</div>
+    <input id="alias" placeholder="Crea tu alias" />
+    <input id="email" placeholder="Tu email" type="email" />
+    <input id="password" placeholder="Crea tu contraseña" type="password" />
 
-  <input placeholder="Crea tu alias">
-  <input type="password" placeholder="Crea tu contraseña">
+    <button onclick="register()">Crear cuenta</button>
 
-  <button>Crear cuenta</button>
+    <span class="link" onclick="goHome()">Volver al inicio</span>
 
-  <div class="link" onclick="location.href='index.html'">
-    Volver al inicio
+    <div class="status" id="status"></div>
   </div>
 
-</div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
+      measurementId: "G-ZVBQBWYZ7M"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const statusEl = document.getElementById("status");
+
+    window.register = async () => {
+      const alias = document.getElementById("alias").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      if (!alias || !email || !password) {
+        statusEl.textContent = "Completa todos los campos";
+        return;
+      }
+
+      try {
+        statusEl.textContent = "Creando cuenta… 🌷";
+
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+        await setDoc(doc(db, "users", cred.user.uid), {
+          alias,
+          email,
+          followers: [],
+          following: [],
+          photos: ["", "", "", "", "", ""],
+          createdAt: Date.now()
+        });
+
+        window.location.href = "profile.html";
+      } catch (err) {
+        statusEl.textContent = "No se pudo crear la cuenta";
+        console.error(err);
+      }
+    };
+
+    window.goHome = () => {
+      window.location.href = "index.html";
+    };
+  </script>
 </body>
 </html>
