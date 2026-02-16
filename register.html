@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>becomingsoft — registro</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #111;
+    }
+
+    .card {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      width: 320px;
+      text-align: center;
+    }
+
+    h1 {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    p {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #111;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+
+    .msg {
+      margin-top: 12px;
+      font-size: 12px;
+    }
+
+    .back {
+      margin-top: 14px;
+      font-size: 12px;
+      color: #666;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>becomingsoft</h1>
+    <p>a soft place to exist quietly</p>
+
+    <input id="alias" placeholder="Crea tu alias" />
+    <input id="password" type="password" placeholder="Crea tu contraseña" />
+
+    <button onclick="register()">Crear cuenta</button>
+
+    <div class="msg" id="msg"></div>
+
+    <div class="back" onclick="goBack()">Volver al inicio</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
+      measurementId: "G-ZVBQBWYZ7M"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.register = async function () {
+      const alias = document.getElementById("alias").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msg = document.getElementById("msg");
+
+      if (!alias || !password) {
+        msg.textContent = "Completa todos los campos ✨";
+        return;
+      }
+
+      const fakeEmail = `${alias}@becomingsoft.com`;
+
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, fakeEmail, password);
+        const uid = userCred.user.uid;
+
+        await setDoc(doc(db, "users", uid), {
+          alias,
+          photoURL: "",
+          spaceName: "tu espacio",
+          followers: [],
+          following: [],
+          createdAt: new Date()
+        });
+
+        msg.textContent = "Cuenta creada 🌷";
+
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 900);
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+      }
+    };
+
+    window.goBack = function () {
+      window.location.href = "index.html";
+    };
+  </script>
+</body>
+</html>
