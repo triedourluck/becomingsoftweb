@@ -10,13 +10,7 @@
 
     .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
 
-    .top{
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-    }
-
-    .top-left{ display:flex; gap:20px; align-items:center; }
+    .top { display:flex; gap:20px; align-items:center; }
 
     .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; cursor:pointer; }
 
@@ -25,15 +19,7 @@
     .stats { font-size:13px; color:#666; margin-top:4px; }
     .stats span { cursor:pointer; margin-right:12px; }
 
-    .search-box input{
-      padding:8px 12px;
-      border-radius:10px;
-      border:1px solid #ddd;
-      font-size:13px;
-      width:160px;
-    }
-
-    .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
+    .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
 
     .left { display:flex; flex-direction:column; gap:16px; }
 
@@ -58,28 +44,22 @@
   <div class="container">
 
     <div class="top">
-      <div class="top-left">
-        <img id="avatar" class="avatar" />
-        <input type="file" id="avatarInput" class="hidden" accept="image/*" />
+      <img id="avatar" class="avatar" />
+      <input type="file" id="avatarInput" class="hidden" accept="image/*" />
 
-        <div>
-          <div class="alias" id="alias">...</div>
-          <div class="stats">
-            <span id="followersBtn">0 followers</span>
-            <span id="followingBtn">0 following</span>
-          </div>
+      <div>
+        <div class="alias" id="alias">...</div>
+
+        <div class="stats">
+          <span id="followersBtn">0 followers</span>
+          <span id="followingBtn">0 following</span>
         </div>
-      </div>
-
-      <!-- BUSCADOR -->
-      <div class="search-box">
-        <input id="searchInput" placeholder="buscar username…" />
       </div>
     </div>
 
     <div class="layout">
 
-      <!-- IZQUIERDA: FOTOS -->
+      <!-- IZQUIERDA: 6 FOTOS -->
       <div class="left">
         <div class="photos">
           <img id="p1" class="photo" />
@@ -92,7 +72,7 @@
         <input type="file" id="photoInput" class="hidden" accept="image/*" />
       </div>
 
-      <!-- DERECHA: SPOTIFY + MENSAJE -->
+      <!-- DERECHA -->
       <div class="right">
         <div class="spotify">
           <div id="spotifyEmbed"></div>
@@ -118,12 +98,13 @@
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSy...",
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
       authDomain: "becomingsoft-84e72.firebaseapp.com",
       projectId: "becomingsoft-84e72",
       storageBucket: "becomingsoft-84e72.firebasestorage.app",
       messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
+      measurementId: "G-ZVBQBWYZ7M"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -143,8 +124,6 @@
     const spotifyEmbedEl = document.getElementById("spotifyEmbed");
     const spotifyInput = document.getElementById("spotifyInput");
 
-    const searchInput = document.getElementById("searchInput");
-
     let uid = null;
     let photoIndex = 0;
 
@@ -157,7 +136,7 @@
       const snap = await getDoc(refUser);
 
       if (!snap.exists()) {
-        await setDoc(refUser, { photos:["","","","","",""], followers:[], following:[] });
+        await setDoc(refUser, { photos:["","","","",""], followers:[], following:[] });
       }
 
       const dataSnap = await getDoc(refUser);
@@ -173,7 +152,7 @@
       followingBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=following`;
 
       const photos = d.photos || ["","","","","",""];
-      photos.forEach((url,i)=>{ if(url) photoEls[i].src = url; });
+      photos.forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
 
       if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
     });
@@ -228,29 +207,6 @@
       await signOut(auth);
       window.location.href = "login.html";
     };
-
-    // 🔎 BUSCADOR
-    searchInput?.addEventListener("keydown", async (e) => {
-      if (e.key !== "Enter") return;
-
-      const alias = searchInput.value.trim().toLowerCase();
-      if (!alias) return;
-
-      const q = await getDoc(doc(db, "aliases", alias));
-
-      if (!q.exists()) {
-        alert("usuario no encontrado");
-        return;
-      }
-
-      const targetUid = q.data().uid;
-
-      if (targetUid === uid) {
-        window.location.href = "profile.html";
-      } else {
-        window.location.href = `user.html?uid=${targetUid}`;
-      }
-    });
   </script>
 </body>
 </html>
