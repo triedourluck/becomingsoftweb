@@ -8,52 +8,56 @@
   <style>
     body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
 
-    .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
+    .container { 
+      max-width:900px; 
+      margin:40px auto; 
+      background:white; 
+      border-radius:20px; 
+      padding:32px; 
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+      position:relative; /* ← necesario para que el buscador quede dentro */
+    }
 
-    /* BUSCADOR */
-    .search {
-  position:absolute;
-  top:20px;
-  right:24px;
-  display:flex;
-  gap:8px;
-  width:auto;
-}
-    .search input { flex:1; padding:10px; border-radius:12px; border:1px solid #ddd; }
-    .search button { padding:10px 16px; border:none; border-radius:12px; background:#111; color:white; cursor:pointer; }
+    /* BUSCADOR — ahora dentro del recuadro blanco */
+    .search { 
+      position:absolute;
+      top:24px;
+      right:24px;
+      display:flex; 
+      gap:10px; 
+    }
+
+    .search input { 
+      width:160px;
+      padding:10px; 
+      border-radius:12px; 
+      border:1px solid #ddd; 
+    }
+
+    .search button { 
+      padding:10px 16px; 
+      border:none; 
+      border-radius:12px; 
+      background:#111; 
+      color:white; 
+      cursor:pointer; 
+    }
 
     .top { display:flex; gap:20px; align-items:center; }
     .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; cursor:pointer; }
     .alias { font-size:20px; font-weight:600; }
+
     .stats { font-size:13px; color:#666; margin-top:4px; }
+
+    /* 👇 cursor correcto en followers/following */
+    #followersBtn, #followingBtn { cursor:pointer; }
 
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
 
-    /* ===== DESKTOP PHOTO ORDER ===== */
-    .photos {
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px;
-      grid-template-areas:
-        "p1 p2"
-        "p4 p3"
-        "p5 p6";
-    }
-
+    .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; cursor:pointer; }
 
-    #p1 { grid-area:p1; }
-    #p2 { grid-area:p2; }
-    #p3 { grid-area:p3; }
-    #p4 { grid-area:p4; }
-    #p5 { grid-area:p5; }
-    #p6 { grid-area:p6; }
-
     .right { display:flex; flex-direction:column; gap:20px; }
-
-    /* ===== DESKTOP ORDER: SPOTIFY ARRIBA, MENSAJE ABAJO ===== */
-    .spotify { order:1; }
-    .message { order:2; }
 
     textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
 
@@ -65,6 +69,22 @@
     .logout, .gear { padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
 
     .hidden { display:none; }
+
+    /* ===== DESKTOP: ORDEN VISUAL CORREGIDO ===== */
+    .photos {
+      grid-template-areas:
+        "p1 p2"
+        "p4 p5"
+        "p3 p6";
+    }
+
+    #p1 { grid-area:p1; }
+    #p2 { grid-area:p2; }
+    #p3 { grid-area:p3; }
+    #p4 { grid-area:p4; } /* monje */
+    #p5 { grid-area:p5; } /* flor */
+    #p6 { grid-area:p6; }
+
 
     /* 📱 MOBILE — NO CAMBIAR NADA */
     @media (max-width:700px) {
@@ -90,10 +110,15 @@
       #p6 { grid-area: p6; }
 
       .right { order:2; }
+      .spotify { order:3; }
 
-      /* en mobile: mensaje arriba, spotify abajo (como estaba) */
-      .message { order:1; }
-      .spotify { order:2; }
+      /* buscador vuelve a flujo normal en mobile */
+      .search {
+        position:static;
+        margin-bottom:20px;
+      }
+
+      .search input { width:100%; }
     }
   </style>
 </head>
@@ -138,15 +163,15 @@
       <!-- DERECHA -->
       <div class="right">
 
-        <!-- SPOTIFY -->
+        <!-- SPOTIFY ARRIBA EN DESKTOP -->
         <div class="spotify">
           <div id="spotifyEmbed"></div>
           <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify" />
           <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
         </div>
 
-        <!-- MENSAJE -->
-        <div class="message">
+        <!-- MENSAJE DEBAJO -->
+        <div>
           <h3>Envíame un mensaje</h3>
           <textarea placeholder="Escribe algo suave..."></textarea>
         </div>
@@ -221,8 +246,16 @@
       if (d.photoURL) avatarEl.src = d.photoURL;
 
       const photos = d.photos || [];
+      const ordered = [
+        photos[0],
+        photos[1],
+        photos[3], /* monje */
+        photos[4], /* flor */
+        photos[2],
+        photos[5]
+      ];
 
-      photos.forEach((url,i)=>{
+      ordered.forEach((url,i)=>{
         if(url && photoEls[i]) photoEls[i].src = url;
       });
 
