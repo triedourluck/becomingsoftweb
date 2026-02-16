@@ -6,180 +6,55 @@
   <title>Perfil</title>
 
   <style>
-    body{
-      margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      background:#f5f5f5;
-      color:#111;
-    }
+    body{margin:0;font-family:Arial, Helvetica, sans-serif;background:#f5f5f5;color:#111;}
 
-    .container{
-      max-width:900px;
-      margin:40px auto;
-      background:white;
-      border-radius:20px;
-      padding:32px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.08);
-    }
+    .container{max-width:900px;margin:40px auto;background:white;border-radius:20px;padding:32px;box-shadow:0 10px 30px rgba(0,0,0,0.08);}
 
-    .search{
-      display:flex;
-      gap:10px;
-      margin-bottom:20px;
-    }
+    .search{display:flex;gap:10px;margin-bottom:20px;}
 
-    .search input{
-      flex:1;
-      padding:10px;
-      border-radius:12px;
-      border:1px solid #ddd;
-    }
+    .search input{flex:1;padding:10px;border-radius:12px;border:1px solid #ddd;}
 
-    .search button{
-      padding:10px 16px;
-      border:none;
-      border-radius:12px;
-      background:#111;
-      color:white;
-      cursor:pointer;
-    }
+    .search button{padding:10px 16px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;}
 
-    .top{
-      display:flex;
-      gap:20px;
-      align-items:center;
-    }
+    .top{display:flex;gap:20px;align-items:center;}
 
-    .avatar{
-      width:80px;
-      height:80px;
-      border-radius:50%;
-      background:#ddd;
-      object-fit:cover;
-    }
+    .avatar{width:80px;height:80px;border-radius:50%;background:#ddd;object-fit:cover;}
 
     .alias{ font-size:20px; font-weight:600; }
 
     .stats{ font-size:13px; color:#666; margin-top:4px; }
 
-    .follow-btn{
-      margin-top:8px;
-      padding:8px 14px;
-      border:none;
-      border-radius:10px;
-      background:#111;
-      color:white;
-      cursor:pointer;
-      font-size:13px;
-    }
+    .follow-btn{margin-top:8px;padding:8px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:13px;}
 
-    .layout{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:24px;
-      margin-top:24px;
-      align-items:start;
-    }
+    .layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;align-items:start;}
 
-    .photos{
-      display:grid;
-      grid-template-columns:repeat(2,1fr);
-      gap:12px;
-    }
+    .photos{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
 
-    .photo{
-      width:100%;
-      height:140px;
-      background:#eee;
-      border-radius:12px;
-      object-fit:cover;
-    }
+    .photo{width:100%;height:140px;background:#eee;border-radius:12px;object-fit:cover;}
 
-    .right{
-      display:flex;
-      flex-direction:column;
-      gap:20px;
-    }
+    .right{display:flex;flex-direction:column;gap:20px;}
 
-    textarea{
-      width:100%;
-      height:120px;
-      border-radius:12px;
-      border:1px solid #ddd;
-      padding:10px;
-    }
+    textarea{width:100%;height:120px;border-radius:12px;border:1px solid #ddd;padding:10px;box-sizing:border-box;}
 
-    .spotify iframe{
-      width:100%;
-      border:none;
-      border-radius:12px;
-    }
+    .send-options{width:100%;margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
 
-    .back{
-      margin-top:24px;
-      font-size:13px;
-      color:#666;
-      cursor:pointer;
-    }
+    .send-options label{font-size:13px;color:#555;display:flex;align-items:center;gap:4px;}
+
+    .send-btn{padding:8px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:13px;}
 
     @media (max-width:700px){
-
-      .container{
-        margin:0;
-        border-radius:0;
-      }
-
-      .layout{
-        grid-template-columns:1fr;
-      }
-
-      .photos{
-        grid-template-columns:repeat(3,1fr);
-      }
-
-      .photo{
-        height:120px;
-      }
-
+      .container{margin:0;border-radius:0;}
+      .layout{grid-template-columns:1fr;}
+      .photos{grid-template-columns:repeat(3,1fr);}      
+      .photo{height:120px;}
       #p1{ order:1; }
       #p2{ order:2; }
       #p5{ order:3; }
-
       #p6{ order:4; }
       #p3{ order:5; }
       #p4{ order:6; }
-
       .right{ order:2; }
     }
-    /* opciones de envío */
-.send-options{
-  width:100%;
-  margin-top:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-}
-
-/* radios */
-.send-options label{
-  font-size:13px;
-  color:#555;
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
-
-/* botón enviar */
-.send-btn{
-  padding:8px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:13px;
-}
   </style>
 </head>
 
@@ -199,7 +74,6 @@
     <div>
       <div id="alias" class="alias">...</div>
 
-      <!-- 👇 AHORA CLICKEABLE -->
       <div class="stats">
         <span id="followersBtn" style="cursor:pointer">0 followers</span> ·
         <span id="followingBtn" style="cursor:pointer">0 following</span>
@@ -223,26 +97,32 @@
     <div class="right">
 
       <div>
-  <h3>Envíame un mensaje</h3>
+        <h3>Envíame un mensaje</h3>
 
-  <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
+        <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
-  <div class="send-options">
-    <label>
-      <input type="radio" name="who" value="anon" checked />
-      Anónimo
-    </label>
+        <div class="send-options">
+          <label>
+            <input type="radio" name="who" value="anon" checked />
+            Anónimo
+          </label>
 
-    <label>
-      <input type="radio" name="who" value="alias" />
-      Con mi alias
-    </label>
+          <label>
+            <input type="radio" name="who" value="alias" />
+            Con mi alias
+          </label>
 
-    <button class="send-btn" onclick="sendMessage()">Enviar</button>
+          <button class="send-btn" id="sendBtn">Enviar</button>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
 <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, updateDoc,
   arrayUnion, arrayRemove,
@@ -263,73 +143,33 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-onAuthStateChanged(auth, async (user) => {
-  const params = new URLSearchParams(window.location.search);
-  let viewedUid = params.get("uid");
-
-  // si no viene uid, buscar por alias
-  if (!viewedUid) {
-    const aliasParam = params.get("alias");
-
-    if (aliasParam) {
-      const q = query(
-        collection(db, "users"),
-        where("alias", "==", aliasParam)
-      );
-
-      const snap = await getDocs(q);
-
-      if (!snap.empty) {
-        viewedUid = snap.docs[0].id;
-      }
-    }
-  }
-
-  // si aún no hay usuario → volver al perfil
-  if (!viewedUid) {
-    window.location.href = "profile.html";
-    return;
-  }
-
-  // 🔽 CARGAR DATOS DEL USUARIO
-  const snap = await getDoc(doc(db, "users", viewedUid));
-  if (!snap.exists()) return;
-
-  const d = snap.data();
-
-  aliasEl.textContent = d.alias || "...";
-  followersBtn.textContent = `${d.followers?.length || 0} followers`;
-  followingBtn.textContent = `${d.following?.length || 0} following`;
-
-  if (d.photoURL) avatarEl.src = d.photoURL;
-
-  const photos = d.photos || [];
-  photos.forEach((url, i) => {
-    if (url && photoEls[i]) photoEls[i].src = url;
-  });
-});
-window.searchUser = async () => {
-  const alias = document.getElementById("searchInput").value.trim();
-  if (!alias) return;
-
-  const q = query(collection(db, "users"), where("alias", "==", alias));
-  const snap = await getDocs(q);
-
-  if (snap.empty) return alert("usuario no encontrado");
-
-  window.location.href = `user.html?uid=${snap.docs[0].id}`;
-};
-
 const avatarEl = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const followersBtn = document.getElementById("followersBtn");
 const followingBtn = document.getElementById("followingBtn");
 const followBtn = document.getElementById("followBtn");
-const spotifyEmbedEl = document.getElementById("spotifyEmbed");
+const sendBtn = document.getElementById("sendBtn");
+const msgInput = document.getElementById("msgInput");
+
 const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
+
+let viewedUid = null;
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user) return location.href="login.html";
+
+  const params = new URLSearchParams(window.location.search);
+  viewedUid = params.get("uid");
+
+  if(!viewedUid){
+    const aliasParam = params.get("alias");
+    if(aliasParam){
+      const q = query(collection(db,"users"), where("alias","==",aliasParam));
+      const snap = await getDocs(q);
+      if(!snap.empty) viewedUid = snap.docs[0].id;
+    }
+  }
+
   if(!viewedUid) return location.href="profile.html";
   if(user.uid===viewedUid) return location.href="profile.html";
 
@@ -341,20 +181,10 @@ onAuthStateChanged(auth, async (user)=>{
   const viewedData = viewedSnap.data();
 
   aliasEl.textContent = viewedData.alias || "sin alias";
-
   followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
   followingBtn.textContent = `${viewedData.following?.length || 0} following`;
 
-  followersBtn.onclick = () => {
-    window.location.href = `list.html?uid=${viewedUid}&type=followers`;
-  };
-
-  followingBtn.onclick = () => {
-    window.location.href = `list.html?uid=${viewedUid}&type=following`;
-  };
-
   if(viewedData.photoURL) avatarEl.src = viewedData.photoURL;
-  if(viewedData.spotifyEmbed) spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
 
   (viewedData.photos||[]).forEach((url,i)=>{
     if(url && photoEls[i]) photoEls[i].src = url;
@@ -373,7 +203,37 @@ onAuthStateChanged(auth, async (user)=>{
     }
     location.reload();
   };
+
+  sendBtn.onclick = async ()=>{
+    const text = msgInput.value.trim();
+    if(!text) return;
+
+    const who = document.querySelector('input[name="who"]:checked').value;
+
+    await addDoc(collection(db,"messages"),{
+      to:viewedUid,
+      text,
+      fromAlias: who==="anon" ? "Anónimo" : (myData.alias || "Usuario"),
+      createdAt: serverTimestamp()
+    });
+
+    msgInput.value="";
+    alert("mensaje enviado ✨");
+  };
 });
+
+window.searchUser = async ()=>{
+  const alias = document.getElementById("searchInput").value.trim();
+  if(!alias) return;
+
+  const q = query(collection(db,"users"), where("alias","==",alias));
+  const snap = await getDocs(q);
+
+  if(snap.empty) return alert("usuario no encontrado");
+
+  window.location.href = `user.html?uid=${snap.docs[0].id}`;
+};
 </script>
+
 </body>
-</html> 
+</html>
