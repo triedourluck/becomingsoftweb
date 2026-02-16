@@ -21,25 +21,16 @@ body{
   padding:40px;
   border-radius:20px;
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  width:340px; /* ← ancho base único */
+  width:340px;
   text-align:center;
   box-sizing:border-box;
 }
 
-h1{
-  margin:0;
-  font-size:32px;
-}
+h1{ margin:0; font-size:32px; }
 
 .subtitle{
   color:#777;
   margin-bottom:30px;
-}
-
-/* INPUTS Y BOTÓN COMPARTEN MISMO ANCHO REAL */
-.field{
-  width:100%;
-  box-sizing:border-box;
 }
 
 input{
@@ -61,7 +52,6 @@ button{
   cursor:pointer;
   background:#000;
   color:white;
-  box-sizing:border-box;
 }
 
 .link{
@@ -70,6 +60,14 @@ button{
   text-decoration:underline;
   color:#444;
   cursor:pointer;
+}
+
+/* LOADING */
+.loading{
+  display:none;
+  margin-top:18px;
+  font-size:14px;
+  color:#666;
 }
 </style>
 </head>
@@ -80,20 +78,55 @@ button{
   <h1>becomingsoft</h1>
   <div class="subtitle">a soft place to exist quietly</div>
 
-  <div class="field">
-    <input placeholder="Alias">
-  </div>
+  <input id="alias" placeholder="Alias">
+  <input id="password" type="password" placeholder="Contraseña">
 
-  <div class="field">
-    <input type="password" placeholder="Contraseña">
-  </div>
-
-  <button>Entrar</button>
+  <button onclick="login()">Entrar</button>
 
   <div class="link" onclick="location.href='index.html'">
     Volver al inicio
   </div>
 
+  <div id="loading" class="loading">
+    Entrando… 🌷
+  </div>
+
 </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  authDomain: "becomingsoft-84e72.firebaseapp.com",
+  projectId: "becomingsoft-84e72",
+  storageBucket: "becomingsoft-84e72.firebasestorage.app",
+  messagingSenderId: "605759003962",
+  appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+window.login = async () => {
+  const alias = document.getElementById("alias").value.trim();
+  const pass = document.getElementById("password").value.trim();
+  const loading = document.getElementById("loading");
+
+  if (!alias || !pass) return alert("Completa los campos");
+
+  loading.style.display = "block";
+
+  try {
+    // usamos alias como email falso
+    await signInWithEmailAndPassword(auth, `${alias}@soft.com`, pass);
+    window.location.href = "profile.html";
+  } catch (e) {
+    loading.style.display = "none";
+    alert("No se pudo iniciar sesión");
+  }
+};
+</script>
 </body>
 </html>
