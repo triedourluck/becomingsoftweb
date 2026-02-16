@@ -10,6 +10,7 @@
 
     .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); position:relative; }
 
+    /* 🔎 buscador igual que profile */
     .search-box {
       position:absolute;
       top:24px;
@@ -77,14 +78,27 @@
       cursor:pointer;
     }
 
-    /* 📱 MOBILE igual que profile */
+    /* 📱 MOBILE — mismo comportamiento que profile */
     @media (max-width:700px) {
       .container { margin:0; border-radius:0; }
 
       .layout { grid-template-columns:1fr; }
 
+      /* grid 3 columnas */
       .photos { grid-template-columns:repeat(3,1fr); }
       .photo { height:120px; }
+
+      /* ORDEN EXACTO pedido
+         Fila 1 → p1 | p2 | p5 (LOTO)
+         Fila 2 → p6 (MONJE) | p3 (TEXTO) | p4 (CAMA)
+      */
+      #p1 { order:1; }
+      #p2 { order:2; }
+      #p5 { order:3; }
+
+      #p6 { order:4; }
+      #p3 { order:5; }
+      #p4 { order:6; }
 
       .right { order:2; }
     }
@@ -93,6 +107,7 @@
 <body>
   <div class="container">
 
+    <!-- 🔎 BUSCADOR -->
     <div class="search-box">
       <input id="searchInput" placeholder="buscar usuario" />
       <button onclick="goSearch()">ir</button>
@@ -115,6 +130,7 @@
 
     <div class="layout">
 
+      <!-- IZQUIERDA: FOTOS -->
       <div class="left">
         <div class="photos">
           <img id="p1" class="photo" />
@@ -126,6 +142,7 @@
         </div>
       </div>
 
+      <!-- DERECHA -->
       <div class="right">
         <div id="spotifyEmbed"></div>
 
@@ -172,6 +189,7 @@
 
     const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
 
+    /* 🔎 BUSCAR */
     window.goSearch = async () => {
       const alias = document.getElementById("searchInput").value.trim();
       if (!alias) return;
@@ -207,22 +225,13 @@
       followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
       followingBtn.textContent = `${viewedData.following?.length || 0} following`;
 
+      followersBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=followers`;
+      followingBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=following`;
+
       if (viewedData.spotifyEmbed) spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
 
-      /* MISMO ORDEN VISUAL QUE PROFILE */
       const photos = viewedData.photos || [];
-      const ordered = [
-        photos[0],
-        photos[1],
-        photos[4],
-        photos[2],
-        photos[3],
-        photos[5]
-      ];
-
-      ordered.forEach((url,i)=>{
-        if(url && photoEls[i]) photoEls[i].src = url;
-      });
+      photos.forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
 
       const isFollowing = myData.following?.includes(viewedUid);
       followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
