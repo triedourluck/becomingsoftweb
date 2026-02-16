@@ -2,88 +2,85 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>becomingsoft — login</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f5f5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      color: #111;
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#f5f5f5;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+      color:#111;
     }
 
-    .card {
-      background: white;
-      padding: 40px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      width: 320px;
-      text-align: center;
+    .card{
+      background:white;
+      padding:40px;
+      border-radius:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+      width:320px;
+      text-align:center;
     }
 
-    h1 {
-      font-weight: 500;
-      margin-bottom: 4px;
+    h1{
+      margin:0;
+      font-size:28px;
+      font-weight:600;
     }
 
-    p {
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 24px;
+    p{
+      margin-top:6px;
+      font-size:13px;
+      color:#777;
     }
 
-    input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-      font-size: 14px;
+    input{
+      width:100%;
+      margin-top:16px;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #ddd;
+      font-size:14px;
+      outline:none;
     }
 
-    button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      background: #111;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.2s ease;
+    button{
+      width:100%;
+      margin-top:18px;
+      padding:12px;
+      border:none;
+      border-radius:12px;
+      background:#111;
+      color:white;
+      font-size:15px;
+      cursor:pointer;
     }
 
-    button:hover {
-      opacity: 0.85;
-    }
-
-    .msg {
-      margin-top: 12px;
-      font-size: 12px;
+    button:hover{
+      opacity:0.9;
     }
   </style>
 </head>
 <body>
+
   <div class="card">
     <h1>becomingsoft</h1>
     <p>a soft place to exist quietly</p>
 
-    <input id="alias" placeholder="Alias" />
-    <input id="password" type="password" placeholder="Contraseña" />
+    <input id="alias" placeholder="alias" />
+    <input id="password" type="password" placeholder="contraseña" />
 
     <button onclick="login()">Entrar</button>
-
-    <div class="msg" id="msg"></div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -97,31 +94,55 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    window.login = async function () {
-      const alias = document.getElementById("alias").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const msg = document.getElementById("msg");
+    const aliasInput = document.getElementById("alias");
+    const passInput = document.getElementById("password");
 
-      if (!alias || !password) {
-        msg.textContent = "Completa todos los campos ✨";
+    window.login = async () => {
+      const alias = aliasInput.value.trim().toLowerCase();
+      const pass = passInput.value.trim();
+
+      if (!alias || !pass) {
+        alert("Completa los datos");
         return;
       }
 
-      const fakeEmail = `${alias}@becomingsoft.com`;
+      const email = `${alias}@becomingsoft.com`;
 
       try {
-        await signInWithEmailAndPassword(auth, fakeEmail, password);
+        const cred = await signInWithEmailAndPassword(auth, email, pass);
+        const uid = cred.user.uid;
 
-        msg.textContent = "Entrando… 🌷";
+        const refUser = doc(db, "users", uid);
+        const snap = await getDoc(refUser);
 
-        setTimeout(() => {
-          window.location.href = "profile.html";
-        }, 800);
+        // 🔥 SI EL PERFIL NO EXISTE → CREARLO AUTOMÁTICAMENTE
+        if (!snap.exists()) {
+          await setDoc(refUser, {
+            alias,
+            photoURL: "",
+            photos: ["","","",""],
+            followers: [],
+            following: [],
+            spotifyEmbed: ""
+          });
+        }
+
+        // ✅ entrar al perfil
+        window.location.href = "profile.html";
+
       } catch (err) {
-        msg.textContent = "Error: " + err.message;
+        console.error(err);
+        alert("No se pudo iniciar sesión");
       }
     };
+
+    // 🔁 si ya está logueada → directo al perfil
+    onAuthStateChanged(auth, (user) => {
+      if (user) window.location.href = "profile.html";
+    });
   </script>
+
 </body>
 </html>
