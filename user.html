@@ -231,6 +231,20 @@ const db = getFirestore(app);
 const params = new URLSearchParams(window.location.search);
 let viewedUid = params.get("uid");
 
+// 🔧 si no viene uid, intentar por alias (para que el buscador nunca rebote)
+if (!viewedUid) {
+  const aliasParam = params.get("alias");
+
+  if (aliasParam) {
+    const q = query(collection(db, "users"), where("alias", "==", aliasParam));
+    const snap = await getDocs(q);
+
+    if (!snap.empty) {
+      viewedUid = snap.docs[0].id;
+    }
+  }
+}
+
 window.searchUser = async () => {
   const alias = document.getElementById("searchInput").value.trim();
   if (!alias) return;
