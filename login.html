@@ -21,15 +21,25 @@ body{
   padding:40px;
   border-radius:20px;
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  width:320px;
+  width:340px; /* ← ancho base único */
   text-align:center;
+  box-sizing:border-box;
 }
 
-h1{ margin:0; font-size:32px; }
+h1{
+  margin:0;
+  font-size:32px;
+}
 
 .subtitle{
   color:#777;
   margin-bottom:30px;
+}
+
+/* INPUTS Y BOTÓN COMPARTEN MISMO ANCHO REAL */
+.field{
+  width:100%;
+  box-sizing:border-box;
 }
 
 input{
@@ -39,6 +49,7 @@ input{
   border-radius:10px;
   border:1px solid #ddd;
   font-size:14px;
+  box-sizing:border-box;
 }
 
 button{
@@ -50,6 +61,7 @@ button{
   cursor:pointer;
   background:#000;
   color:white;
+  box-sizing:border-box;
 }
 
 .link{
@@ -68,8 +80,13 @@ button{
   <h1>becomingsoft</h1>
   <div class="subtitle">a soft place to exist quietly</div>
 
-  <input placeholder="Alias">
-  <input type="password" placeholder="Contraseña">
+  <div class="field">
+    <input placeholder="Alias">
+  </div>
+
+  <div class="field">
+    <input type="password" placeholder="Contraseña">
+  </div>
 
   <button>Entrar</button>
 
