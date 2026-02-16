@@ -8,46 +8,83 @@
   <style>
     body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
 
-    .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
+    .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); position:relative; }
 
-    /* BUSCADOR */
-    .search { display:flex; gap:10px; margin-bottom:20px; }
-    .search input { flex:1; padding:10px; border-radius:12px; border:1px solid #ddd; }
-    .search button { padding:10px 16px; border:none; border-radius:12px; background:#111; color:white; cursor:pointer; }
+    .search-box {
+      position:absolute;
+      top:24px;
+      right:24px;
+      display:flex;
+      gap:8px;
+    }
+
+    .search-box input {
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid #ddd;
+      font-size:13px;
+      width:160px;
+    }
+
+    .search-box button {
+      padding:8px 12px;
+      border:none;
+      border-radius:8px;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      font-size:12px;
+    }
 
     .top { display:flex; gap:20px; align-items:center; }
-    .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; }
-    .alias { font-size:20px; font-weight:600; }
-    .stats { font-size:13px; color:#666; margin-top:4px; }
 
-    .follow-btn { margin-top:8px; padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:13px; }
+    .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; }
+
+    .alias { font-size:20px; font-weight:600; }
+
+    .stats { font-size:13px; color:#666; margin-top:4px; }
+    .stats span { margin-right:12px; cursor:pointer; }
+
+    .follow-btn {
+      margin-top:8px;
+      padding:8px 14px;
+      border:none;
+      border-radius:10px;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      font-size:13px;
+    }
 
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
 
+    .left { display:flex; flex-direction:column; gap:16px; }
+
     .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; }
 
     .right { display:flex; flex-direction:column; gap:20px; }
 
-    textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
-
     .spotify iframe { width:100%; border:none; border-radius:12px; }
 
-    .back { margin-top:24px; font-size:13px; color:#666; cursor:pointer; }
+    .back {
+      position:absolute;
+      bottom:16px;
+      left:20px;
+      font-size:13px;
+      color:#666;
+      cursor:pointer;
+    }
 
-    /* 📱 MOBILE — igual que profile */
+    /* 📱 MOBILE igual que profile */
     @media (max-width:700px) {
       .container { margin:0; border-radius:0; }
 
       .layout { grid-template-columns:1fr; }
 
-      /* GRID 3x2 visible */
       .photos { grid-template-columns:repeat(3,1fr); }
       .photo { height:120px; }
-
-      /* 🔄 intercambio visual móvil */
-      #p3 { order:4; }
-      #p4 { order:3; }
 
       .right { order:2; }
     }
@@ -56,20 +93,19 @@
 <body>
   <div class="container">
 
-    <!-- BUSCADOR -->
-    <div class="search">
+    <div class="search-box">
       <input id="searchInput" placeholder="buscar usuario" />
       <button onclick="goSearch()">ir</button>
     </div>
 
-    <!-- PERFIL -->
     <div class="top">
       <img id="avatar" class="avatar" />
 
       <div>
         <div class="alias" id="alias">...</div>
+
         <div class="stats">
-          <span id="followersBtn">0 followers</span> ·
+          <span id="followersBtn">0 followers</span>
           <span id="followingBtn">0 following</span>
         </div>
 
@@ -79,8 +115,7 @@
 
     <div class="layout">
 
-      <!-- FOTOS -->
-      <div>
+      <div class="left">
         <div class="photos">
           <img id="p1" class="photo" />
           <img id="p2" class="photo" />
@@ -91,14 +126,13 @@
         </div>
       </div>
 
-      <!-- DERECHA -->
       <div class="right">
-        <div id="spotifyEmbed" class="spotify"></div>
+        <div id="spotifyEmbed"></div>
 
         <div>
           <h3>Enviar mensaje</h3>
-          <textarea placeholder="Escribe algo suave..."></textarea>
-          <br><br>
+          <textarea style="width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px;" placeholder="Escribe algo suave..."></textarea>
+          <br /><br />
           <button class="follow-btn">Enviar</button>
         </div>
       </div>
@@ -175,8 +209,20 @@
 
       if (viewedData.spotifyEmbed) spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
 
+      /* MISMO ORDEN VISUAL QUE PROFILE */
       const photos = viewedData.photos || [];
-      photos.forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
+      const ordered = [
+        photos[0],
+        photos[1],
+        photos[4],
+        photos[2],
+        photos[3],
+        photos[5]
+      ];
+
+      ordered.forEach((url,i)=>{
+        if(url && photoEls[i]) photoEls[i].src = url;
+      });
 
       const isFollowing = myData.following?.includes(viewedUid);
       followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
