@@ -10,7 +10,19 @@
 
     .container { max-width:900px; margin:40px auto; background:white; border-radius:20px; padding:32px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
 
-    .top { display:flex; gap:20px; align-items:center; }
+    .top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+}
+
+.search-box input{
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid #ddd;
+  font-size:13px;
+  width:160px;
+}
 
     .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; cursor:pointer; }
 
@@ -51,6 +63,9 @@
         <div class="alias" id="alias">...</div>
 
         <div class="stats">
+          <div class="search-box">
+  <input id="searchInput" placeholder="buscar username…" />
+</div>
           <span id="followersBtn">0 followers</span>
           <span id="followingBtn">0 following</span>
         </div>
