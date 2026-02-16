@@ -19,8 +19,9 @@
     .stats { font-size:13px; color:#666; margin-top:4px; }
     .stats span { cursor:pointer; margin-right:12px; }
 
-    .btns { margin-top:8px; }
-    .btn { padding:6px 10px; border:none; border-radius:8px; background:#eee; cursor:pointer; font-size:12px; margin-right:6px; }
+    .space-edit { margin-top:6px; }
+    .space-edit input { padding:6px 8px; border-radius:8px; border:1px solid #ddd; font-size:12px; }
+    .space-edit button { margin-left:6px; padding:6px 10px; border:none; border-radius:8px; background:#111; color:white; font-size:12px; cursor:pointer; }
 
     .content { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
 
@@ -56,9 +57,10 @@
           <span id="followingBtn">0 following</span>
         </div>
 
-        <div class="btns">
-          <button class="btn" onclick="goSearch()">Buscar</button>
-          <button class="btn" onclick="goInbox()">Mensajes</button>
+        <!-- editar nombre del espacio -->
+        <div class="space-edit">
+          <input id="spaceInput" placeholder="nombre de tu espacio" />
+          <button onclick="saveSpace()">Guardar</button>
         </div>
       </div>
     </div>
@@ -94,7 +96,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
     const firebaseConfig = {
@@ -124,6 +126,8 @@
     const spotifyEmbedEl = document.getElementById("spotifyEmbed");
     const spotifyInput = document.getElementById("spotifyInput");
 
+    const spaceInput = document.getElementById("spaceInput");
+
     let uid = null;
     let photoIndex = 0;
 
@@ -132,12 +136,18 @@
 
       uid = user.uid;
 
-      const snap = await getDoc(doc(db, "users", uid));
-      if (!snap.exists()) return;
+      const refUser = doc(db, "users", uid);
+      const snap = await getDoc(refUser);
 
-      const d = snap.data();
+      // 🔥 si el doc no existe lo creamos
+      if (!snap.exists()) {
+        await setDoc(refUser, { photos:["","","",""], followers:[], following:[] });
+      }
 
-      aliasEl.textContent = d.alias;
+      const dataSnap = await getDoc(refUser);
+      const d = dataSnap.data();
+
+      aliasEl.textContent = d.alias || "sin alias";
       if (d.photoURL) avatarEl.src = d.photoURL;
 
       followersBtn.textContent = `${d.followers?.length || 0} followers`;
@@ -146,13 +156,12 @@
       followersBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=followers`;
       followingBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=following`;
 
-      // 🔥 CARGAR FOTOS CORRECTAMENTE
-      const photos = d.photos || ["", "", "", ""];
-      photos.forEach((url, i) => {
-        if (photoEls[i] && url) photoEls[i].src = url;
-      });
+      // cargar fotos
+      const photos = d.photos || ["","","",""];
+      photos.forEach((url,i)=>{ if(url) photoEls[i].src = url; });
 
       if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
+      if (d.spaceName) spaceInput.value = d.spaceName;
     });
 
     avatarEl.onclick = () => avatarInput.click();
@@ -173,7 +182,6 @@
       el.onclick = () => { photoIndex = i; photoInput.click(); };
     });
 
-    // 🔥 FIX REAL: guardar array de fotos correctamente
     photoInput.onchange = async () => {
       const file = photoInput.files[0];
       if (!file) return;
@@ -182,14 +190,14 @@
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);
 
-      const snap = await getDoc(doc(db, "users", uid));
-      const data = snap.data() || {};
+      const refUser = doc(db, "users", uid);
+      const snap = await getDoc(refUser);
+      const data = snap.data();
 
-      const photos = data.photos || ["", "", "", ""];
+      const photos = data.photos || ["","","",""];
       photos[photoIndex] = url;
 
-      await updateDoc(doc(db, "users", uid), { photos });
-
+      await updateDoc(refUser, { photos });
       photoEls[photoIndex].src = url;
     };
 
@@ -202,8 +210,10 @@
       spotifyInput.value = "";
     };
 
-    window.goSearch = () => window.location.href = "search.html";
-    window.goInbox = () => window.location.href = "inbox.html";
+    window.saveSpace = async () => {
+      const name = spaceInput.value.trim();
+      await updateDoc(doc(db, "users", uid), { spaceName: name });
+    };
 
     window.logout = async () => {
       await signOut(auth);
