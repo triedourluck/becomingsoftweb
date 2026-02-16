@@ -23,17 +23,15 @@
 
     .left { display:flex; flex-direction:column; gap:16px; }
 
-    .spotify iframe { width:100%; border:none; border-radius:12px; }
-
     .photos { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
 
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; }
 
     .right { display:flex; flex-direction:column; gap:20px; }
 
-    textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
+    .spotify iframe { width:100%; border:none; border-radius:12px; }
 
-    .btn { padding:8px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; width:max-content; }
+    textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
   </style>
 </head>
 <body>
@@ -49,35 +47,40 @@
           <span id="followersBtn">0 followers</span>
           <span id="followingBtn">0 following</span>
         </div>
-
-        <button id="followBtn" class="btn">Follow</button>
       </div>
     </div>
 
     <div class="layout">
-      <div class="left">
-        <div class="spotify" id="spotifyEmbed"></div>
 
+      <!-- IZQUIERDA: 6 FOTOS -->
+      <div class="left">
         <div class="photos">
           <img id="p1" class="photo" />
           <img id="p2" class="photo" />
           <img id="p3" class="photo" />
           <img id="p4" class="photo" />
+          <img id="p5" class="photo" />
+          <img id="p6" class="photo" />
         </div>
       </div>
 
+      <!-- DERECHA: SPOTIFY ARRIBA + MENSAJE ABAJO -->
       <div class="right">
-        <h3>Enviar mensaje</h3>
-        <textarea placeholder="Escribe algo suave..."></textarea>
-      </div>
-    </div>
+        <div id="spotifyEmbed" class="spotify"></div>
 
+        <div>
+          <h3>Enviar mensaje</h3>
+          <textarea placeholder="Escribe algo suave..."></textarea>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -94,31 +97,19 @@
     const db = getFirestore(app);
 
     const params = new URLSearchParams(window.location.search);
-    const viewedUid = params.get("uid");
+    const uid = params.get("uid");
 
     const avatarEl = document.getElementById("avatar");
     const aliasEl = document.getElementById("alias");
     const followersBtn = document.getElementById("followersBtn");
     const followingBtn = document.getElementById("followingBtn");
-    const followBtn = document.getElementById("followBtn");
+    const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
     const spotifyEmbedEl = document.getElementById("spotifyEmbed");
-    const photoEls = ["p1","p2","p3","p4"].map(id => document.getElementById(id));
-
-    let myUid = null;
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) { window.location.href = "login.html"; return; }
 
-      myUid = user.uid;
-
-      // 🔥 SI ESTÁS INTENTANDO VER TU PROPIO PERFIL → REDIRIGE A profile.html
-      if (viewedUid === myUid) {
-        window.location.href = "profile.html";
-        return;
-      }
-
-      const refUser = doc(db, "users", viewedUid);
-      const snap = await getDoc(refUser);
+      const snap = await getDoc(doc(db, "users", uid));
       if (!snap.exists()) return;
 
       const d = snap.data();
@@ -129,27 +120,13 @@
       followersBtn.textContent = `${d.followers?.length || 0} followers`;
       followingBtn.textContent = `${d.following?.length || 0} following`;
 
-      followersBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=followers`;
-      followingBtn.onclick = () => window.location.href = `list.html?uid=${viewedUid}&type=following`;
-
-      if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
+      followersBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=followers`;
+      followingBtn.onclick = () => window.location.href = `list.html?uid=${uid}&type=following`;
 
       const photos = d.photos || [];
-      photos.forEach((url,i)=>{ if(url) photoEls[i].src = url; });
+      photos.forEach((url,i)=>{ if(url && photoEls[i]) photoEls[i].src = url; });
 
-      // follow logic simple
-      followBtn.onclick = async () => {
-        const myRef = doc(db, "users", myUid);
-        const mySnap = await getDoc(myRef);
-        const myData = mySnap.data();
-
-        if (myData.following?.includes(viewedUid)) return;
-
-        await updateDoc(myRef, { following: [...(myData.following||[]), viewedUid] });
-        await updateDoc(refUser, { followers: [...(d.followers||[]), myUid] });
-
-        location.reload();
-      };
+      if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
     });
   </script>
 </body>
