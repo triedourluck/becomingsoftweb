@@ -34,10 +34,8 @@
 
     .send { margin-top:8px; padding:8px 16px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
 
-    /* volver abajo izquierda */
     .back { position:absolute; bottom:20px; left:24px; font-size:13px; color:#666; cursor:pointer; text-decoration:underline; }
 
-    /* buscador derecha */
     .searchBox { position:fixed; right:24px; top:120px; background:white; padding:12px; border-radius:14px; box-shadow:0 8px 20px rgba(0,0,0,0.08); width:180px; }
 
     .searchBox input { width:100%; padding:6px; border-radius:8px; border:1px solid #ddd; font-size:12px; }
@@ -66,7 +64,6 @@
 
     <div class="layout">
 
-      <!-- IZQUIERDA fotos -->
       <div class="left">
         <div class="photos">
           <img id="p1" class="photo" />
@@ -78,7 +75,6 @@
         </div>
       </div>
 
-      <!-- DERECHA spotify + mensaje -->
       <div class="right">
         <div id="spotify"></div>
 
@@ -128,6 +124,13 @@
 
       const myUid = user.uid;
 
+      // 🔴 CORRECCIÓN: si intento abrir mi propio perfil desde user.html
+      // redirigir al profile real
+      if (uid === myUid) {
+        window.location.href = "profile.html";
+        return;
+      }
+
       const snap = await getDoc(doc(db,"users",uid));
       if(!snap.exists()) return;
 
@@ -140,42 +143,36 @@
 
       (data.photos||[]).forEach((url,i)=>{ if(url) photos[i].src=url; });
 
-      if(uid !== myUid){
-        followBtn.style.display="inline-block";
+      followBtn.style.display="inline-block";
 
-        const isFollowing = (data.followers||[]).includes(myUid);
-        followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+      const isFollowing = (data.followers||[]).includes(myUid);
+      followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
-        followBtn.onclick = async ()=>{
-          const myRef = doc(db,"users",myUid);
-          const otherRef = doc(db,"users",uid);
+      followBtn.onclick = async ()=>{
+        const myRef = doc(db,"users",myUid);
+        const otherRef = doc(db,"users",uid);
 
-          if(isFollowing){
-            await updateDoc(myRef,{ following: arrayRemove(uid) });
-            await updateDoc(otherRef,{ followers: arrayRemove(myUid) });
-            followBtn.textContent="Follow";
-          } else {
-            await updateDoc(myRef,{ following: arrayUnion(uid) });
-            await updateDoc(otherRef,{ followers: arrayUnion(myUid) });
-            followBtn.textContent="Unfollow";
-          }
-        };
+        if(isFollowing){
+          await updateDoc(myRef,{ following: arrayRemove(uid) });
+          await updateDoc(otherRef,{ followers: arrayRemove(myUid) });
+          followBtn.textContent="Follow";
+        } else {
+          await updateDoc(myRef,{ following: arrayUnion(uid) });
+          await updateDoc(otherRef,{ followers: arrayUnion(myUid) });
+          followBtn.textContent="Unfollow";
+        }
+      };
 
-        document.getElementById("sendBtn").onclick = async ()=>{
-          const text = document.getElementById("msg").value.trim();
-          if(!text) return;
+      document.getElementById("sendBtn").onclick = async ()=>{
+        const text = document.getElementById("msg").value.trim();
+        if(!text) return;
 
-          const inboxRef = doc(db,"users",uid);
-          await updateDoc(inboxRef,{ inbox: arrayUnion({ text, from: myUid, date: Date.now() }) });
-          document.getElementById("msg").value="";
-        };
-
-      } else {
-        document.getElementById("sendBtn").style.display="none";
-      }
+        const inboxRef = doc(db,"users",uid);
+        await updateDoc(inboxRef,{ inbox: arrayUnion({ text, from: myUid, date: Date.now() }) });
+        document.getElementById("msg").value="";
+      };
     });
 
-    // buscador
     const searchInput = document.getElementById("searchInput");
     const searchResults = document.getElementById("searchResults");
 
@@ -198,3 +195,4 @@
   </script>
 </body>
 </html>
+
