@@ -91,56 +91,55 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-      authDomain: "becomingsoft-84e72.firebaseapp.com",
-      projectId: "becomingsoft-84e72",
-      storageBucket: "becomingsoft-84e72.firebasestorage.app",
-      messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
-      measurementId: "G-ZVBQBWYZ7M"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+    authDomain: "becomingsoft-84e72.firebaseapp.com",
+    projectId: "becomingsoft-84e72",
+    storageBucket: "becomingsoft-84e72.firebasestorage.app",
+    messagingSenderId: "605759003962",
+    appId: "1:605759003962:web:ea8603a8e97e42d2278403",
+    measurementId: "G-ZVBQBWYZ7M"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    window.register = async () => {
-      const alias = document.getElementById("alias").value.trim().toLowerCase();
-      const password = document.getElementById("password").value.trim();
-      const errorEl = document.getElementById("error");
+  window.register = async () => {
+    const alias = document.getElementById("alias").value.trim().toLowerCase();
+    const password = document.getElementById("password").value.trim();
+    const errorEl = document.getElementById("error");
 
-      errorEl.textContent = "";
+    errorEl.textContent = "";
 
-      if (!alias || !password) {
-        errorEl.textContent = "Completa todos los campos";
-        return;
-      }
+    if (!alias || !password) {
+      errorEl.textContent = "Completa todos los campos";
+      return;
+    }
 
-      const email = `${alias}@becomingsoft.com`;
+    const email = `${alias}@becomingsoft.com`;
 
-      try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-        await setDoc(doc(db, "users", cred.user.uid), {
-          alias,
-          followers: [],
-          following: [],
-          photos: ["", "", "", "", "", ""]
-        });
+      // 🔥 AHORA SÍ guardamos el email
+      await setDoc(doc(db, "users", cred.user.uid), {
+        alias,
+        email,
+        followers: [],
+        following: [],
+        photos: ["", "", "", "", "", ""]
+      });
 
-        window.location.href = "profile.html";
+      window.location.href = "profile.html";
 
-      } catch (err) {
-        console.error(err);
-        errorEl.textContent = "No se pudo crear la cuenta";
-      }
-    };
-  </script>
-
-</body>
-</html>
+    } catch (err) {
+      console.error(err);
+      errorEl.textContent = "No se pudo crear la cuenta";
+    }
+  };
+</script>
