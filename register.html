@@ -18,17 +18,17 @@
 
     .card {
       background: white;
-      padding: 40px 32px;
+      padding: 40px;
       border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
       width: 320px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
       text-align: center;
     }
 
-    .logo {
+    h1 {
+      margin: 0;
       font-size: 28px;
       font-weight: 700;
-      margin-bottom: 4px;
     }
 
     .subtitle {
@@ -51,33 +51,33 @@
       width: 100%;
       padding: 12px;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       background: #111;
       color: white;
       font-size: 15px;
       cursor: pointer;
-      margin-top: 6px;
     }
 
     .back {
-      display: inline-block;
-      margin-top: 14px;
+      display: block;
+      margin-top: 16px;
       font-size: 14px;
-      color: #111;
       text-decoration: underline;
+      color: #111;
       cursor: pointer;
     }
 
     .error {
       margin-top: 10px;
       font-size: 13px;
-      color: #c00;
+      color: #c0392b;
     }
   </style>
 </head>
 <body>
+
   <div class="card">
-    <div class="logo">becomingsoft</div>
+    <h1>becomingsoft</h1>
     <div class="subtitle">a soft place to exist quietly</div>
 
     <input id="alias" placeholder="Crea tu alias" />
@@ -85,7 +85,7 @@
 
     <button onclick="register()">Crear cuenta</button>
 
-    <div class="back" onclick="goHome()">Volver al inicio</div>
+    <span class="back" onclick="window.location.href='index.html'">Volver al inicio</span>
 
     <div id="error" class="error"></div>
   </div>
@@ -109,17 +109,10 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const aliasInput = document.getElementById("alias");
-    const passInput = document.getElementById("password");
-    const errorEl = document.getElementById("error");
-
-    window.goHome = () => {
-      window.location.href = "index.html";
-    };
-
     window.register = async () => {
-      const alias = aliasInput.value.trim().toLowerCase();
-      const password = passInput.value.trim();
+      const alias = document.getElementById("alias").value.trim().toLowerCase();
+      const password = document.getElementById("password").value.trim();
+      const errorEl = document.getElementById("error");
 
       errorEl.textContent = "";
 
@@ -128,9 +121,9 @@
         return;
       }
 
-      try {
-        const email = `${alias}@becomingsoft.com`;
+      const email = `${alias}@becomingsoft.com`;
 
+      try {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
 
         await setDoc(doc(db, "users", cred.user.uid), {
@@ -141,10 +134,13 @@
         });
 
         window.location.href = "profile.html";
+
       } catch (err) {
+        console.error(err);
         errorEl.textContent = "No se pudo crear la cuenta";
       }
     };
   </script>
+
 </body>
 </html>
