@@ -291,7 +291,7 @@ const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
 const followBtn = document.getElementById("followBtn");
-
+const shhhBtn = document.getElementById("shhhBtn");
 const followersLink = document.getElementById("followersLink");
 const followingLink = document.getElementById("followingLink");
 
@@ -333,6 +333,10 @@ async function loadUser(){
   }
 
   setupFollow();
+  // 🔊 botón SHHH! → ir al wall del usuario visto
+shhhBtn.onclick = () => {
+  window.location.href = `wall.html?uid=${viewedUid}`;
+};
 }
 
 async function setupFollow(){
