@@ -18,29 +18,9 @@
       position:relative;
     }
 
-    .search {
-      position:absolute;
-      top:20px;
-      right:24px;
-      display:flex;
-      gap:8px;
-    }
-
-    .search input { 
-      width:160px;
-      padding:8px 10px; 
-      border-radius:10px; 
-      border:1px solid #ddd; 
-    }
-
-    .search button { 
-      padding:8px 12px; 
-      border:none; 
-      border-radius:10px; 
-      background:#111; 
-      color:white; 
-      cursor:pointer; 
-    }
+    .search { position:absolute; top:20px; right:24px; display:flex; gap:8px; }
+    .search input { width:160px; padding:8px 10px; border-radius:10px; border:1px solid #ddd; }
+    .search button { padding:8px 12px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
 
     .top { display:flex; gap:20px; align-items:center; margin-top:10px; }
     .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; cursor:pointer; }
@@ -63,13 +43,6 @@
 
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; cursor:pointer; }
 
-    #p1 { grid-area:p1; }
-    #p2 { grid-area:p2; }
-    #p3 { grid-area:p3; }
-    #p4 { grid-area:p4; }
-    #p5 { grid-area:p5; }
-    #p6 { grid-area:p6; }
-
     .right { display:flex; flex-direction:column; gap:20px; }
 
     textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
@@ -79,61 +52,9 @@
     .save-btn { margin-top:8px; padding:6px 12px; border:none; border-radius:8px; background:#111; color:white; cursor:pointer; font-size:12px; }
 
     .bottom { margin-top:24px; display:flex; gap:12px; }
-    .logout, .gear { padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
-
-    .icon-btn{
-      padding:10px 14px;
-      border:none;
-      border-radius:10px;
-      background:#111;
-      color:white;
-      cursor:pointer;
-      font-size:14px;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-    }
+    .logout, .gear, .icon-btn { padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:14px; }
 
     .hidden { display:none; }
-
-    @media (max-width:700px) {
-      .right { display:flex; flex-direction:column; }
-      .right > div:first-child { order:2; }
-      .right > div:last-child { order:1; }
-
-      .container { margin:0; border-radius:0; }
-      .layout { grid-template-columns:1fr; }
-
-      .photos {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-areas:
-          "p1 p2 p4"
-          "p3 p5 p6";
-      }
-
-      .photo { height:120px; }
-
-      textarea,
-      .spotify input {
-        width: 92%;
-        margin: 0 auto;
-        display: block;
-      }
-
-      .icon-btn{
-        padding:10px 14px;
-        border:none;
-        border-radius:10px;
-        background:#111;
-        color:white;
-        cursor:pointer;
-        font-size:14px;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-      }
-    }
   </style>
 </head>
 <body>
@@ -160,7 +81,7 @@
     <div class="layout">
 
       <div>
-        <div class="photos" id="photosGrid">
+        <div class="photos">
           <img id="p1" class="photo" />
           <img id="p2" class="photo" />
           <img id="p3" class="photo" />
@@ -179,9 +100,10 @@
           <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
         </div>
 
+        <!-- ✨ MENSAJE CONECTADO A SETTINGS -->
         <div>
-          <h3 id="wallTitle">Envíame un mensaje</h3>
-          <textarea id="wallInput" placeholder="Escribe algo suave..."></textarea>
+          <h3 id="msgTitle">Envíame un mensaje</h3>
+          <textarea id="msgBox" placeholder="Escribe algo suave..."></textarea>
         </div>
 
       </div>
@@ -189,7 +111,7 @@
 
     <div class="bottom">
       <button class="logout" onclick="logout()">Cerrar sesión</button>
-      <button class="gear" onclick="window.location.href='settings.html'">⚙️</button> 
+      <button class="gear" onclick="location.href='settings.html'">⚙️</button> 
       <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
       <button class="icon-btn" onclick="location.href='wall.html'">SHHH!</button>
     </div>
@@ -221,6 +143,8 @@
     const aliasEl = document.getElementById("alias");
     const followersBtn = document.getElementById("followersBtn");
     const followingBtn = document.getElementById("followingBtn");
+    const msgTitle = document.getElementById("msgTitle");
+    const msgBox = document.getElementById("msgBox");
 
     const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
     const photoInput = document.getElementById("photoInput");
@@ -232,7 +156,7 @@
     let photoIndex = 0;
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = "login.html"; return; }
+      if (!user) return location.href = "login.html";
 
       uid = user.uid;
 
@@ -240,34 +164,19 @@
       const d = snap.data();
 
       aliasEl.textContent = d.alias;
-
       followersBtn.textContent = `${d.followers?.length || 0} followers`;
       followingBtn.textContent = `${d.following?.length || 0} following`;
 
-      followersBtn.onclick = () => {
-        window.location.href = `list.html?uid=${uid}&type=followers`;
-      };
-
-      followingBtn.onclick = () => {
-        window.location.href = `list.html?uid=${uid}&type=following`;
-      };
-
       if (d.photoURL) avatarEl.src = d.photoURL;
 
-      const photos = d.photos || [];
-      photos.forEach((url,i)=>{
-        if(url && photoEls[i]) photoEls[i].src = url;
-      });
+      (d.photos || []).forEach((url,i)=>{ if(url) photoEls[i].src = url; });
 
       if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
 
-      // aplicar textos personalizados del wall
-      const titleEl = document.getElementById("wallTitle");
-      const boxEl = document.getElementById("wallInput");
-
-      if (d?.wallText) {
-        if (d.wallText.title) titleEl.textContent = d.wallText.title;
-        if (d.wallText.box) boxEl.placeholder = d.wallText.box;
+      /* ✨ FRASES DEL SETTINGS */
+      if (d.wallText) {
+        if (d.wallText.title) msgTitle.textContent = d.wallText.title;
+        if (d.wallText.box) msgBox.placeholder = d.wallText.box;
       }
     });
 
@@ -285,9 +194,7 @@
       avatarEl.src = url;
     };
 
-    photoEls.forEach((el,i)=>{
-      el.onclick = () => { photoIndex = i; photoInput.click(); };
-    });
+    photoEls.forEach((el,i)=> el.onclick = () => { photoIndex = i; photoInput.click(); });
 
     photoInput.onchange = async () => {
       const file = photoInput.files[0];
@@ -299,7 +206,6 @@
 
       const snap = await getDoc(doc(db, "users", uid));
       const data = snap.data();
-
       const photos = data.photos || ["","","","","",""];
       photos[photoIndex] = url;
 
@@ -318,19 +224,17 @@
 
     window.logout = async () => {
       await signOut(auth);
-      window.location.href = "login.html";
+      location.href = "login.html";
     };
 
     window.searchUser = () => {
       const alias = document.getElementById("searchInput").value.trim();
       if (!alias) return;
-      window.location.href = `user.html?alias=${alias}`;
+      location.href = `user.html?alias=${alias}`;
     };
 
     document.getElementById("searchInput")
-      .addEventListener("keydown", (e) => {
-        if (e.key === "Enter") searchUser();
-      });
+      .addEventListener("keydown", e => { if (e.key === "Enter") searchUser(); });
   </script>
 </body>
 </html>
