@@ -23,95 +23,94 @@ body{
   position:relative;
 }
 
-/* BUSCADOR */
+/* SEARCH TOP RIGHT */
 .search{
   position:absolute;
   top:20px;
   right:24px;
   display:flex;
-  gap:8px;
+  gap:6px;
 }
 
 .search input{
-  width:160px;
-  padding:8px 10px;
+  width:140px;
+  padding:6px 8px;
   border-radius:10px;
   border:1px solid #ddd;
+  font-size:12px;
 }
 
 .search button{
-  padding:8px 14px;
+  padding:6px 10px;
   border:none;
   border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
+  font-size:12px;
 }
 
 /* HEADER */
 .top{
   display:flex;
   align-items:center;
-  gap:16px;
-  margin-top:10px;
+  gap:14px;
+  margin-top:40px;
 }
 
 .avatar{
-  width:80px;
-  height:80px;
+  width:72px;
+  height:72px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:20px;
+  font-size:18px;
   font-weight:600;
 }
 
 .stats{
-  font-size:13px;
+  font-size:12px;
   color:#666;
-}
-
-.stats span{
   cursor:pointer;
 }
 
 .actions{
-  margin-top:8px;
+  margin-top:6px;
   display:flex;
-  gap:10px;
+  gap:8px;
 }
 
 .btn{
-  padding:8px 14px;
+  padding:6px 12px;
   border:none;
   border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:13px;
+  font-size:12px;
 }
 
 /* GRID */
 .photos{
-  margin-top:24px;
+  margin-top:28px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:14px;
+  gap:12px;
 }
 
 .photo{
   width:100%;
-  height:150px;
+  height:140px;
   border-radius:14px;
   object-fit:cover;
   background:#eee;
 }
 
-/* MENSAJE */
+/* MESSAGE */
 .message-box{
-  margin-top:28px;
+  margin-top:30px;
 }
 
 textarea{
@@ -158,67 +157,56 @@ textarea{
   border-radius:14px;
 }
 
-/* VOLVER */
+/* BACK */
 .back{
-  margin-top:12px;
-  font-size:14px;
+  margin-top:18px;
+  font-size:13px;
   text-decoration:underline;
   cursor:pointer;
 }
 
-/* ================= MOBILE ================= */
+/* MOBILE */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
-  padding:28px 18px 40px;
+  padding:22px 18px 30px;
 }
 
-/* buscador más visible */
 .search{
-  top:18px;
+  top:14px;
   right:16px;
 }
 
 .search input{
-  width:180px;
-  padding:9px 10px;
+  width:120px;
 }
 
-.search button{
-  padding:9px 16px;
-}
-
-/* header más abajo */
 .top{
-  margin-top:48px;
+  margin-top:60px;
 }
 
-/* botones equilibrados */
+.avatar{
+  width:64px;
+  height:64px;
+}
+
+.alias{
+  font-size:17px;
+}
+
 .btn{
-  padding:7px 12px;
-  font-size:12px;
+  padding:5px 10px;
+  font-size:11px;
 }
 
-/* grid más abajo */
 .photos{
-  margin-top:30px;
-  gap:12px;
+  gap:10px;
 }
 
 .photo{
-  height:120px;
-}
-
-/* followers clickeables */
-.stats{
-  font-size:13px;
-}
-
-/* volver */
-.back{
-  margin-top:16px;
+  height:110px;
 }
 }
 </style>
@@ -228,35 +216,30 @@ textarea{
 
 <div class="container">
 
-  <!-- BUSCADOR -->
+  <!-- SEARCH -->
   <div class="search">
-    <input id="searchInput" placeholder="buscar usuario">
+    <input id="searchInput" placeholder="buscar usuario" />
     <button onclick="searchUser()">ir</button>
   </div>
 
   <!-- HEADER -->
   <div class="top">
-    <img id="avatar" class="avatar"/>
-
+    <img id="avatar" class="avatar" />
     <div>
       <div id="alias" class="alias">...</div>
-
-      <div class="stats">
-        <span id="followersBtn">0 followers</span> ·
-        <span id="followingBtn">0 following</span>
-      </div>
+      <div id="stats" class="stats"></div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
-        <button class="btn" onclick="location.href='wall.html'">SHHH!</button>
+        <button id="shhhBtn" class="btn">SHHH!</button>
       </div>
     </div>
   </div>
 
-  <!-- FOTOS -->
+  <!-- PHOTOS -->
   <div id="photos" class="photos"></div>
 
-  <!-- MENSAJE -->
+  <!-- MESSAGE -->
   <div class="message-box">
     <h3 id="titleText">Envíame un mensaje</h3>
 
@@ -270,19 +253,20 @@ textarea{
 
       <button class="send-btn" onclick="sendMessage()">Enviar</button>
     </div>
-
-    <div class="back" onclick="history.back()">← Volver</div>
   </div>
 
   <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
+
+  <!-- BACK -->
+  <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -302,58 +286,95 @@ const aliasParam = params.get("alias");
 
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
-const followersBtn = document.getElementById("followersBtn");
-const followingBtn = document.getElementById("followingBtn");
+const stats = document.getElementById("stats");
 const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
+const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
 async function loadUser(){
-  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
-  if(!aliasSnap.exists()) return;
+  const q = query(collection(db,"users"), where("alias","==",aliasParam));
+  const snap = await getDocs(q);
 
-  viewedUid = aliasSnap.data().uid;
+  if(snap.empty) return;
 
-  const userSnap = await getDoc(doc(db,"users",viewedUid));
-  const d = userSnap.data();
+  const docData = snap.docs[0];
+  viewedUid = docData.id;
+  const d = docData.data();
 
   aliasEl.textContent = d.alias;
-  followersBtn.textContent = `${d.followers?.length||0} followers`;
-  followingBtn.textContent = `${d.following?.length||0} following`;
-
-  followersBtn.onclick = () => location.href=`list.html?uid=${viewedUid}&type=followers`;
-  followingBtn.onclick = () => location.href=`list.html?uid=${viewedUid}&type=following`;
+  stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
-  photos.innerHTML="";
+  photos.innerHTML = "";
   (d.photos||[]).forEach(url=>{
     if(!url) return;
-    const img=document.createElement("img");
-    img.src=url;
-    img.className="photo";
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "photo";
     photos.appendChild(img);
   });
 
-  if(d.spotifyEmbed) spotify.innerHTML=d.spotifyEmbed;
+  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
 
   if(d.wallText){
-    titleText.textContent=d.wallText.title||"Envíame un mensaje";
-    msgInput.placeholder=d.wallText.box||"Escribe algo suave...";
+    titleText.textContent = d.wallText.title || "Envíame un mensaje";
+    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
   }
+
+  setupFollow();
+}
+
+async function setupFollow(){
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const meSnap = await getDoc(doc(db,"users",user.uid));
+  const me = meSnap.data();
+
+  const isFollowing = me.following?.includes(viewedUid);
+
+  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+
+  followBtn.onclick = async () => {
+    if(isFollowing){
+      await updateDoc(doc(db,"users",user.uid),{
+        following: arrayRemove(viewedUid)
+      });
+
+      await updateDoc(doc(db,"users",viewedUid),{
+        followers: arrayRemove(user.uid)
+      });
+    }else{
+      await updateDoc(doc(db,"users",user.uid),{
+        following: arrayUnion(viewedUid)
+      });
+
+      await updateDoc(doc(db,"users",viewedUid),{
+        followers: arrayUnion(user.uid)
+      });
+    }
+
+    location.reload();
+  };
 }
 
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
   if(!text) return;
 
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const user = auth.currentUser;
+
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    createdAt:Date.now(),
+    fromAlias: mode==="alias" && user ? user.uid : null,
+    createdAt: Date.now(),
     published:false
   });
 
@@ -362,8 +383,9 @@ window.sendMessage = async () => {
 };
 
 window.searchUser = () => {
-  const a=document.getElementById("searchInput").value.trim();
-  if(a) location.href=`user.html?alias=${a}`;
+  const alias = document.getElementById("searchInput").value.trim();
+  if(!alias) return;
+  window.location.href = `user.html?alias=${alias}`;
 };
 
 loadUser();
