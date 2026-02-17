@@ -13,7 +13,6 @@ body{
   color:#111;
 }
 
-/* CONTENEDOR IGUAL A PROFILE (DESKTOP) */
 .container{
   max-width:900px;
   margin:40px auto;
@@ -24,54 +23,57 @@ body{
   position:relative;
 }
 
-/* SEARCH */
+/* SEARCH DESKTOP */
 .search{
   position:absolute;
   top:20px;
   right:24px;
   display:flex;
-  gap:8px;
+  gap:12px;
 }
 
 .search input{
-  width:150px;
-  padding:8px 10px;
-  border-radius:10px;
+  width:190px;
+  padding:12px 14px;
+  border-radius:12px;
   border:1px solid #ddd;
+  font-size:14px;
 }
 
 .search button{
-  padding:8px 12px;
+  padding:12px 16px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#111;
   color:white;
   cursor:pointer;
+  font-size:14px;
 }
 
-/* HEADER */
+/* HEADER DESKTOP */
 .top{
   display:flex;
-  gap:20px;
+  gap:22px;
   align-items:center;
   margin-top:10px;
 }
 
 .avatar{
-  width:80px;
-  height:80px;
+  width:110px; /* más grande solo desktop */
+  height:110px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:20px;
+  font-size:24px;
   font-weight:600;
 }
 
 .stats{
-  font-size:13px;
+  font-size:14px;
   color:#666;
+  margin-top:10px; /* bajar followers */
 }
 
 .stats span{
@@ -79,13 +81,13 @@ body{
 }
 
 .actions{
-  margin-top:8px;
+  margin-top:12px;
   display:flex;
-  gap:10px;
+  gap:12px;
 }
 
 .btn{
-  padding:8px 14px;
+  padding:9px 16px;
   border:none;
   border-radius:10px;
   background:#111;
@@ -94,7 +96,7 @@ body{
   font-size:13px;
 }
 
-/* GRID IGUAL A PROFILE */
+/* LAYOUT */
 .layout{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -117,7 +119,6 @@ body{
   background:#eee;
 }
 
-/* RIGHT SIDE */
 .right{
   display:flex;
   flex-direction:column;
@@ -162,7 +163,6 @@ textarea{
   border-radius:12px;
 }
 
-/* BACK */
 .back{
   margin-top:20px;
   font-size:13px;
@@ -179,6 +179,10 @@ textarea{
   padding:22px 18px 30px;
 }
 
+.layout{
+  grid-template-columns:1fr;
+}
+
 .photos{
   grid-template-columns:repeat(3,1fr);
   gap:10px;
@@ -186,14 +190,6 @@ textarea{
 
 .photo{
   height:110px;
-}
-
-.layout{
-  grid-template-columns:1fr;
-}
-
-.right{
-  order:2;
 }
 
 }
@@ -238,6 +234,9 @@ textarea{
     <!-- RIGHT -->
     <div class="right">
 
+      <!-- SPOTIFY ARRIBA (desktop) -->
+      <div id="spotify" class="spotify"></div>
+
       <!-- MESSAGE -->
       <div>
         <h3 id="titleText">Envíame un mensaje</h3>
@@ -254,13 +253,9 @@ textarea{
         </div>
       </div>
 
-      <!-- SPOTIFY -->
-      <div id="spotify" class="spotify"></div>
-
     </div>
   </div>
 
-  <!-- BACK -->
   <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
@@ -302,7 +297,6 @@ const followingLink = document.getElementById("followingLink");
 
 let viewedUid = null;
 
-/* LOAD USER */
 async function loadUser(){
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
   const snap = await getDocs(q);
@@ -341,7 +335,6 @@ async function loadUser(){
   setupFollow();
 }
 
-/* FOLLOW */
 async function setupFollow(){
   const user = auth.currentUser;
   if(!user) return;
@@ -365,7 +358,6 @@ async function setupFollow(){
   };
 }
 
-/* SEND MESSAGE */
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
   if(!text) return;
@@ -385,11 +377,10 @@ window.sendMessage = async () => {
   alert("enviado 🌷");
 };
 
-/* SEARCH */
 window.searchUser = () => {
   const alias = document.getElementById("searchInput").value.trim();
   if(!alias) return;
-  location.href = `user.html?alias=${alias}`;
+  window.location.href = `user.html?alias=${alias}`;
 };
 
 loadUser();
