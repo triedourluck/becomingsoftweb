@@ -52,39 +52,41 @@
     .from {
       font-weight: bold;
       margin-bottom: 5px;
+      cursor: pointer;
+      text-decoration: underline;
     }
 
     .empty {
       text-align: center;
       margin-top: 30px;
       color: #888;
-  
-  }
+    }
 
     .top-nav{
-  display:flex;
-  gap:8px;
-  margin-bottom:14px;
-}
+      display:flex;
+      gap:8px;
+      margin-bottom:14px;
+    }
 
-.top-nav button{
-  padding:6px 12px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:12px;
-}
+    .top-nav button{
+      padding:6px 12px;
+      border:none;
+      border-radius:10px;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      font-size:12px;
+    }
   </style>
 </head>
 
 <body>
   <div class="container">
+
     <div class="top-nav">
-  <button onclick="goFeed()">Feed</button>
-  <button onclick="goProfile()">Mi perfil</button>
-</div>
+      <button onclick="goFeed()">Feed</button>
+      <button onclick="goProfile()">Mi perfil</button>
+    </div>
 
     <div class="header">
       <img id="avatar" class="avatar" />
@@ -92,6 +94,7 @@
     </div>
 
     <div id="wall"></div>
+
     <div id="empty" class="empty" style="display:none;">
       Aún no hay mensajes publicados 🌙
     </div>
@@ -139,14 +142,14 @@
       const params = new URLSearchParams(window.location.search);
       const uid = params.get("uid") || user.uid;
 
-      // cargar datos del perfil
+      // 🔹 cargar perfil
       const userSnap = await getDoc(doc(db, "users", uid));
       const userData = userSnap.data();
 
       aliasEl.textContent = userData?.alias || "sin alias";
       if (userData?.photoURL) avatarEl.src = userData.photoURL;
 
-      // query del wall
+      // 🔹 query del wall
       const q = query(
         collection(db, "messages"),
         where("to", "==", uid),
@@ -161,35 +164,47 @@
         return;
       }
 
-      snap.forEach(docSnap => {
-  const data = docSnap.data();
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
 
-  const alias = document.createElement("div");
-  alias.textContent = "@" + data.fromAlias;
+        const div = document.createElement("div");
+        div.className = "msg";
 
-  // 💫 hacerlo clickeable
-  alias.style.cursor = "pointer";
-  alias.style.textDecoration = "underline";
+        let fromAlias = "Anónimo";
 
-  alias.onclick = () => {
-    window.location.href = `user.html?alias=${data.fromAlias}`;
-  };
+        // 🔹 si NO es anónimo, buscar alias real por UID
+        if (data.fromAlias) {
+          const fromSnap = await getDoc(doc(db, "users", data.fromAlias));
+          fromAlias = fromSnap.data()?.alias || "usuario";
+        }
 
-        div.innerHTML = `
-          <div class="from">${data.fromAlias || "Anónimo"}</div>
-          <div>${data.text}</div>
-        `;
+        const fromEl = document.createElement("div");
+        fromEl.className = "from";
+        fromEl.textContent = "@" + fromAlias;
 
+        // 👉 click al perfil
+        if (data.fromAlias) {
+          fromEl.onclick = () => {
+            window.location.href = `user.html?alias=${fromAlias}`;
+          };
+        }
+
+        const textEl = document.createElement("div");
+        textEl.textContent = data.text;
+
+        div.appendChild(fromEl);
+        div.appendChild(textEl);
         wallEl.appendChild(div);
-      });
+      }
     });
-    window.goFeed = () => {
-  window.location.href = "feed.html";
-};
 
-window.goProfile = () => {
-  window.location.href = "profile.html";
-};
+    window.goFeed = () => {
+      window.location.href = "feed.html";
+    };
+
+    window.goProfile = () => {
+      window.location.href = "profile.html";
+    };
   </script>
 </body>
 </html>
