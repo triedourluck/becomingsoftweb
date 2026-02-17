@@ -23,30 +23,30 @@ body{
   position:relative;
 }
 
-/* buscador */
+/* 🔎 BUSCADOR */
 .search{
   position:absolute;
-  top:18px;
-  right:22px;
+  top:20px;
+  right:24px;
   display:flex;
   gap:6px;
 }
 
 .search input{
-  width:140px;
-  padding:6px 8px;
-  border-radius:10px;
+  width:110px;
+  padding:5px 7px;
+  border-radius:9px;
   border:1px solid #ddd;
-  font-size:12px;
+  font-size:11px;
 }
 
 .search button{
-  padding:6px 10px;
+  padding:5px 9px;
   border:none;
-  border-radius:10px;
+  border-radius:9px;
   background:#111;
   color:white;
-  font-size:12px;
+  font-size:11px;
   cursor:pointer;
 }
 
@@ -54,61 +54,62 @@ body{
 .top{
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
 }
 
 .avatar{
-  width:70px;
-  height:70px;
+  width:80px;
+  height:80px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:18px;
+  font-size:20px;
   font-weight:600;
 }
 
 .stats{
-  font-size:12px;
+  font-size:13px;
   color:#666;
-  cursor:pointer;
 }
 
 .actions{
-  margin-top:6px;
+  margin-top:8px;
   display:flex;
   gap:8px;
 }
 
 .btn{
-  padding:6px 12px;
+  padding:5px 10px;
   border:none;
-  border-radius:10px;
+  border-radius:9px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:12px;
+  font-size:11px;
 }
 
 /* GRID */
 .photos{
-  margin-top:22px;
+  margin-top:24px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .photo{
   width:100%;
-  height:130px;
+  height:150px;
   border-radius:14px;
   object-fit:cover;
   background:#eee;
 }
 
 /* MENSAJE */
-.message-box{ margin-top:26px; }
+.message-box{
+  margin-top:28px;
+}
 
 textarea{
   width:100%;
@@ -144,39 +145,49 @@ textarea{
 }
 
 /* SPOTIFY */
-.spotify{ margin-top:18px; }
-.spotify iframe{ width:100%; border:none; border-radius:14px; }
-
-/* VOLVER */
-.back{
+.spotify{
   margin-top:18px;
-  font-size:14px;
-  text-decoration:underline;
-  cursor:pointer;
 }
 
-/* MOBILE */
+.spotify iframe{
+  width:100%;
+  border:none;
+  border-radius:14px;
+}
+
+/* ← VOLVER */
+.back{
+  margin-top:18px;
+  font-size:13px;
+  text-decoration:underline;
+  cursor:pointer;
+  display:inline-block;
+}
+
+/* ================= MOBILE ================= */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 16px 30px;
+  padding:22px 18px 30px;
 }
 
-.search input{ width:120px; }
+.search input{ width:95px; font-size:10px; }
+.search button{ font-size:10px; padding:4px 8px; }
+
+.btn{
+  font-size:10px;
+  padding:5px 9px;
+}
 
 .photos{
-  grid-template-columns:repeat(3,1fr);
   gap:10px;
 }
 
-.photo{ height:110px; }
-
-.btn{ font-size:11px; padding:6px 10px; }
-
-.back{ margin-top:14px; }
-
+.photo{
+  height:110px;
+}
 }
 </style>
 </head>
@@ -185,6 +196,7 @@ textarea{
 
 <div class="container">
 
+  <!-- BUSCAR -->
   <div class="search">
     <input id="searchInput" placeholder="buscar usuario">
     <button onclick="searchUser()">ir</button>
@@ -192,14 +204,14 @@ textarea{
 
   <!-- HEADER -->
   <div class="top">
-    <img id="avatar" class="avatar">
+    <img id="avatar" class="avatar"/>
     <div>
       <div id="alias" class="alias">...</div>
       <div id="stats" class="stats"></div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
-        <button class="btn" onclick="location.href='wall.html'">SHHH!</button>
+        <button id="shhhBtn" class="btn">SHHH!</button>
       </div>
     </div>
   </div>
@@ -234,7 +246,7 @@ textarea{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -259,78 +271,52 @@ const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
-const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
 async function loadUser(){
+  const usersSnap = await getDoc(doc(db,"aliases",aliasParam));
+  if(!usersSnap.exists()) return;
 
-  const q = query(collection(db,"users"), where("alias","==",aliasParam));
-  const snap = await getDocs(q);
-  if(snap.empty) return;
+  viewedUid = usersSnap.data().uid;
 
-  const docSnap = snap.docs[0];
-  viewedUid = docSnap.id;
-  const d = docSnap.data();
+  const userSnap = await getDoc(doc(db,"users",viewedUid));
+  const d = userSnap.data();
 
   aliasEl.textContent = d.alias;
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
-  photos.innerHTML="";
+  photos.innerHTML = "";
   (d.photos||[]).forEach(url=>{
     if(!url) return;
-    const img=document.createElement("img");
-    img.src=url;
-    img.className="photo";
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "photo";
     photos.appendChild(img);
   });
 
-  if(d.spotifyEmbed) spotify.innerHTML=d.spotifyEmbed;
+  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
 
   if(d.wallText){
-    titleText.textContent=d.wallText.title||"Envíame un mensaje";
-    msgInput.placeholder=d.wallText.box||"Escribe algo suave...";
-  }
-
-  const current=auth.currentUser;
-  if(current){
-    const meSnap=await getDoc(doc(db,"users",current.uid));
-    const me=meSnap.data();
-
-    const isFollowing=me.following?.includes(viewedUid);
-    followBtn.textContent=isFollowing?"Unfollow":"Follow";
-
-    followBtn.onclick=async()=>{
-      const newFollowing=isFollowing
-        ? me.following.filter(id=>id!==viewedUid)
-        : [...(me.following||[]), viewedUid];
-
-      const newFollowers=isFollowing
-        ? d.followers.filter(id=>id!==current.uid)
-        : [...(d.followers||[]), current.uid];
-
-      await updateDoc(doc(db,"users",current.uid),{following:newFollowing});
-      await updateDoc(doc(db,"users",viewedUid),{followers:newFollowers});
-
-      location.reload();
-    };
+    titleText.textContent = d.wallText.title || "Envíame un mensaje";
+    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
   }
 }
 
-window.sendMessage=async()=>{
-  const text=msgInput.value.trim();
+window.sendMessage = async () => {
+  const text = msgInput.value.trim();
   if(!text) return;
 
-  const mode=document.querySelector('input[name="mode"]:checked').value;
-  const user=auth.currentUser;
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const user = auth.currentUser;
 
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    fromAlias:mode==="alias"&&user?user.uid:null,
-    createdAt:Date.now(),
+    fromAlias: mode==="alias" && user ? user.uid : null,
+    createdAt: Date.now(),
     published:false
   });
 
@@ -338,9 +324,10 @@ window.sendMessage=async()=>{
   alert("enviado 🌷");
 };
 
-window.searchUser=()=>{
-  const a=document.getElementById("searchInput").value.trim();
-  if(a) location.href=`user.html?alias=${a}`;
+window.searchUser = () => {
+  const a = document.getElementById("searchInput").value.trim();
+  if(!a) return;
+  location.href = `user.html?alias=${a}`;
 };
 
 loadUser();
