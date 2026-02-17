@@ -23,7 +23,7 @@ body{
   position:relative;
 }
 
-/* 🔎 BUSCADOR */
+/* BUSCADOR */
 .search{
   position:absolute;
   top:20px;
@@ -33,20 +33,20 @@ body{
 }
 
 .search input{
-  width:110px;
-  padding:5px 7px;
-  border-radius:9px;
+  width:130px;
+  padding:6px 8px;
+  border-radius:8px;
   border:1px solid #ddd;
-  font-size:11px;
+  font-size:12px;
 }
 
 .search button{
-  padding:5px 9px;
+  padding:6px 10px;
   border:none;
-  border-radius:9px;
+  border-radius:8px;
   background:#111;
   color:white;
-  font-size:11px;
+  font-size:12px;
   cursor:pointer;
 }
 
@@ -54,40 +54,40 @@ body{
 .top{
   display:flex;
   align-items:center;
-  gap:16px;
+  gap:14px;
 }
 
 .avatar{
-  width:80px;
-  height:80px;
+  width:70px;
+  height:70px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:20px;
+  font-size:18px;
   font-weight:600;
 }
 
 .stats{
-  font-size:13px;
+  font-size:12px;
   color:#666;
 }
 
 .actions{
-  margin-top:8px;
+  margin-top:6px;
   display:flex;
   gap:8px;
 }
 
 .btn{
-  padding:5px 10px;
+  padding:6px 12px;
   border:none;
-  border-radius:9px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:11px;
+  font-size:12px;
 }
 
 /* GRID */
@@ -95,12 +95,12 @@ body{
   margin-top:24px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:14px;
+  gap:12px;
 }
 
 .photo{
   width:100%;
-  height:150px;
+  height:130px;
   border-radius:14px;
   object-fit:cover;
   background:#eee;
@@ -108,7 +108,7 @@ body{
 
 /* MENSAJE */
 .message-box{
-  margin-top:28px;
+  margin-top:26px;
 }
 
 textarea{
@@ -155,39 +155,64 @@ textarea{
   border-radius:14px;
 }
 
-/* ← VOLVER */
+/* VOLVER */
 .back{
   margin-top:18px;
-  font-size:13px;
+  font-size:14px;
   text-decoration:underline;
   cursor:pointer;
-  display:inline-block;
 }
 
-/* ================= MOBILE ================= */
+/* MOBILE */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 18px 30px;
+  padding:22px 16px 30px;
 }
 
-.search input{ width:95px; font-size:10px; }
-.search button{ font-size:10px; padding:4px 8px; }
+/* buscador más chico */
+.search{
+  top:16px;
+  right:16px;
+}
+
+.search input{
+  width:110px;
+  font-size:11px;
+}
+
+.search button{
+  padding:5px 9px;
+  font-size:11px;
+}
+
+/* header más chico */
+.avatar{
+  width:60px;
+  height:60px;
+}
+
+.alias{
+  font-size:17px;
+}
 
 .btn{
-  font-size:10px;
-  padding:5px 9px;
+  padding:5px 10px;
+  font-size:11px;
 }
 
+/* grid exacto */
 .photos{
+  grid-template-columns:repeat(3,1fr);
   gap:10px;
 }
 
 .photo{
-  height:110px;
+  height:105px;
 }
+
 }
 </style>
 </head>
@@ -196,9 +221,9 @@ textarea{
 
 <div class="container">
 
-  <!-- BUSCAR -->
+  <!-- BUSCADOR -->
   <div class="search">
-    <input id="searchInput" placeholder="buscar usuario">
+    <input id="searchInput" placeholder="buscar usuario"/>
     <button onclick="searchUser()">ir</button>
   </div>
 
@@ -211,7 +236,7 @@ textarea{
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
-        <button id="shhhBtn" class="btn">SHHH!</button>
+        <button class="btn" onclick="location.href='wall.html'">SHHH!</button>
       </div>
     </div>
   </div>
@@ -246,7 +271,7 @@ textarea{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -271,38 +296,69 @@ const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
+const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
 async function loadUser(){
-  const usersSnap = await getDoc(doc(db,"aliases",aliasParam));
-  if(!usersSnap.exists()) return;
 
-  viewedUid = usersSnap.data().uid;
+  const q = query(collection(db,"users"), where("alias","==",aliasParam));
+  const snap = await getDocs(q);
 
-  const userSnap = await getDoc(doc(db,"users",viewedUid));
-  const d = userSnap.data();
+  if(snap.empty) return;
+
+  const docSnap = snap.docs[0];
+  viewedUid = docSnap.id;
+  const d = docSnap.data();
 
   aliasEl.textContent = d.alias;
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
-  photos.innerHTML = "";
+  photos.innerHTML="";
   (d.photos||[]).forEach(url=>{
     if(!url) return;
-    const img = document.createElement("img");
-    img.src = url;
-    img.className = "photo";
+    const img=document.createElement("img");
+    img.src=url;
+    img.className="photo";
     photos.appendChild(img);
   });
 
-  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
+  if(d.spotifyEmbed) spotify.innerHTML=d.spotifyEmbed;
 
   if(d.wallText){
     titleText.textContent = d.wallText.title || "Envíame un mensaje";
     msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
   }
+
+  setupFollow(d);
+}
+
+async function setupFollow(userData){
+  const current = auth.currentUser;
+  if(!current) return;
+
+  const isFollowing = userData.followers?.includes(current.uid);
+
+  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+
+  followBtn.onclick = async () => {
+    const ref = doc(db,"users",viewedUid);
+    const snap = await getDoc(ref);
+    const data = snap.data();
+
+    let followers = data.followers || [];
+
+    if(followers.includes(current.uid)){
+      followers = followers.filter(id=>id!==current.uid);
+    }else{
+      followers.push(current.uid);
+    }
+
+    await updateDoc(ref,{followers});
+    loadUser();
+  };
 }
 
 window.sendMessage = async () => {
