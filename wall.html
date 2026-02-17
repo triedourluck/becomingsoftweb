@@ -3,233 +3,164 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — wall</title>
+  <title>Wall</title>
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f5f5;
-      color: #111;
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#f5f5f5;
+      color:#111;
     }
 
-    .container {
-      max-width: 700px;
-      margin: 40px auto;
-      background: white;
-      border-radius: 20px;
-      padding: 32px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      position: relative;
+    .container{
+      max-width:900px;
+      margin:40px auto;
+      background:white;
+      border-radius:20px;
+      padding:32px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
     }
 
-    /* buscador */
-    .search {
-      position: absolute;
-      top: 20px;
-      right: 24px;
-      display: flex;
-      gap: 8px;
+    .header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:24px;
     }
 
-    .search input {
-      width: 160px;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
+    .user{
+      display:flex;
+      align-items:center;
+      gap:12px;
     }
 
-    .search button {
-      padding: 8px 12px;
-      border: none;
-      border-radius: 10px;
-      background: #111;
-      color: white;
-      cursor: pointer;
+    .avatar{
+      width:60px;
+      height:60px;
+      border-radius:50%;
+      background:#ddd;
+      object-fit:cover;
     }
 
-    .top {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      margin-top: 10px;
+    .alias{
+      font-weight:600;
+      font-size:18px;
     }
 
-    .avatar {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background: #ddd;
-      object-fit: cover;
+    .msg{
+      border:1px solid #eee;
+      border-radius:14px;
+      padding:14px;
+      margin-bottom:12px;
+      background:#fafafa;
     }
 
-    .alias {
-      font-size: 20px;
-      font-weight: 600;
+    .reply{
+      margin-top:10px;
+      font-size:14px;
+      color:#444;
+      border-left:3px solid #111;
+      padding-left:10px;
     }
 
-    .wall {
-      margin-top: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .post {
-      border: 1px solid #eee;
-      border-radius: 14px;
-      padding: 14px;
-      background: #fafafa;
-    }
-
-    .question {
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    .response {
-      font-size: 14px;
-      color: #444;
-      padding-top: 8px;
-      border-top: 1px dashed #ddd;
-      margin-top: 8px;
-    }
-
-    .empty {
-      text-align: center;
-      font-size: 13px;
-      color: #999;
-      margin-top: 40px;
-    }
-
-    /* mobile */
-    @media (max-width: 700px) {
-      .container {
-        margin: 0;
-        border-radius: 0;
-      }
-
-      .avatar {
-        width: 60px;
-        height: 60px;
-      }
-
-      .alias {
-        font-size: 18px;
-      }
-
-      .search {
-        top: 10px;
-      }
+    .empty{
+      text-align:center;
+      color:#888;
+      margin-top:40px;
     }
   </style>
 </head>
-<body>
 
+<body>
   <div class="container">
 
-    <!-- buscador -->
-    <div class="search">
-      <input id="searchInput" placeholder="buscar usuario" />
-      <button onclick="searchUser()">ir</button>
+    <div class="header">
+      <div class="user">
+        <img id="avatar" class="avatar" />
+        <div id="alias" class="alias">...</div>
+      </div>
     </div>
 
-    <!-- perfil arriba -->
-    <div class="top">
-      <img id="avatar" class="avatar" />
-      <div id="alias" class="alias">...</div>
-    </div>
-
-    <!-- muro de mensajes publicados -->
-    <div id="wall" class="wall"></div>
-
-    <div id="empty" class="empty" style="display:none;">
-      Aún no hay mensajes publicados 🌙
-    </div>
+    <div id="wall"></div>
+    <div id="empty" class="empty" style="display:none">Aún no hay mensajes publicados</div>
 
   </div>
 
   <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  orderBy,
-  getDocs,
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      orderBy,
+      getDocs,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain: "becomingsoft-84e72.firebaseapp.com",
-  projectId: "becomingsoft-84e72",
-  storageBucket: "becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId: "605759003962",
-  appId: "1:605759003962:web:ea8603a8e97e42d2278403"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+    };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-const wallEl = document.getElementById("wall");
-const emptyEl = document.getElementById("empty");
-const avatarEl = document.getElementById("avatar");
-const aliasEl = document.getElementById("alias");
+    const wallEl = document.getElementById("wall");
+    const emptyEl = document.getElementById("empty");
+    const avatarEl = document.getElementById("avatar");
+    const aliasEl = document.getElementById("alias");
 
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    location.href = "login.html";
-    return;
-  }
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return location.href = "login.html";
 
-  // 🔍 uid desde la URL (o propio)
-  const params = new URLSearchParams(window.location.search);
-  const viewedUid = params.get("uid") || user.uid;
+      const params = new URLSearchParams(window.location.search);
+      const uid = params.get("uid") || user.uid;
 
-  // 📌 cargar datos del perfil
-  const userSnap = await getDoc(doc(db, "users", viewedUid));
-  const userData = userSnap.data();
+      // cargar datos del usuario
+      const userSnap = await getDoc(doc(db, "users", uid));
+      const userData = userSnap.data();
 
-  aliasEl.textContent = userData.alias || "...";
-  if (userData.photoURL) avatarEl.src = userData.photoURL;
+      aliasEl.textContent = userData?.alias || "sin alias";
+      if (userData?.photoURL) avatarEl.src = userData.photoURL;
 
-  // 🔥 query REAL del wall
-  const q = query(
-    collection(db, "messages"),
-    where("to", "==", viewedUid),
-    where("published", "==", true),
-    orderBy("createdAt", "desc")
-  );
+      // 🔥 QUERY CORRECTA DEL WALL
+      const q = query(
+        collection(db, "messages"),
+        where("to", "==", uid),
+        where("published", "==", true),
+        orderBy("createdAt", "desc")
+      );
 
-  const snap = await getDocs(q);
+      const snap = await getDocs(q);
 
-  // 🪶 si no hay mensajes
-  if (snap.empty) {
-    emptyEl.style.display = "block";
-    return;
-  }
+      if (snap.empty) {
+        emptyEl.style.display = "block";
+        return;
+      }
 
-  // 🧱 render mensajes
-  snap.forEach((docSnap) => {
-    const data = docSnap.data();
+      snap.forEach((docSnap) => {
+        const data = docSnap.data();
 
-    const div = document.createElement("div");
-    div.className = "msg";
+        const div = document.createElement("div");
+        div.className = "msg";
 
-    div.innerHTML = `
-      <div class="meta">${data.fromAlias || "Anónimo"}</div>
-      <div class="text">${data.text}</div>
-      ${data.reply ? `<div class="reply">💬 ${data.reply}</div>` : ""}
-    `;
+        div.innerHTML = `
+          <div>${data.text}</div>
+          ${data.reply ? `<div class="reply">${data.reply}</div>` : ""}
+        `;
 
-    wallEl.appendChild(div);
-  });
-});
-</script>
+        wallEl.appendChild(div);
+      });
+    });
+  </script>
 </body>
 </html>
