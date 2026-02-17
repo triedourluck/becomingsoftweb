@@ -150,101 +150,86 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import {
-      getFirestore, collection, query, where, orderBy, getDocs,
-      doc, getDoc
-    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-      authDomain: "becomingsoft-84e72.firebaseapp.com",
-      projectId: "becomingsoft-84e72",
-      storageBucket: "becomingsoft-84e72.firebasestorage.app",
-      messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  authDomain: "becomingsoft-84e72.firebaseapp.com",
+  projectId: "becomingsoft-84e72",
+  storageBucket: "becomingsoft-84e72.firebasestorage.app",
+  messagingSenderId: "605759003962",
+  appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    const wallEl = document.getElementById("wall");
-    const emptyEl = document.getElementById("empty");
-    const avatarEl = document.getElementById("avatar");
-    const aliasEl = document.getElementById("alias");
+const wallEl = document.getElementById("wall");
+const emptyEl = document.getElementById("empty");
+const avatarEl = document.getElementById("avatar");
+const aliasEl = document.getElementById("alias");
 
-   onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "login.html";
+    location.href = "login.html";
     return;
   }
 
-  // 🔍 ver si viene uid en la URL
+  // 🔍 uid desde la URL (o propio)
   const params = new URLSearchParams(window.location.search);
-  const urlUid = params.get("uid");
+  const viewedUid = params.get("uid") || user.uid;
 
-  // si no viene uid → usar el propio
-  const targetUid = urlUid || user.uid;
-
-  // cargar datos del perfil que corresponde
-  const userSnap = await getDoc(doc(db, "users", targetUid));
-  const userData = userSnap.data();
-
-  // cargar datos del perfil
+  // 📌 cargar datos del perfil
   const userSnap = await getDoc(doc(db, "users", viewedUid));
   const userData = userSnap.data();
 
-  aliasEl.textContent = userData?.alias || "sin alias";
-  if (userData?.photoURL) avatarEl.src = userData.photoURL;
+  aliasEl.textContent = userData.alias || "...";
+  if (userData.photoURL) avatarEl.src = userData.photoURL;
 
-  // traer SOLO mensajes publicados de ese usuario
+  // 🔥 query REAL del wall
   const q = query(
     collection(db, "messages"),
-    where("to", "==", targetUid),
+    where("to", "==", viewedUid),
     where("published", "==", true),
     orderBy("createdAt", "desc")
   );
 
   const snap = await getDocs(q);
 
+  // 🪶 si no hay mensajes
   if (snap.empty) {
     emptyEl.style.display = "block";
     return;
   }
 
-  snap.forEach(docSnap => {
+  // 🧱 render mensajes
+  snap.forEach((docSnap) => {
     const data = docSnap.data();
 
     const div = document.createElement("div");
-    div.className = "post";
+    div.className = "msg";
+
     div.innerHTML = `
-      <div class="question">${data.text}</div>
-      ${data.response ? `<div class="response">${data.response}</div>` : ""}
+      <div class="meta">${data.fromAlias || "Anónimo"}</div>
+      <div class="text">${data.text}</div>
+      ${data.reply ? `<div class="reply">💬 ${data.reply}</div>` : ""}
     `;
 
     wallEl.appendChild(div);
   });
 });
-
-    // buscador
-    window.searchUser = async () => {
-      const alias = document.getElementById("searchInput").value.trim();
-      if (!alias) return;
-
-      const q = query(collection(db, "users"), where("alias", "==", alias));
-      const snap = await getDocs(q);
-
-      if (snap.empty) return alert("usuario no encontrado");
-
-      window.location.href = `user.html?uid=${snap.docs[0].id}`;
-    };
-
-    // enter para buscar
-    document.getElementById("searchInput").addEventListener("keydown", e => {
-      if (e.key === "Enter") searchUser();
-    });
-  </script>
+</script>
 </body>
 </html>
