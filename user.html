@@ -191,7 +191,84 @@ textarea{
 .photo{
   height:110px;
 }
+/* ================= MOBILE FIX REAL ================= */
+@media (max-width:700px){
 
+  .container{
+    margin:0;
+    border-radius:0;
+    padding:20px 16px 28px;
+  }
+
+  /* buscador vuelve arriba sin tapar nada */
+  .search{
+    position:static;
+    margin-bottom:14px;
+    justify-content:flex-end;
+  }
+
+  .search input{
+    width:150px;
+    padding:8px 10px;
+    font-size:13px;
+  }
+
+  .search button{
+    padding:8px 12px;
+    font-size:13px;
+  }
+
+  /* header ordenado */
+  .top{
+    margin-top:6px;
+    align-items:center;
+  }
+
+  .avatar{
+    width:78px;
+    height:78px;
+  }
+
+  .alias{
+    font-size:18px;
+  }
+
+  .stats{
+    font-size:13px;
+    margin-top:4px;
+  }
+
+  .actions{
+    margin-top:8px;
+    gap:10px;
+  }
+
+  .btn{
+    padding:7px 14px;
+    font-size:13px;
+    border-radius:12px;
+  }
+
+  /* fotos respiran más */
+  .photos{
+    margin-top:22px;
+    gap:10px;
+  }
+
+  .photo{
+    height:120px;
+  }
+
+  /* spotify espacio correcto */
+  .spotify{
+    margin-top:18px;
+  }
+
+  /* mensaje */
+  .message-box{
+    margin-top:26px;
+  }
+}  
 }
 </style>
 </head>
