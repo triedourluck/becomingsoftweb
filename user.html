@@ -1,279 +1,7 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>becomingsoft — user</title>
-
-<style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f5f5f5;
-  color:#111;
-}
-
-.container{
-  max-width:900px;
-  margin:40px auto;
-  background:white;
-  border-radius:20px;
-  padding:32px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.08);
-}
-
-/* HEADER */
-.header-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:20px;
-}
-
-.search{
-  display:flex;
-  gap:6px;
-}
-
-.search input{
-  padding:6px 10px;
-  border-radius:10px;
-  border:1px solid #ddd;
-  font-size:12px;
-  width:140px;
-}
-
-.search button{
-  padding:6px 10px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  font-size:12px;
-  cursor:pointer;
-}
-
-.top{
-  display:flex;
-  gap:16px;
-  margin-top:10px;
-}
-
-.avatar{
-  width:70px;
-  height:70px;
-  border-radius:50%;
-  object-fit:cover;
-}
-
-.alias{
-  font-size:18px;
-  font-weight:600;
-}
-
-.stats{
-  font-size:13px;
-  color:#666;
-  margin-top:2px;
-  cursor:pointer;
-}
-
-.actions{
-  margin-top:8px;
-  display:flex;
-  gap:8px;
-}
-
-.btn{
-  padding:6px 12px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:12px;
-}
-
-/* GRID */
-.photos{
-  margin-top:26px;
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:14px;
-}
-
-.photo{
-  width:100%;
-  height:140px;
-  border-radius:14px;
-  object-fit:cover;
-  background:#eee;
-}
-
-/* MENSAJE */
-.message-box{
-  margin-top:28px;
-}
-
-textarea{
-  width:100%;
-  height:120px;
-  border-radius:14px;
-  border:1px solid #ddd;
-  padding:12px;
-  font-size:14px;
-  box-sizing:border-box;
-}
-
-.send-row{
-  margin-top:10px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.send-options{
-  display:flex;
-  gap:12px;
-  font-size:13px;
-  color:#555;
-}
-
-.send-btn{
-  padding:8px 16px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-}
-
-/* SPOTIFY */
-.spotify{
-  margin-top:18px;
-}
-
-.spotify iframe{
-  width:100%;
-  border:none;
-  border-radius:14px;
-}
-
-/* VOLVER */
-.back{
-  margin-top:14px;
-  font-size:13px;
-  text-decoration:underline;
-  cursor:pointer;
-}
-
-/* MOBILE */
-@media (max-width:700px){
-
-.container{
-  margin:0;
-  border-radius:0;
-  padding:22px 16px 30px;
-}
-
-.search input{
-  width:120px;
-  font-size:11px;
-}
-
-.search button{
-  font-size:11px;
-  padding:6px 12px;
-}
-
-.avatar{
-  width:78px;
-  height:78px;
-}
-
-.alias{
-  font-size:20px;
-}
-
-.stats{
-  font-size:14px;
-}
-
-.btn{
-  font-size:13px;
-  padding:7px 14px;
-}
-
-.photos{
-  margin-top:22px;
-  gap:10px;
-}
-
-.photo{
-  height:120px;
-}
-}
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-  <!-- BUSCADOR -->
-  <div class="header-top">
-    <div></div>
-    <div class="search">
-      <input id="searchInput" placeholder="buscar usuario">
-      <button onclick="goSearch()">ir</button>
-    </div>
-  </div>
-
-  <!-- HEADER USER -->
-  <div class="top">
-    <img id="avatar" class="avatar">
-    <div>
-      <div id="alias" class="alias">...</div>
-      <div id="stats" class="stats"></div>
-
-      <div class="actions">
-        <button id="followBtn" class="btn">Follow</button>
-        <button class="btn">SHHH!</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- FOTOS -->
-  <div id="photos" class="photos"></div>
-
-  <!-- MENSAJE -->
-  <div class="message-box">
-    <h3 id="titleText">Envíame un mensaje</h3>
-
-    <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
-
-    <div class="send-row">
-      <div class="send-options">
-        <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
-        <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
-      </div>
-
-      <button class="send-btn" onclick="sendMessage()">Enviar</button>
-    </div>
-  </div>
-
-  <!-- SPOTIFY -->
-  <div id="spotify" class="spotify"></div>
-
-  <!-- VOLVER -->
-  <div class="back" onclick="history.back()">← Volver</div>
-
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, addDoc, collection, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -291,6 +19,11 @@ const db = getFirestore(app);
 const params = new URLSearchParams(location.search);
 const aliasParam = params.get("alias");
 
+if(!aliasParam){
+  alert("No llegó alias en la URL");
+  throw new Error("alias missing");
+}
+
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const stats = document.getElementById("stats");
@@ -298,38 +31,45 @@ const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
-const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
 async function loadUser(){
 
-  import { query, where, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+  // 🔎 1. buscar alias
+  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
 
-async function loadUser(){
-
-  const q = query(collection(db,"users"), where("alias","==",aliasParam));
-  const snap = await getDocs(q);
-
-  if(snap.empty){
-    alert("usuario no encontrado");
-    return;
+  if(!aliasSnap.exists()){
+    alert("Alias no existe en Firestore");
+    throw new Error("alias not found");
   }
 
-  const docSnap = snap.docs[0];
-  viewedUid = docSnap.id;
-  const d = docSnap.data();
+  viewedUid = aliasSnap.data().uid;
 
+  if(!viewedUid){
+    alert("Alias sin UID");
+    throw new Error("uid missing");
+  }
+
+  // 🔎 2. buscar usuario real
   const userSnap = await getDoc(doc(db,"users",viewedUid));
+
+  if(!userSnap.exists()){
+    alert("Usuario no existe");
+    throw new Error("user not found");
+  }
+
   const d = userSnap.data();
 
-  aliasEl.textContent = d.alias;
+  // 🧩 render
+  aliasEl.textContent = d.alias || "...";
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
   photos.innerHTML = "";
   (d.photos||[]).forEach(url=>{
+    if(!url) return;
     const img = document.createElement("img");
     img.src = url;
     img.className = "photo";
@@ -342,40 +82,7 @@ async function loadUser(){
     titleText.textContent = d.wallText.title || "Envíame un mensaje";
     msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
   }
-
-  checkFollow();
 }
-
-async function checkFollow(){
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const mySnap = await getDoc(doc(db,"users",user.uid));
-  const following = mySnap.data().following || [];
-
-  followBtn.textContent = following.includes(viewedUid) ? "Unfollow" : "Follow";
-}
-
-followBtn.onclick = async () => {
-  const user = auth.currentUser;
-  if(!user || !viewedUid) return;
-
-  const myRef = doc(db,"users",user.uid);
-  const viewedRef = doc(db,"users",viewedUid);
-
-  const mySnap = await getDoc(myRef);
-  const following = mySnap.data().following || [];
-
-  if(following.includes(viewedUid)){
-    await updateDoc(myRef,{ following: arrayRemove(viewedUid) });
-    await updateDoc(viewedRef,{ followers: arrayRemove(user.uid) });
-  }else{
-    await updateDoc(myRef,{ following: arrayUnion(viewedUid) });
-    await updateDoc(viewedRef,{ followers: arrayUnion(user.uid) });
-  }
-
-  loadUser();
-};
 
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
@@ -396,13 +103,5 @@ window.sendMessage = async () => {
   alert("enviado 🌷");
 };
 
-window.goSearch = () => {
-  const v = document.getElementById("searchInput").value.trim();
-  if(v) location.href = `user.html?alias=${v}`;
-};
-
 loadUser();
 </script>
-
-</body>
-</html>
