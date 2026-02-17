@@ -2,66 +2,62 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Wall</title>
 
   <style>
-    body{
-      margin:0;
-      font-family:Arial, Helvetica, sans-serif;
-      background:#f5f5f5;
-      color:#111;
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f5f5f5;
     }
 
-    .container{
-      max-width:900px;
-      margin:40px auto;
-      background:white;
-      border-radius:20px;
-      padding:32px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
     }
 
-    .header{
-      display:flex;
-      align-items:center;
-      gap:16px;
-      margin-bottom:24px;
+    .header {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
     }
 
-    .avatar{
-      width:70px;
-      height:70px;
-      border-radius:50%;
-      background:#ddd;
-      object-fit:cover;
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: #ddd;
+      object-fit: cover;
     }
 
-    .alias{
-      font-size:20px;
-      font-weight:600;
+    .alias {
+      font-weight: bold;
+      font-size: 18px;
     }
 
-    .msg{
-      padding:14px 16px;
-      border-radius:14px;
-      background:#fafafa;
-      border:1px solid #eee;
-      margin-bottom:12px;
-      font-size:14px;
+    .msg {
+      background: white;
+      border-radius: 15px;
+      padding: 15px;
+      margin-top: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
     }
 
-    .from{
-      font-size:12px;
-      color:#666;
-      margin-bottom:4px;
+    .from {
+      font-weight: bold;
+      margin-bottom: 5px;
     }
 
-    .empty{
-      text-align:center;
-      color:#888;
-      margin-top:30px;
-      font-size:14px;
+    .empty {
+      text-align: center;
+      margin-top: 30px;
+      color: #888;
     }
   </style>
 </head>
@@ -75,8 +71,11 @@
     </div>
 
     <div id="wall"></div>
-    <div id="empty" class="empty" style="display:none">Aún no hay mensajes publicados 🌙</div>
+    <div id="empty" class="empty" style="display:none;">
+      Aún no hay mensajes publicados 🌙
+    </div>
 
+  </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
@@ -119,14 +118,14 @@
       const params = new URLSearchParams(window.location.search);
       const uid = params.get("uid") || user.uid;
 
-      // cargar datos del usuario
+      // cargar datos del perfil
       const userSnap = await getDoc(doc(db, "users", uid));
       const userData = userSnap.data();
 
       aliasEl.textContent = userData?.alias || "sin alias";
       if (userData?.photoURL) avatarEl.src = userData.photoURL;
 
-      // query real del wall
+      // query del wall
       const q = query(
         collection(db, "messages"),
         where("to", "==", uid),
@@ -147,15 +146,11 @@
         const div = document.createElement("div");
         div.className = "msg";
 
-        const from = document.createElement("div");
-        from.className = "from";
-        from.textContent = data.fromAlias || "Anónimo";
+        div.innerHTML = `
+          <div class="from">${data.fromAlias || "Anónimo"}</div>
+          <div>${data.text}</div>
+        `;
 
-        const text = document.createElement("div");
-        text.textContent = data.text;
-
-        div.appendChild(from);
-        div.appendChild(text);
         wallEl.appendChild(div);
       });
     });
