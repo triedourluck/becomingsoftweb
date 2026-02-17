@@ -33,34 +33,34 @@ body{
 }
 
 .search input{
-  width:150px;
-  padding:7px 10px;
-  border-radius:12px;
+  width:140px;
+  padding:6px 8px;
+  border-radius:10px;
   border:1px solid #ddd;
-  font-size:13px;
+  font-size:12px;
 }
 
 .search button{
-  padding:7px 12px;
+  padding:6px 12px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:13px;
+  font-size:12px;
 }
 
 /* HEADER */
 .top{
   display:flex;
   align-items:center;
-  gap:16px;
-  margin-top:46px;
+  gap:18px;
+  margin-top:60px;
 }
 
 .avatar{
-  width:88px;
-  height:88px;
+  width:86px;
+  height:86px;
   border-radius:50%;
   object-fit:cover;
 }
@@ -73,6 +73,10 @@ body{
 .stats{
   font-size:14px;
   color:#666;
+  margin-top:4px;
+}
+
+.stats span{
   cursor:pointer;
 }
 
@@ -83,9 +87,9 @@ body{
 }
 
 .btn{
-  padding:8px 16px;
+  padding:8px 14px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
@@ -110,7 +114,7 @@ body{
 
 /* MESSAGE */
 .message-box{
-  margin-top:34px;
+  margin-top:32px;
 }
 
 textarea{
@@ -138,9 +142,9 @@ textarea{
 }
 
 .send-btn{
-  padding:8px 18px;
+  padding:8px 16px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
@@ -148,7 +152,7 @@ textarea{
 
 /* SPOTIFY */
 .spotify{
-  margin-top:20px;
+  margin-top:18px;
 }
 
 .spotify iframe{
@@ -171,7 +175,7 @@ textarea{
 .container{
   margin:0;
   border-radius:0;
-  padding:24px 18px 32px;
+  padding:22px 18px 30px;
 }
 
 .search{
@@ -180,23 +184,12 @@ textarea{
 }
 
 .search input{
-  width:130px;
-  font-size:12px;
-}
-
-.search button{
-  padding:6px 12px;
-  font-size:12px;
-}
-
-.top{
-  margin-top:60px;
-  gap:14px;
+  width:120px;
 }
 
 .avatar{
-  width:80px;
-  height:80px;
+  width:74px;
+  height:74px;
 }
 
 .alias{
@@ -208,12 +201,12 @@ textarea{
 }
 
 .btn{
-  padding:7px 14px;
+  padding:7px 12px;
   font-size:12px;
 }
 
 .photos{
-  gap:12px;
+  gap:10px;
 }
 
 .photo{
@@ -227,16 +220,22 @@ textarea{
 
 <div class="container">
 
+  <!-- SEARCH -->
   <div class="search">
     <input id="searchInput" placeholder="buscar usuario" />
     <button onclick="searchUser()">ir</button>
   </div>
 
+  <!-- HEADER -->
   <div class="top">
     <img id="avatar" class="avatar" />
     <div>
       <div id="alias" class="alias">...</div>
-      <div id="stats" class="stats"></div>
+
+      <div class="stats">
+        <span id="followersLink"></span> ·
+        <span id="followingLink"></span>
+      </div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
@@ -245,8 +244,10 @@ textarea{
     </div>
   </div>
 
+  <!-- PHOTOS -->
   <div id="photos" class="photos"></div>
 
+  <!-- MESSAGE -->
   <div class="message-box">
     <h3 id="titleText">Envíame un mensaje</h3>
 
@@ -262,8 +263,10 @@ textarea{
     </div>
   </div>
 
+  <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
 
+  <!-- BACK -->
   <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
@@ -291,12 +294,13 @@ const aliasParam = params.get("alias");
 
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
-const stats = document.getElementById("stats");
 const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
 const followBtn = document.getElementById("followBtn");
+const followersLink = document.getElementById("followersLink");
+const followingLink = document.getElementById("followingLink");
 
 let viewedUid = null;
 
@@ -310,7 +314,11 @@ async function loadUser(){
   const d = docData.data();
 
   aliasEl.textContent = d.alias;
-  stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
+  followersLink.textContent = `${d.followers?.length || 0} followers`;
+  followingLink.textContent = `${d.following?.length || 0} following`;
+
+  followersLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=followers`;
+  followingLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
@@ -339,8 +347,8 @@ async function setupFollow(){
 
   const meSnap = await getDoc(doc(db,"users",user.uid));
   const me = meSnap.data();
-  const isFollowing = me.following?.includes(viewedUid);
 
+  const isFollowing = me.following?.includes(viewedUid);
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
