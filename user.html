@@ -304,10 +304,21 @@ let viewedUid = null;
 
 async function loadUser(){
 
-  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
-  if(!aliasSnap.exists()) return;
+  import { query, where, getDocs, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-  viewedUid = aliasSnap.data().uid;
+async function loadUser(){
+
+  const q = query(collection(db,"users"), where("alias","==",aliasParam));
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    alert("usuario no encontrado");
+    return;
+  }
+
+  const docSnap = snap.docs[0];
+  viewedUid = docSnap.id;
+  const d = docSnap.data();
 
   const userSnap = await getDoc(doc(db,"users",viewedUid));
   const d = userSnap.data();
