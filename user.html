@@ -13,6 +13,7 @@ body{
   color:#111;
 }
 
+/* CONTENEDOR IGUAL A PROFILE (DESKTOP) */
 .container{
   max-width:900px;
   margin:40px auto;
@@ -29,51 +30,48 @@ body{
   top:20px;
   right:24px;
   display:flex;
-  gap:6px;
+  gap:8px;
 }
 
 .search input{
-  width:140px;
-  padding:6px 8px;
+  width:150px;
+  padding:8px 10px;
   border-radius:10px;
   border:1px solid #ddd;
-  font-size:12px;
 }
 
 .search button{
-  padding:6px 12px;
+  padding:8px 12px;
   border:none;
   border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:12px;
 }
 
 /* HEADER */
 .top{
   display:flex;
+  gap:20px;
   align-items:center;
-  gap:18px;
-  margin-top:60px;
+  margin-top:10px;
 }
 
 .avatar{
-  width:86px;
-  height:86px;
+  width:80px;
+  height:80px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:22px;
+  font-size:20px;
   font-weight:600;
 }
 
 .stats{
-  font-size:14px;
+  font-size:13px;
   color:#666;
-  margin-top:4px;
 }
 
 .stats span{
@@ -96,34 +94,42 @@ body{
   font-size:13px;
 }
 
-/* GRID */
-.photos{
-  margin-top:30px;
+/* GRID IGUAL A PROFILE */
+.layout{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:14px;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  margin-top:24px;
+  align-items:start;
+}
+
+.photos{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
 }
 
 .photo{
   width:100%;
-  height:150px;
-  border-radius:14px;
+  height:140px;
+  border-radius:12px;
   object-fit:cover;
   background:#eee;
 }
 
-/* MESSAGE */
-.message-box{
-  margin-top:32px;
+/* RIGHT SIDE */
+.right{
+  display:flex;
+  flex-direction:column;
+  gap:20px;
 }
 
 textarea{
   width:100%;
   height:120px;
-  border-radius:14px;
+  border-radius:12px;
   border:1px solid #ddd;
-  padding:12px;
-  font-size:14px;
+  padding:10px;
   box-sizing:border-box;
 }
 
@@ -150,26 +156,21 @@ textarea{
   cursor:pointer;
 }
 
-/* SPOTIFY */
-.spotify{
-  margin-top:18px;
-}
-
 .spotify iframe{
   width:100%;
   border:none;
-  border-radius:14px;
+  border-radius:12px;
 }
 
 /* BACK */
 .back{
-  margin-top:18px;
+  margin-top:20px;
   font-size:13px;
   text-decoration:underline;
   cursor:pointer;
 }
 
-/* MOBILE */
+/* ================= MOBILE (NO TOCAR) ================= */
 @media (max-width:700px){
 
 .container{
@@ -178,40 +179,23 @@ textarea{
   padding:22px 18px 30px;
 }
 
-.search{
-  top:16px;
-  right:16px;
-}
-
-.search input{
-  width:120px;
-}
-
-.avatar{
-  width:74px;
-  height:74px;
-}
-
-.alias{
-  font-size:20px;
-}
-
-.stats{
-  font-size:13px;
-}
-
-.btn{
-  padding:7px 12px;
-  font-size:12px;
-}
-
 .photos{
+  grid-template-columns:repeat(3,1fr);
   gap:10px;
 }
 
 .photo{
-  height:120px;
+  height:110px;
 }
+
+.layout{
+  grid-template-columns:1fr;
+}
+
+.right{
+  order:2;
+}
+
 }
 </style>
 </head>
@@ -229,10 +213,11 @@ textarea{
   <!-- HEADER -->
   <div class="top">
     <img id="avatar" class="avatar" />
+
     <div>
       <div id="alias" class="alias">...</div>
 
-      <div class="stats">
+      <div id="stats" class="stats">
         <span id="followersLink"></span> ·
         <span id="followingLink"></span>
       </div>
@@ -244,27 +229,36 @@ textarea{
     </div>
   </div>
 
-  <!-- PHOTOS -->
-  <div id="photos" class="photos"></div>
+  <!-- LAYOUT -->
+  <div class="layout">
 
-  <!-- MESSAGE -->
-  <div class="message-box">
-    <h3 id="titleText">Envíame un mensaje</h3>
+    <!-- PHOTOS -->
+    <div id="photos" class="photos"></div>
 
-    <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
+    <!-- RIGHT -->
+    <div class="right">
 
-    <div class="send-row">
-      <div class="send-options">
-        <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
-        <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
+      <!-- MESSAGE -->
+      <div>
+        <h3 id="titleText">Envíame un mensaje</h3>
+
+        <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
+
+        <div class="send-row">
+          <div class="send-options">
+            <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
+            <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
+          </div>
+
+          <button class="send-btn" onclick="sendMessage()">Enviar</button>
+        </div>
       </div>
 
-      <button class="send-btn" onclick="sendMessage()">Enviar</button>
+      <!-- SPOTIFY -->
+      <div id="spotify" class="spotify"></div>
+
     </div>
   </div>
-
-  <!-- SPOTIFY -->
-  <div id="spotify" class="spotify"></div>
 
   <!-- BACK -->
   <div class="back" onclick="history.back()">← Volver</div>
@@ -274,7 +268,10 @@ textarea{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import {
+  getFirestore, collection, query, where, getDocs,
+  doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -299,11 +296,13 @@ const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
 const followBtn = document.getElementById("followBtn");
+
 const followersLink = document.getElementById("followersLink");
 const followingLink = document.getElementById("followingLink");
 
 let viewedUid = null;
 
+/* LOAD USER */
 async function loadUser(){
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
   const snap = await getDocs(q);
@@ -314,8 +313,9 @@ async function loadUser(){
   const d = docData.data();
 
   aliasEl.textContent = d.alias;
-  followersLink.textContent = `${d.followers?.length || 0} followers`;
-  followingLink.textContent = `${d.following?.length || 0} following`;
+
+  followersLink.textContent = `${d.followers?.length||0} followers`;
+  followingLink.textContent = `${d.following?.length||0} following`;
 
   followersLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=followers`;
   followingLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=following`;
@@ -341,6 +341,7 @@ async function loadUser(){
   setupFollow();
 }
 
+/* FOLLOW */
 async function setupFollow(){
   const user = auth.currentUser;
   if(!user) return;
@@ -349,6 +350,7 @@ async function setupFollow(){
   const me = meSnap.data();
 
   const isFollowing = me.following?.includes(viewedUid);
+
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
@@ -363,6 +365,7 @@ async function setupFollow(){
   };
 }
 
+/* SEND MESSAGE */
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
   if(!text) return;
@@ -382,10 +385,11 @@ window.sendMessage = async () => {
   alert("enviado 🌷");
 };
 
+/* SEARCH */
 window.searchUser = () => {
   const alias = document.getElementById("searchInput").value.trim();
   if(!alias) return;
-  window.location.href = `user.html?alias=${alias}`;
+  location.href = `user.html?alias=${alias}`;
 };
 
 loadUser();
