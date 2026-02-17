@@ -6,12 +6,7 @@
 <title>Perfil</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f5f5f5;
-  color:#111;
-}
+body{ margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
 
 .container{
   max-width:900px;
@@ -23,46 +18,12 @@ body{
   position:relative;
 }
 
-/* buscador */
-.search{
-  position:absolute;
-  top:20px;
-  right:24px;
-  display:flex;
-  gap:8px;
-}
+.search{ position:absolute; top:20px; right:24px; display:flex; gap:8px; }
+.search input{ width:160px; padding:8px 10px; border-radius:10px; border:1px solid #ddd; }
+.search button{ padding:8px 12px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
 
-.search input{
-  width:160px;
-  padding:8px 10px;
-  border-radius:10px;
-  border:1px solid #ddd;
-}
-
-.search button{
-  padding:8px 12px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-}
-
-.top{
-  display:flex;
-  gap:20px;
-  align-items:center;
-  margin-top:10px;
-}
-
-.avatar{
-  width:80px;
-  height:80px;
-  border-radius:50%;
-  background:#ddd;
-  object-fit:cover;
-}
-
+.top{ display:flex; gap:20px; align-items:center; margin-top:10px; }
+.avatar{ width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; }
 .alias{ font-size:20px; font-weight:600; }
 .stats{ font-size:13px; color:#666; margin-top:4px; }
 
@@ -77,48 +38,16 @@ body{
   font-size:13px;
 }
 
-.layout{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:24px;
-  margin-top:24px;
-  align-items:start;
-}
+.layout{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
 
-.photos{
-  display:grid;
-  grid-template-columns:repeat(2,1fr);
-  gap:12px;
-}
+.photos{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+.photo{ width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; }
 
-.photo{
-  width:100%;
-  height:140px;
-  background:#eee;
-  border-radius:12px;
-  object-fit:cover;
-}
+.right{ display:flex; flex-direction:column; gap:20px; }
 
-.right{
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-}
+textarea{ width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
 
-textarea{
-  width:100%;
-  height:120px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  padding:10px;
-  box-sizing:border-box;
-}
-
-.spotify iframe{
-  width:100%;
-  border:none;
-  border-radius:12px;
-}
+.spotify iframe{ width:100%; border:none; border-radius:12px; }
 
 .send-options{
   width:100%;
@@ -129,13 +58,7 @@ textarea{
   gap:10px;
 }
 
-.send-options label{
-  font-size:13px;
-  color:#555;
-  display:flex;
-  align-items:center;
-  gap:4px;
-}
+.send-options label{ font-size:13px; color:#555; display:flex; align-items:center; gap:4px; }
 
 .send-btn{
   padding:8px 14px;
@@ -147,87 +70,18 @@ textarea{
   font-size:13px;
 }
 
-.back{
-  margin-top:24px;
-  font-size:13px;
-  color:#666;
-  cursor:pointer;
-}
-
-/* MOBILE */
-@media (max-width:700px){
-
-  .container{ margin:0; border-radius:0; }
-
-  .layout{ grid-template-columns:1fr; }
-
-  .photos{ grid-template-columns:repeat(3,1fr); }
-
-  .photo{ height:120px; }
-
-  /* orden fotos mobile */
-  #p1{ order:1; }
-  #p2{ order:2; }
-  #p4{ order:3; }
-  #p3{ order:4; }
-  #p5{ order:5; }
-  #p6{ order:6; }
-
-  .right{ order:2; }
-
-  /* spotify debajo del mensaje SOLO en mobile */
-  .spotify{ order:2; }
-
-/* ===== ajuste header mobile equilibrado ===== */
-
-.top{
-  margin-top:52px;
-  gap:16px;
-}
-
-.avatar{
-  width:72px;
-  height:72px;
-}
-
-.alias{
-  font-size:19px;
-}
-
-.stats{
-  font-size:13px;
-}
-
-.follow-btn{
-  padding:7px 13px;
-  font-size:13px;
-}
-
-/* buscador cómodo pero sin chocar */
-.search{
-  top:10px;
-  right:16px;
-}
-
-.search input{
-  width:140px;
-  font-size:14px;
-}
-  .search{ top:10px; }
-}
+.back{ margin-top:24px; font-size:13px; color:#666; cursor:pointer; }
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- buscador -->
 <div class="search">
   <input id="searchInput" placeholder="buscar usuario"/>
   <button onclick="searchUser()">ir</button>
 </div>
 
-<!-- perfil -->
 <div class="top">
   <img id="avatar" class="avatar"/>
 
@@ -246,7 +100,6 @@ textarea{
 
 <div class="layout">
 
-  <!-- fotos -->
   <div class="photos">
     <img id="p1" class="photo"/>
     <img id="p2" class="photo"/>
@@ -256,17 +109,15 @@ textarea{
     <img id="p6" class="photo"/>
   </div>
 
-  <!-- derecha -->
   <div class="right">
 
-    <!-- SPOTIFY (desktop arriba / mobile abajo) -->
     <div class="spotify">
       <div id="spotifyEmbed"></div>
     </div>
 
-    <!-- mensaje -->
+    <!-- ✨ FRASES DINÁMICAS DESDE SETTINGS -->
     <div>
-      <h3>Envíame un mensaje</h3>
+      <h3 id="msgTitle">Envíame un mensaje</h3>
 
       <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
@@ -314,6 +165,9 @@ const followingBtn = document.getElementById("followingBtn");
 const followBtn = document.getElementById("followBtn");
 const shhhBtn = document.getElementById("shhhBtn");
 const spotifyEmbedEl = document.getElementById("spotifyEmbed");
+const msgTitle = document.getElementById("msgTitle");
+const msgInput = document.getElementById("msgInput");
+
 const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
 
 let viewedUid = null;
@@ -335,28 +189,16 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!viewedUid || viewedUid === user.uid)
     return location.href = "profile.html";
-  shhhBtn.onclick = () => {
-  window.location.href = `wall.html?uid=${viewedUid}`;
-};
-  const myRef = doc(db,"users",user.uid);
-  const viewedRef = doc(db,"users",viewedUid);
 
-  const [mySnap, viewedSnap] = await Promise.all([getDoc(myRef), getDoc(viewedRef)]);
-  const myData = mySnap.data();
+  const viewedSnap = await getDoc(doc(db,"users",viewedUid));
   const viewedData = viewedSnap.data();
-  // 🔒 permitir o no mensajes anónimos
-const allowAnonymous = viewedData.allowAnonymous ?? true;
 
-if (!allowAnonymous) {
-  // ocultar opción "Anónimo"
-  const anonOption = document.querySelector('input[value="anon"]')?.closest("label");
-  if (anonOption) anonOption.style.display = "none";
+  /* ✨ aplicar frases del settings */
+  if (viewedData?.wallText) {
+    if (viewedData.wallText.title) msgTitle.textContent = viewedData.wallText.title;
+    if (viewedData.wallText.box) msgInput.placeholder = viewedData.wallText.box;
+  }
 
-  // forzar que quede seleccionado "Con mi alias"
-  const aliasRadio = document.querySelector('input[value="alias"]');
-  if (aliasRadio) aliasRadio.checked = true;
-}
-  
   aliasEl.textContent = viewedData.alias || "sin alias";
   followersBtn.textContent = `${viewedData.followers?.length || 0} followers`;
   followingBtn.textContent = `${viewedData.following?.length || 0} following`;
@@ -364,29 +206,9 @@ if (!allowAnonymous) {
   if (viewedData.photoURL) avatarEl.src = viewedData.photoURL;
   if (viewedData.spotifyEmbed) spotifyEmbedEl.innerHTML = viewedData.spotifyEmbed;
 
-  (viewedData.photos||[]).forEach((url,i)=>{
-    if(url && photoEls[i]) photoEls[i].src = url;
-  });
+  (viewedData.photos||[]).forEach((url,i)=>{ if(url) photoEls[i].src = url; });
 
-  followersBtn.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=followers`;
-
-  followingBtn.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=following`;
-
-  const isFollowing = myData.following?.includes(viewedUid);
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async ()=>{
-    if(isFollowing){
-      await updateDoc(myRef,{following:arrayRemove(viewedUid)});
-      await updateDoc(viewedRef,{followers:arrayRemove(user.uid)});
-    }else{
-      await updateDoc(myRef,{following:arrayUnion(viewedUid)});
-      await updateDoc(viewedRef,{followers:arrayUnion(user.uid)});
-    }
-    location.reload();
-  };
+  shhhBtn.onclick = () => window.location.href = `wall.html?uid=${viewedUid}`;
 });
 
 window.searchUser = async () => {
@@ -404,7 +226,7 @@ window.sendMessage = async () => {
   const user = auth.currentUser;
   if(!user) return alert("Debes iniciar sesión");
 
-  const text = document.getElementById("msgInput").value.trim();
+  const text = msgInput.value.trim();
   if(!text) return alert("Mensaje vacío");
 
   const who = document.querySelector('input[name="who"]:checked').value;
@@ -422,13 +244,12 @@ window.sendMessage = async () => {
     createdAt:serverTimestamp()
   });
 
-  document.getElementById("msgInput").value="";
+  msgInput.value="";
   alert("Mensaje enviado 💌");
 };
+
 document.getElementById("searchInput")
-  .addEventListener("keydown", (e) => {
-    if (e.key === "Enter") searchUser();
-  });
+  .addEventListener("keydown", e => { if (e.key === "Enter") searchUser(); });
 </script>
 </body>
 </html>
