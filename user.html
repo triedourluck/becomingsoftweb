@@ -18,36 +18,36 @@ body{
   margin:40px auto;
   background:white;
   border-radius:20px;
-  padding:28px 22px 40px;
+  padding:32px;
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
   position:relative;
 }
 
-/* buscador arriba derecha */
+/* SEARCH TOP RIGHT */
 .search{
   position:absolute;
-  top:18px;
-  right:18px;
+  top:20px;
+  right:24px;
   display:flex;
   gap:6px;
 }
 
 .search input{
-  width:150px;
-  padding:7px 10px;
+  width:140px;
+  padding:6px 8px;
   border-radius:10px;
   border:1px solid #ddd;
-  font-size:13px;
+  font-size:12px;
 }
 
 .search button{
-  padding:7px 12px;
+  padding:6px 10px;
   border:none;
   border-radius:10px;
   background:#111;
   color:white;
-  font-size:13px;
   cursor:pointer;
+  font-size:12px;
 }
 
 /* HEADER */
@@ -55,46 +55,46 @@ body{
   display:flex;
   align-items:center;
   gap:14px;
-  margin-top:26px;
+  margin-top:40px;
 }
 
 .avatar{
-  width:78px;
-  height:78px;
+  width:72px;
+  height:72px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:20px;
+  font-size:18px;
   font-weight:600;
 }
 
 .stats{
-  font-size:14px;
+  font-size:12px;
   color:#666;
-  margin-top:2px;
+  cursor:pointer;
 }
 
 .actions{
-  margin-top:8px;
+  margin-top:6px;
   display:flex;
   gap:8px;
 }
 
 .btn{
-  padding:7px 13px;
+  padding:6px 12px;
   border:none;
   border-radius:10px;
   background:#111;
   color:white;
-  font-size:13px;
   cursor:pointer;
+  font-size:12px;
 }
 
 /* GRID */
 .photos{
-  margin-top:26px;
+  margin-top:28px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:12px;
@@ -108,9 +108,9 @@ body{
   background:#eee;
 }
 
-/* MENSAJE */
+/* MESSAGE */
 .message-box{
-  margin-top:34px;
+  margin-top:30px;
 }
 
 textarea{
@@ -146,18 +146,7 @@ textarea{
   cursor:pointer;
 }
 
-/* volver */
-.back{
-  margin-top:14px;
-  font-size:14px;
-}
-
-.back a{
-  color:#111;
-  text-decoration:underline;
-}
-
-/* spotify */
+/* SPOTIFY */
 .spotify{
   margin-top:18px;
 }
@@ -168,16 +157,52 @@ textarea{
   border-radius:14px;
 }
 
+/* BACK */
+.back{
+  margin-top:18px;
+  font-size:13px;
+  text-decoration:underline;
+  cursor:pointer;
+}
+
 /* MOBILE */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
+  padding:22px 18px 30px;
+}
+
+.search{
+  top:14px;
+  right:16px;
 }
 
 .search input{
   width:120px;
+}
+
+.top{
+  margin-top:60px;
+}
+
+.avatar{
+  width:64px;
+  height:64px;
+}
+
+.alias{
+  font-size:17px;
+}
+
+.btn{
+  padding:5px 10px;
+  font-size:11px;
+}
+
+.photos{
+  gap:10px;
 }
 
 .photo{
@@ -191,30 +216,30 @@ textarea{
 
 <div class="container">
 
+  <!-- SEARCH -->
   <div class="search">
-    <input id="searchInput" placeholder="buscar usuario">
-    <button onclick="goSearch()">ir</button>
+    <input id="searchInput" placeholder="buscar usuario" />
+    <button onclick="searchUser()">ir</button>
   </div>
 
   <!-- HEADER -->
   <div class="top">
-    <img id="avatar" class="avatar"/>
-
+    <img id="avatar" class="avatar" />
     <div>
       <div id="alias" class="alias">...</div>
       <div id="stats" class="stats"></div>
 
       <div class="actions">
-        <button id="followBtn" class="btn">Follow</button>
-        <button class="btn">SHHH!</button>
+        <button id="followBtn" class="btn"></button>
+        <button id="shhhBtn" class="btn">SHHH!</button>
       </div>
     </div>
   </div>
 
-  <!-- FOTOS -->
+  <!-- PHOTOS -->
   <div id="photos" class="photos"></div>
 
-  <!-- MENSAJE -->
+  <!-- MESSAGE -->
   <div class="message-box">
     <h3 id="titleText">Envíame un mensaje</h3>
 
@@ -228,21 +253,20 @@ textarea{
 
       <button class="send-btn" onclick="sendMessage()">Enviar</button>
     </div>
-
-    <div class="back">
-      <a href="index.html">← Volver</a>
-    </div>
   </div>
 
   <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
+
+  <!-- BACK -->
+  <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -265,42 +289,30 @@ const aliasEl = document.getElementById("alias");
 const stats = document.getElementById("stats");
 const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
+const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
+const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
 async function loadUser(){
+  const q = query(collection(db,"users"), where("alias","==",aliasParam));
+  const snap = await getDocs(q);
 
-  if(!aliasParam){
-    aliasEl.textContent = "usuario no encontrado";
-    return;
-  }
+  if(snap.empty) return;
 
-  // buscar UID por alias
-  const aliasDoc = await getDoc(doc(db,"aliases",aliasParam));
-  if(!aliasDoc.exists()){
-    aliasEl.textContent = "alias no existe";
-    return;
-  }
+  const docData = snap.docs[0];
+  viewedUid = docData.id;
+  const d = docData.data();
 
-  viewedUid = aliasDoc.data().uid;
-
-  // cargar user real
-  const userSnap = await getDoc(doc(db,"users",viewedUid));
-  if(!userSnap.exists()){
-    aliasEl.textContent = "usuario sin datos";
-    return;
-  }
-
-  const d = userSnap.data();
-
-  aliasEl.textContent = d.alias || aliasParam;
+  aliasEl.textContent = d.alias;
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
   photos.innerHTML = "";
   (d.photos||[]).forEach(url=>{
+    if(!url) return;
     const img = document.createElement("img");
     img.src = url;
     img.className = "photo";
@@ -308,19 +320,61 @@ async function loadUser(){
   });
 
   if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
+
+  if(d.wallText){
+    titleText.textContent = d.wallText.title || "Envíame un mensaje";
+    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
+  }
+
+  setupFollow();
+}
+
+async function setupFollow(){
+  const user = auth.currentUser;
+  if(!user) return;
+
+  const meSnap = await getDoc(doc(db,"users",user.uid));
+  const me = meSnap.data();
+
+  const isFollowing = me.following?.includes(viewedUid);
+
+  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+
+  followBtn.onclick = async () => {
+    if(isFollowing){
+      await updateDoc(doc(db,"users",user.uid),{
+        following: arrayRemove(viewedUid)
+      });
+
+      await updateDoc(doc(db,"users",viewedUid),{
+        followers: arrayRemove(user.uid)
+      });
+    }else{
+      await updateDoc(doc(db,"users",user.uid),{
+        following: arrayUnion(viewedUid)
+      });
+
+      await updateDoc(doc(db,"users",viewedUid),{
+        followers: arrayUnion(user.uid)
+      });
+    }
+
+    location.reload();
+  };
 }
 
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
-  if(!text || !viewedUid) return;
+  if(!text) return;
 
+  const mode = document.querySelector('input[name="mode"]:checked').value;
   const user = auth.currentUser;
 
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    from:user?.uid || null,
-    createdAt:Date.now(),
+    fromAlias: mode==="alias" && user ? user.uid : null,
+    createdAt: Date.now(),
     published:false
   });
 
@@ -328,9 +382,10 @@ window.sendMessage = async () => {
   alert("enviado 🌷");
 };
 
-window.goSearch = () => {
-  const val = document.getElementById("searchInput").value.trim();
-  if(val) location.href = `user.html?alias=${val}`;
+window.searchUser = () => {
+  const alias = document.getElementById("searchInput").value.trim();
+  if(!alias) return;
+  window.location.href = `user.html?alias=${alias}`;
 };
 
 loadUser();
