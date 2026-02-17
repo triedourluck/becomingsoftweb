@@ -23,11 +23,11 @@ body{
   position:relative;
 }
 
-/* BUSCADOR */
+/* buscador */
 .search{
   position:absolute;
   top:18px;
-  right:24px;
+  right:22px;
   display:flex;
   gap:6px;
 }
@@ -54,30 +54,29 @@ body{
 .top{
   display:flex;
   align-items:center;
-  gap:16px;
-  margin-top:10px;
+  gap:14px;
 }
 
 .avatar{
-  width:80px;
-  height:80px;
+  width:70px;
+  height:70px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:20px;
+  font-size:18px;
   font-weight:600;
 }
 
 .stats{
-  font-size:13px;
+  font-size:12px;
   color:#666;
   cursor:pointer;
 }
 
 .actions{
-  margin-top:8px;
+  margin-top:6px;
   display:flex;
   gap:8px;
 }
@@ -90,29 +89,26 @@ body{
   color:white;
   cursor:pointer;
   font-size:12px;
-  line-height:1;
 }
 
 /* GRID */
 .photos{
-  margin-top:24px;
+  margin-top:22px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:14px;
+  gap:12px;
 }
 
 .photo{
   width:100%;
-  height:150px;
+  height:130px;
   border-radius:14px;
   object-fit:cover;
   background:#eee;
 }
 
 /* MENSAJE */
-.message-box{
-  margin-top:28px;
-}
+.message-box{ margin-top:26px; }
 
 textarea{
   width:100%;
@@ -148,53 +144,39 @@ textarea{
 }
 
 /* SPOTIFY */
-.spotify{
-  margin-top:18px;
-}
-
-.spotify iframe{
-  width:100%;
-  border:none;
-  border-radius:14px;
-}
+.spotify{ margin-top:18px; }
+.spotify iframe{ width:100%; border:none; border-radius:14px; }
 
 /* VOLVER */
 .back{
-  margin-top:16px;
-  font-size:13px;
+  margin-top:18px;
+  font-size:14px;
   text-decoration:underline;
   cursor:pointer;
-  display:inline-block;
 }
 
-/* ================= MOBILE ================= */
+/* MOBILE */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 18px 30px;
+  padding:22px 16px 30px;
 }
 
-.search input{ width:110px; font-size:11px; }
-.search button{ font-size:11px; padding:5px 8px; }
+.search input{ width:120px; }
 
-/* botones más pequeños */
-.actions{ margin-top:6px; gap:6px; }
-
-.btn{
-  padding:5px 10px;
-  font-size:11px;
-  border-radius:9px;
+.photos{
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
 }
 
-/* grid 3x2 */
-.photos{ gap:10px; }
 .photo{ height:110px; }
 
-/* orden */
-.message-box{ order:1; }
-.spotify{ order:2; margin-top:14px; }
+.btn{ font-size:11px; padding:6px 10px; }
+
+.back{ margin-top:14px; }
+
 }
 </style>
 </head>
@@ -203,7 +185,6 @@ textarea{
 
 <div class="container">
 
-  <!-- BUSCADOR -->
   <div class="search">
     <input id="searchInput" placeholder="buscar usuario">
     <button onclick="searchUser()">ir</button>
@@ -211,14 +192,14 @@ textarea{
 
   <!-- HEADER -->
   <div class="top">
-    <img id="avatar" class="avatar"/>
+    <img id="avatar" class="avatar">
     <div>
       <div id="alias" class="alias">...</div>
       <div id="stats" class="stats"></div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
-        <button class="btn" onclick="goWall()">SHHH!</button>
+        <button class="btn" onclick="location.href='wall.html'">SHHH!</button>
       </div>
     </div>
   </div>
@@ -253,10 +234,7 @@ textarea{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import {
-  getFirestore, doc, getDoc, addDoc, collection,
-  updateDoc, arrayUnion, arrayRemove
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -285,85 +263,74 @@ const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
-/* CARGAR USUARIO */
 async function loadUser(){
-  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
-  if(!aliasSnap.exists()) return;
 
-  viewedUid = aliasSnap.data().uid;
+  const q = query(collection(db,"users"), where("alias","==",aliasParam));
+  const snap = await getDocs(q);
+  if(snap.empty) return;
 
-  const userSnap = await getDoc(doc(db,"users",viewedUid));
-  const d = userSnap.data();
+  const docSnap = snap.docs[0];
+  viewedUid = docSnap.id;
+  const d = docSnap.data();
 
   aliasEl.textContent = d.alias;
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
-  photos.innerHTML = "";
+  photos.innerHTML="";
   (d.photos||[]).forEach(url=>{
     if(!url) return;
-    const img = document.createElement("img");
-    img.src = url;
-    img.className = "photo";
+    const img=document.createElement("img");
+    img.src=url;
+    img.className="photo";
     photos.appendChild(img);
   });
 
-  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
+  if(d.spotifyEmbed) spotify.innerHTML=d.spotifyEmbed;
 
   if(d.wallText){
-    titleText.textContent = d.wallText.title || "Envíame un mensaje";
-    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
+    titleText.textContent=d.wallText.title||"Envíame un mensaje";
+    msgInput.placeholder=d.wallText.box||"Escribe algo suave...";
   }
 
-  updateFollowButton();
+  const current=auth.currentUser;
+  if(current){
+    const meSnap=await getDoc(doc(db,"users",current.uid));
+    const me=meSnap.data();
+
+    const isFollowing=me.following?.includes(viewedUid);
+    followBtn.textContent=isFollowing?"Unfollow":"Follow";
+
+    followBtn.onclick=async()=>{
+      const newFollowing=isFollowing
+        ? me.following.filter(id=>id!==viewedUid)
+        : [...(me.following||[]), viewedUid];
+
+      const newFollowers=isFollowing
+        ? d.followers.filter(id=>id!==current.uid)
+        : [...(d.followers||[]), current.uid];
+
+      await updateDoc(doc(db,"users",current.uid),{following:newFollowing});
+      await updateDoc(doc(db,"users",viewedUid),{followers:newFollowers});
+
+      location.reload();
+    };
+  }
 }
 
-/* FOLLOW / UNFOLLOW */
-async function updateFollowButton(){
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const meSnap = await getDoc(doc(db,"users",user.uid));
-  const me = meSnap.data();
-
-  const isFollowing = me.following?.includes(viewedUid);
-
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async () => {
-    if(isFollowing){
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayRemove(viewedUid)
-      });
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayRemove(user.uid)
-      });
-    }else{
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayUnion(viewedUid)
-      });
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayUnion(user.uid)
-      });
-    }
-    loadUser();
-  };
-}
-
-/* ENVIAR MENSAJE */
-window.sendMessage = async () => {
-  const text = msgInput.value.trim();
+window.sendMessage=async()=>{
+  const text=msgInput.value.trim();
   if(!text) return;
 
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const user = auth.currentUser;
+  const mode=document.querySelector('input[name="mode"]:checked').value;
+  const user=auth.currentUser;
 
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    fromAlias: mode==="alias" && user ? user.uid : null,
-    createdAt: Date.now(),
+    fromAlias:mode==="alias"&&user?user.uid:null,
+    createdAt:Date.now(),
     published:false
   });
 
@@ -371,14 +338,10 @@ window.sendMessage = async () => {
   alert("enviado 🌷");
 };
 
-/* BUSCAR */
-window.searchUser = () => {
-  const a = document.getElementById("searchInput").value.trim();
-  if(!a) return;
-  location.href = `user.html?alias=${a}`;
+window.searchUser=()=>{
+  const a=document.getElementById("searchInput").value.trim();
+  if(a) location.href=`user.html?alias=${a}`;
 };
-
-window.goWall = () => location.href = "wall.html";
 
 loadUser();
 </script>
