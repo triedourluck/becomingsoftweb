@@ -1,3 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>becomingsoft — user</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
+
+.container{
+  max-width:900px;
+  margin:40px auto;
+  background:white;
+  border-radius:20px;
+  padding:32px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+/* HEADER */
+.header-top{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-bottom:20px;
+}
+
+.search{
+  padding:8px 12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:13px;
+  width:160px;
+}
+
+.go-btn{
+  padding:8px 14px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:white;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.top{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-top:10px;
+}
+
+.avatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.alias{
+  font-size:22px;
+  font-weight:700;
+}
+
+.stats{
+  font-size:14px;
+  color:#666;
+  margin:4px 0 8px;
+}
+
+.actions{
+  display:flex;
+  gap:10px;
+}
+
+.btn{
+  padding:8px 16px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+}
+
+/* GRID */
+.photos{
+  margin-top:28px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
+
+.photo{
+  width:100%;
+  height:150px;
+  border-radius:14px;
+  object-fit:cover;
+  background:#eee;
+}
+
+/* MENSAJE */
+.message-box{
+  margin-top:32px;
+}
+
+textarea{
+  width:100%;
+  height:120px;
+  border-radius:14px;
+  border:1px solid #ddd;
+  padding:12px;
+  font-size:14px;
+  box-sizing:border-box;
+}
+
+.send-row{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.send-options{
+  display:flex;
+  gap:12px;
+  font-size:13px;
+  color:#555;
+}
+
+.send-btn{
+  padding:8px 16px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+}
+
+.back{
+  display:inline-block;
+  margin-top:18px;
+  font-size:14px;
+  text-decoration:underline;
+  cursor:pointer;
+}
+
+/* MOBILE */
+@media (max-width:700px){
+
+.container{
+  margin:0;
+  border-radius:0;
+  padding:20px 16px 30px;
+}
+
+.header-top{
+  justify-content:flex-end;
+}
+
+.search{
+  width:140px;
+  font-size:12px;
+}
+
+.go-btn{
+  padding:7px 12px;
+  font-size:12px;
+}
+
+.avatar{
+  width:100px;
+  height:100px;
+}
+
+.alias{
+  font-size:24px;
+}
+
+.stats{
+  font-size:15px;
+}
+
+.btn{
+  padding:7px 14px;
+  font-size:12px;
+}
+
+.photos{
+  margin-top:32px;
+  gap:12px;
+}
+
+.photo{
+  height:120px;
+}
+
+textarea{
+  height:130px;
+}
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="header-top">
+    <input id="searchInput" class="search" placeholder="buscar usuario" />
+    <button class="go-btn" onclick="goSearch()">ir</button>
+  </div>
+
+  <div class="top">
+    <img id="avatar" class="avatar" />
+    <div>
+      <div id="alias" class="alias">...</div>
+      <div id="stats" class="stats"></div>
+
+      <div class="actions">
+        <button id="followBtn" class="btn">Follow</button>
+        <button class="btn">SHHH!</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="photos" class="photos"></div>
+
+  <div class="message-box">
+    <h3>Envíame un mensaje</h3>
+
+    <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
+
+    <div class="send-row">
+      <div class="send-options">
+        <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
+        <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
+      </div>
+
+      <button class="send-btn" onclick="sendMessage()">Enviar</button>
+    </div>
+
+    <div class="back" onclick="history.back()">← Volver</div>
+  </div>
+
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
@@ -19,89 +271,63 @@ const db = getFirestore(app);
 const params = new URLSearchParams(location.search);
 const aliasParam = params.get("alias");
 
-if(!aliasParam){
-  alert("No llegó alias en la URL");
-  throw new Error("alias missing");
-}
-
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const stats = document.getElementById("stats");
 const photos = document.getElementById("photos");
-const spotify = document.getElementById("spotify");
-const titleText = document.getElementById("titleText");
-const msgInput = document.getElementById("msgInput");
 
 let viewedUid = null;
 
 async function loadUser(){
+  if(!aliasParam) return;
 
-  // 🔎 1. buscar alias
   const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
-
-  if(!aliasSnap.exists()){
-    alert("Alias no existe en Firestore");
-    throw new Error("alias not found");
-  }
+  if(!aliasSnap.exists()) return;
 
   viewedUid = aliasSnap.data().uid;
 
-  if(!viewedUid){
-    alert("Alias sin UID");
-    throw new Error("uid missing");
-  }
-
-  // 🔎 2. buscar usuario real
   const userSnap = await getDoc(doc(db,"users",viewedUid));
-
-  if(!userSnap.exists()){
-    alert("Usuario no existe");
-    throw new Error("user not found");
-  }
+  if(!userSnap.exists()) return;
 
   const d = userSnap.data();
 
-  // 🧩 render
-  aliasEl.textContent = d.alias || "...";
+  aliasEl.textContent = d.alias || "user";
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
   photos.innerHTML = "";
   (d.photos||[]).forEach(url=>{
-    if(!url) return;
     const img = document.createElement("img");
     img.src = url;
     img.className = "photo";
     photos.appendChild(img);
   });
-
-  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
-
-  if(d.wallText){
-    titleText.textContent = d.wallText.title || "Envíame un mensaje";
-    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
-  }
 }
 
 window.sendMessage = async () => {
-  const text = msgInput.value.trim();
-  if(!text) return;
-
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const user = auth.currentUser;
+  const text = document.getElementById("msgInput").value.trim();
+  if(!text || !viewedUid) return;
 
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    fromAlias: mode==="alias" && user ? user.uid : null,
     createdAt: Date.now(),
     published:false
   });
 
-  msgInput.value="";
+  document.getElementById("msgInput").value="";
   alert("enviado 🌷");
+};
+
+window.goSearch = () => {
+  const v = document.getElementById("searchInput").value.trim();
+  if(!v) return;
+  location.href = `user.html?alias=${v}`;
 };
 
 loadUser();
 </script>
+
+</body>
+</html>
