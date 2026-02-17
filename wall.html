@@ -161,11 +161,19 @@
         return;
       }
 
-      snap.forEach((docSnap) => {
-        const data = docSnap.data();
+      snap.forEach(docSnap => {
+  const data = docSnap.data();
 
-        const div = document.createElement("div");
-        div.className = "msg";
+  const alias = document.createElement("div");
+  alias.textContent = "@" + data.fromAlias;
+
+  // 💫 hacerlo clickeable
+  alias.style.cursor = "pointer";
+  alias.style.textDecoration = "underline";
+
+  alias.onclick = () => {
+    window.location.href = `user.html?alias=${data.fromAlias}`;
+  };
 
         div.innerHTML = `
           <div class="from">${data.fromAlias || "Anónimo"}</div>
