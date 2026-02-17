@@ -41,7 +41,7 @@ body{
 }
 
 .search button{
-  padding:6px 10px;
+  padding:6px 12px;
   border:none;
   border-radius:8px;
   background:#111;
@@ -70,7 +70,7 @@ body{
 }
 
 .stats{
-  font-size:14px;
+  font-size:13px;
   color:#666;
   font-weight:500;
 }
@@ -82,13 +82,13 @@ body{
 }
 
 .btn{
-  padding:6px 12px;
+  padding:5px 10px;
   border:none;
-  border-radius:10px;
+  border-radius:9px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:12px;
+  font-size:11px;
 }
 
 /* GRID */
@@ -173,7 +173,7 @@ textarea{
   padding:22px 16px 30px;
 }
 
-/* 🔎 buscador MUCHO más chico */
+/* 🔎 buscador */
 .search{
   top:14px;
   right:14px;
@@ -181,13 +181,13 @@ textarea{
 }
 
 .search input{
-  width:85px;
+  width:90px;
   padding:4px 6px;
   font-size:10px;
 }
 
 .search button{
-  padding:4px 7px;
+  padding:4px 12px; /* ← más ancho */
   font-size:10px;
 }
 
@@ -201,20 +201,20 @@ textarea{
   font-size:17px;
 }
 
-/* 👥 followers MÁS grandes */
+/* 👥 followers más chicos */
 .stats{
-  font-size:15px;
-  font-weight:600;
+  font-size:12px;
+  font-weight:500;
 }
 
-/* 🔘 botones MÁS chicos */
+/* 🔘 botones más chicos */
 .btn{
-  padding:4px 9px;
+  padding:3px 9px;
   font-size:10px;
   border-radius:8px;
 }
 
-/* grid exacto */
+/* grid */
 .photos{
   grid-template-columns:repeat(3,1fr);
   gap:10px;
@@ -315,7 +315,6 @@ async function loadUser(){
 
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
   const snap = await getDocs(q);
-
   if(snap.empty) return;
 
   const docSnap = snap.docs[0];
@@ -351,7 +350,6 @@ async function setupFollow(userData){
   if(!current) return;
 
   const isFollowing = userData.followers?.includes(current.uid);
-
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
