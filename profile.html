@@ -35,10 +35,6 @@
       display:grid; 
       grid-template-columns:repeat(2,1fr); 
       gap:12px;
-      grid-template-areas:
-        "p1 p2"
-        "p3 p4"
-        "p5 p6";
     }
 
     .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; cursor:pointer; }
@@ -55,186 +51,91 @@
     .logout, .gear, .icon-btn { padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:14px; }
 
     .hidden { display:none; }
+
+    /* ================= MOBILE FIX ================= */
+    @media (max-width:700px){
+
+      .container{
+        margin:0;
+        border-radius:0;
+        padding:20px 16px 28px;
+      }
+
+      .search{
+        top:14px;
+        right:16px;
+      }
+
+      .search input{
+        width:130px;
+        padding:7px 9px;
+        font-size:13px;
+      }
+
+      .search button{
+        padding:7px 11px;
+        font-size:13px;
+      }
+
+      .top{
+        margin-top:54px;
+        gap:14px;
+      }
+
+      .avatar{
+        width:72px;
+        height:72px;
+      }
+
+      .alias{
+        font-size:18px;
+      }
+
+      .stats{
+        margin-top:6px;
+        font-size:13px;
+      }
+
+      /* 🔥 layout vertical en mobile */
+      .layout{
+        display:block;
+        margin-top:22px;
+      }
+
+      /* 🔥 GRID 3x2 correcto */
+      .photos{
+        display:grid;
+        grid-template-columns:repeat(3,1fr);
+        gap:10px;
+      }
+
+      .photo{
+        height:110px;
+      }
+
+      /* spotify debajo del grid */
+      .right{
+        margin-top:20px;
+        gap:18px;
+      }
+
+      textarea{
+        height:120px;
+      }
+
+      .bottom{
+        margin-top:22px;
+        justify-content:space-between;
+        flex-wrap:wrap;
+      }
+
+      .logout,
+      .gear,
+      .icon-btn{
+        font-size:13px;
+        padding:10px 14px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-
-    <div class="search">
-      <input id="searchInput" placeholder="buscar usuario" />
-      <button onclick="searchUser()">ir</button>
-    </div>
-
-    <div class="top">
-      <img id="avatar" class="avatar" />
-      <input type="file" id="avatarInput" class="hidden" accept="image/*" />
-
-      <div>
-        <div class="alias" id="alias">...</div>
-        <div class="stats">
-          <span id="followersBtn">0 followers</span> ·
-          <span id="followingBtn">0 following</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="layout">
-
-      <div>
-        <div class="photos">
-          <img id="p1" class="photo" />
-          <img id="p2" class="photo" />
-          <img id="p3" class="photo" />
-          <img id="p4" class="photo" />
-          <img id="p5" class="photo" />
-          <img id="p6" class="photo" />
-        </div>
-        <input type="file" id="photoInput" class="hidden" accept="image/*" />
-      </div>
-
-      <div class="right">
-
-        <div class="spotify">
-          <div id="spotifyEmbed"></div>
-          <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify" />
-          <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
-        </div>
-
-        <!-- ✨ MENSAJE CONECTADO A SETTINGS -->
-        <div>
-          <h3 id="msgTitle">Envíame un mensaje</h3>
-          <textarea id="msgBox" placeholder="Escribe algo suave..."></textarea>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="bottom">
-      <button class="logout" onclick="logout()">Cerrar sesión</button>
-      <button class="gear" onclick="location.href='settings.html'">⚙️</button> 
-      <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
-      <button class="icon-btn" onclick="location.href='wall.html'">SHHH!</button>
-    </div>
-
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-      authDomain: "becomingsoft-84e72.firebaseapp.com",
-      projectId: "becomingsoft-84e72",
-      storageBucket: "becomingsoft-84e72.firebasestorage.app",
-      messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app);
-
-    const avatarEl = document.getElementById("avatar");
-    const avatarInput = document.getElementById("avatarInput");
-    const aliasEl = document.getElementById("alias");
-    const followersBtn = document.getElementById("followersBtn");
-    const followingBtn = document.getElementById("followingBtn");
-    const msgTitle = document.getElementById("msgTitle");
-    const msgBox = document.getElementById("msgBox");
-
-    const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
-    const photoInput = document.getElementById("photoInput");
-
-    const spotifyEmbedEl = document.getElementById("spotifyEmbed");
-    const spotifyInput = document.getElementById("spotifyInput");
-
-    let uid = null;
-    let photoIndex = 0;
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return location.href = "login.html";
-
-      uid = user.uid;
-
-      const snap = await getDoc(doc(db, "users", uid));
-      const d = snap.data();
-
-      aliasEl.textContent = d.alias;
-      followersBtn.textContent = `${d.followers?.length || 0} followers`;
-      followingBtn.textContent = `${d.following?.length || 0} following`;
-
-      if (d.photoURL) avatarEl.src = d.photoURL;
-
-      (d.photos || []).forEach((url,i)=>{ if(url) photoEls[i].src = url; });
-
-      if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
-
-      /* ✨ FRASES DEL SETTINGS */
-      if (d.wallText) {
-        if (d.wallText.title) msgTitle.textContent = d.wallText.title;
-        if (d.wallText.box) msgBox.placeholder = d.wallText.box;
-      }
-    });
-
-    avatarEl.onclick = () => avatarInput.click();
-
-    avatarInput.onchange = async () => {
-      const file = avatarInput.files[0];
-      if (!file) return;
-
-      const storageRef = ref(storage, `avatars/${uid}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-
-      await updateDoc(doc(db, "users", uid), { photoURL: url });
-      avatarEl.src = url;
-    };
-
-    photoEls.forEach((el,i)=> el.onclick = () => { photoIndex = i; photoInput.click(); });
-
-    photoInput.onchange = async () => {
-      const file = photoInput.files[0];
-      if (!file) return;
-
-      const storageRef = ref(storage, `spaces/${uid}/${photoIndex}`);
-      await uploadBytes(storageRef, file);
-      const url = await getDownloadURL(storageRef);
-
-      const snap = await getDoc(doc(db, "users", uid));
-      const data = snap.data();
-      const photos = data.photos || ["","","","","",""];
-      photos[photoIndex] = url;
-
-      await updateDoc(doc(db, "users", uid), { photos });
-      photoEls[photoIndex].src = url;
-    };
-
-    window.saveSpotify = async () => {
-      const embed = spotifyInput.value.trim();
-      if (!embed) return;
-
-      await updateDoc(doc(db, "users", uid), { spotifyEmbed: embed });
-      spotifyEmbedEl.innerHTML = embed;
-      spotifyInput.value = "";
-    };
-
-    window.logout = async () => {
-      await signOut(auth);
-      location.href = "login.html";
-    };
-
-    window.searchUser = () => {
-      const alias = document.getElementById("searchInput").value.trim();
-      if (!alias) return;
-      location.href = `user.html?alias=${alias}`;
-    };
-
-    document.getElementById("searchInput")
-      .addEventListener("keydown", e => { if (e.key === "Enter") searchUser(); });
-  </script>
-</body>
-</html>
