@@ -18,7 +18,6 @@
       position:relative;
     }
 
-    /* BUSCADOR — esquina superior derecha DENTRO del recuadro */
     .search {
       position:absolute;
       top:20px;
@@ -52,7 +51,6 @@
 
     .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
 
-    /* GRID DESKTOP EXACTO PEDIDO */
     .photos { 
       display:grid; 
       grid-template-columns:repeat(2,1fr); 
@@ -82,45 +80,28 @@
 
     .bottom { margin-top:24px; display:flex; gap:12px; }
     .logout, .gear { padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; }
-.icon-btn{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
+
+    .icon-btn{
+      padding:10px 14px;
+      border:none;
+      border-radius:10px;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      font-size:14px;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
     .hidden { display:none; }
-    
-    /* ancho consistente en desktop */
-.right textarea,
-.spotify input {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
 
-    /* 📱 MOBILE — NO TOCAR (tu layout original) */
     @media (max-width:700px) {
-      /* Orden correcto en mobile */
-.right {
-  display: flex;
-  flex-direction: column;
-}
+      .right { display:flex; flex-direction:column; }
+      .right > div:first-child { order:2; }
+      .right > div:last-child { order:1; }
 
-.right > div:first-child {
-  order: 2; /* Spotify abajo */
-}
-
-.right > div:last-child {
-  order: 1; /* Enviar mensaje arriba */
-}
       .container { margin:0; border-radius:0; }
-
       .layout { grid-template-columns:1fr; }
 
       .photos {
@@ -133,78 +114,36 @@
 
       .photo { height:120px; }
 
-      #p1 { grid-area: p1; }
-      #p2 { grid-area: p2; }
-      #p3 { grid-area: p3; }
-      #p4 { grid-area: p4; }
-      #p5 { grid-area: p5; }
-      #p6 { grid-area: p6; }
+      textarea,
+      .spotify input {
+        width: 92%;
+        margin: 0 auto;
+        display: block;
+      }
 
-      .right { order:2; }
-
-/* ancho consistente en mobile */
-textarea,
-.spotify input {
-  width: 92%;
-  margin: 0 auto;
-  display: block;
-}
-
-/* contenedor opciones envío */
-.send-options {
-  width: 92%;
-  margin: 10px auto 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-/* radios */
-.send-options label {
-  font-size: 13px;
-  color: #555;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-/* botón send */
-.send-btn {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 10px;
-  background: #111;
-  color: white;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.icon-btn{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-}
+      .icon-btn{
+        padding:10px 14px;
+        border:none;
+        border-radius:10px;
+        background:#111;
+        color:white;
+        cursor:pointer;
+        font-size:14px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
 
-    <!-- BUSCADOR -->
     <div class="search">
       <input id="searchInput" placeholder="buscar usuario" />
       <button onclick="searchUser()">ir</button>
     </div>
 
-    <!-- PERFIL -->
     <div class="top">
       <img id="avatar" class="avatar" />
       <input type="file" id="avatarInput" class="hidden" accept="image/*" />
@@ -220,7 +159,6 @@ textarea,
 
     <div class="layout">
 
-      <!-- FOTOS -->
       <div>
         <div class="photos" id="photosGrid">
           <img id="p1" class="photo" />
@@ -233,26 +171,22 @@ textarea,
         <input type="file" id="photoInput" class="hidden" accept="image/*" />
       </div>
 
-      <!-- DERECHA -->
       <div class="right">
 
-        <!-- SPOTIFY ARRIBA EN DESKTOP -->
         <div class="spotify">
           <div id="spotifyEmbed"></div>
           <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify" />
           <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
         </div>
 
-        <!-- MENSAJE ABAJO -->
         <div>
-          <h3>Envíame un mensaje</h3>
-          <textarea placeholder="Escribe algo suave..."></textarea>
+          <h3 id="wallTitle">Envíame un mensaje</h3>
+          <textarea id="wallInput" placeholder="Escribe algo suave..."></textarea>
         </div>
 
       </div>
     </div>
 
-    <!-- BOTONES -->
     <div class="bottom">
       <button class="logout" onclick="logout()">Cerrar sesión</button>
       <button class="gear" onclick="window.location.href='settings.html'">⚙️</button> 
@@ -326,6 +260,15 @@ textarea,
       });
 
       if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
+
+      // aplicar textos personalizados del wall
+      const titleEl = document.getElementById("wallTitle");
+      const boxEl = document.getElementById("wallInput");
+
+      if (d?.wallText) {
+        if (d.wallText.title) titleEl.textContent = d.wallText.title;
+        if (d.wallText.box) boxEl.placeholder = d.wallText.box;
+      }
     });
 
     avatarEl.onclick = () => avatarInput.click();
@@ -383,10 +326,11 @@ textarea,
       if (!alias) return;
       window.location.href = `user.html?alias=${alias}`;
     };
+
     document.getElementById("searchInput")
-  .addEventListener("keydown", (e) => {
-    if (e.key === "Enter") searchUser();
-  });
+      .addEventListener("keydown", (e) => {
+        if (e.key === "Enter") searchUser();
+      });
   </script>
 </body>
 </html>
