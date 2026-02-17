@@ -148,18 +148,20 @@
       }
 
       snap.forEach((docSnap) => {
-        const data = docSnap.data();
+  const data = docSnap.data();
 
-        const div = document.createElement("div");
-        div.className = "msg";
+  const div = document.createElement("div");
+  div.className = "msg";
 
-        div.innerHTML = `
-          <div>${data.text}</div>
-          ${data.reply ? `<div class="reply">${data.reply}</div>` : ""}
-        `;
+  div.innerHTML = `
+    <div style="font-size:13px;color:#666;margin-bottom:6px;">
+      ${data.fromAlias || "Anónimo"}
+    </div>
+    <div>${data.text}</div>
+  `;
 
-        wallEl.appendChild(div);
-      });
+  wallEl.appendChild(div);
+});
     });
   </script>
 </body>
