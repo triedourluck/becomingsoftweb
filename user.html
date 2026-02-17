@@ -26,105 +26,107 @@ body{
 /* SEARCH TOP RIGHT */
 .search{
   position:absolute;
-  top:20px;
-  right:24px;
+  top:18px;
+  right:22px;
   display:flex;
-  gap:6px;
+  gap:8px;
 }
 
 .search input{
-  width:140px;
-  padding:6px 8px;
+  width:180px;
+  padding:8px 10px;
   border-radius:10px;
   border:1px solid #ddd;
-  font-size:12px;
 }
 
 .search button{
-  padding:6px 10px;
+  padding:8px 14px;
   border:none;
   border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:12px;
 }
 
 /* HEADER */
 .top{
   display:flex;
   align-items:center;
-  gap:14px;
-  margin-top:40px;
+  gap:18px;
+  margin-top:30px;
 }
 
 .avatar{
-  width:72px;
-  height:72px;
+  width:96px;
+  height:96px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:18px;
+  font-size:24px;
   font-weight:600;
 }
 
 .stats{
-  font-size:12px;
+  font-size:15px;
   color:#666;
+  margin-top:4px;
+}
+
+.stats span{
   cursor:pointer;
 }
 
 .actions{
-  margin-top:6px;
+  margin-top:10px;
   display:flex;
-  gap:8px;
+  gap:12px;
 }
 
 .btn{
-  padding:6px 12px;
+  padding:10px 18px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:12px;
+  font-size:14px;
 }
 
 /* GRID */
 .photos{
-  margin-top:28px;
+  margin-top:30px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:16px;
 }
 
 .photo{
   width:100%;
-  height:140px;
-  border-radius:14px;
+  height:170px;
+  border-radius:16px;
   object-fit:cover;
   background:#eee;
 }
 
 /* MESSAGE */
 .message-box{
-  margin-top:30px;
+  margin-top:34px;
 }
 
 textarea{
   width:100%;
-  height:120px;
-  border-radius:14px;
+  height:130px;
+  border-radius:16px;
   border:1px solid #ddd;
-  padding:12px;
-  font-size:14px;
-  box-sizing:border-box;
+  padding:14px;
+  font-size:15px;
+  box-sizing:border-box́Fer;
 }
 
 .send-row{
-  margin-top:10px;
+  margin-top:12px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -132,15 +134,15 @@ textarea{
 
 .send-options{
   display:flex;
-  gap:12px;
-  font-size:13px;
+  gap:14px;
+  font-size:14px;
   color:#555;
 }
 
 .send-btn{
-  padding:8px 16px;
+  padding:10px 18px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#111;
   color:white;
   cursor:pointer;
@@ -148,19 +150,19 @@ textarea{
 
 /* SPOTIFY */
 .spotify{
-  margin-top:18px;
+  margin-top:22px;
 }
 
 .spotify iframe{
   width:100%;
   border:none;
-  border-radius:14px;
+  border-radius:16px;
 }
 
 /* BACK */
 .back{
   margin-top:18px;
-  font-size:13px;
+  font-size:14px;
   text-decoration:underline;
   cursor:pointer;
 }
@@ -171,42 +173,42 @@ textarea{
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 18px 30px;
-}
-
-.search{
-  top:14px;
-  right:16px;
+  padding:26px 18px 40px;
 }
 
 .search input{
-  width:120px;
-}
-
-.top{
-  margin-top:60px;
+  width:140px;
 }
 
 .avatar{
-  width:64px;
-  height:64px;
+  width:90px;
+  height:90px;
 }
 
 .alias{
-  font-size:17px;
+  font-size:22px;
+}
+
+.stats{
+  font-size:14px;
 }
 
 .btn{
-  padding:5px 10px;
-  font-size:11px;
+  padding:8px 14px;
+  font-size:13px;
 }
 
 .photos{
-  gap:10px;
+  margin-top:26px;
+  gap:12px;
 }
 
 .photo{
-  height:110px;
+  height:130px;
+}
+
+textarea{
+  height:120px;
 }
 }
 </style>
@@ -225,13 +227,16 @@ textarea{
   <!-- HEADER -->
   <div class="top">
     <img id="avatar" class="avatar" />
+
     <div>
       <div id="alias" class="alias">...</div>
-      <div id="stats" class="stats"></div>
+      <div id="stats" class="stats">
+        <span id="followersBtn"></span> · <span id="followingBtn"></span>
+      </div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
-        <button id="shhhBtn" class="btn">SHHH!</button>
+        <button class="btn" onclick="location.href='wall.html'">SHHH!</button>
       </div>
     </div>
   </div>
@@ -266,7 +271,7 @@ textarea{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -282,31 +287,31 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const params = new URLSearchParams(location.search);
-const aliasParam = params.get("alias");
+const uid = params.get("uid");
 
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const stats = document.getElementById("stats");
+const followersBtn = document.getElementById("followersBtn");
+const followingBtn = document.getElementById("followingBtn");
+const followBtn = document.getElementById("followBtn");
 const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
-const followBtn = document.getElementById("followBtn");
-
-let viewedUid = null;
 
 async function loadUser(){
-  const q = query(collection(db,"users"), where("alias","==",aliasParam));
-  const snap = await getDocs(q);
+  const snap = await getDoc(doc(db,"users",uid));
+  if(!snap.exists()) return;
 
-  if(snap.empty) return;
-
-  const docData = snap.docs[0];
-  viewedUid = docData.id;
-  const d = docData.data();
+  const d = snap.data();
 
   aliasEl.textContent = d.alias;
-  stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
+  followersBtn.textContent = `${d.followers?.length||0} followers`;
+  followingBtn.textContent = `${d.following?.length||0} following`;
+
+  followersBtn.onclick = () => location.href = `list.html?uid=${uid}&type=followers`;
+  followingBtn.onclick = () => location.href = `list.html?uid=${uid}&type=following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
@@ -326,41 +331,33 @@ async function loadUser(){
     msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
   }
 
-  setupFollow();
+  const me = auth.currentUser?.uid;
+  if(me){
+    if(d.followers?.includes(me)){
+      followBtn.textContent = "Unfollow";
+      followBtn.onclick = () => toggleFollow(false);
+    }else{
+      followBtn.textContent = "Follow";
+      followBtn.onclick = () => toggleFollow(true);
+    }
+  }
 }
 
-async function setupFollow(){
-  const user = auth.currentUser;
-  if(!user) return;
+async function toggleFollow(follow){
+  const me = auth.currentUser.uid;
 
-  const meSnap = await getDoc(doc(db,"users",user.uid));
-  const me = meSnap.data();
+  const myRef = doc(db,"users",me);
+  const theirRef = doc(db,"users",uid);
 
-  const isFollowing = me.following?.includes(viewedUid);
+  if(follow){
+    await updateDoc(theirRef,{ followers: arrayUnion(me) });
+    await updateDoc(myRef,{ following: arrayUnion(uid) });
+  }else{
+    await updateDoc(theirRef,{ followers: arrayRemove(me) });
+    await updateDoc(myRef,{ following: arrayRemove(uid) });
+  }
 
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async () => {
-    if(isFollowing){
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayRemove(viewedUid)
-      });
-
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayRemove(user.uid)
-      });
-    }else{
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayUnion(viewedUid)
-      });
-
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayUnion(user.uid)
-      });
-    }
-
-    location.reload();
-  };
+  loadUser();
 }
 
 window.sendMessage = async () => {
@@ -368,12 +365,12 @@ window.sendMessage = async () => {
   if(!text) return;
 
   const mode = document.querySelector('input[name="mode"]:checked').value;
-  const user = auth.currentUser;
+  const me = auth.currentUser;
 
   await addDoc(collection(db,"messages"),{
     text,
-    to:viewedUid,
-    fromAlias: mode==="alias" && user ? user.uid : null,
+    to:uid,
+    from: mode === "alias" && me ? me.uid : null,
     createdAt: Date.now(),
     published:false
   });
@@ -385,7 +382,7 @@ window.sendMessage = async () => {
 window.searchUser = () => {
   const alias = document.getElementById("searchInput").value.trim();
   if(!alias) return;
-  window.location.href = `user.html?alias=${alias}`;
+  location.href = `user.html?uid=${alias}`;
 };
 
 loadUser();
