@@ -240,6 +240,7 @@ textarea{
     </div>
 
     <button id="followBtn" class="follow-btn">Follow</button>
+    <button id="shhhBtn" class="follow-btn">SHHH!</button>
   </div>
 </div>
 
@@ -311,6 +312,7 @@ const aliasEl = document.getElementById("alias");
 const followersBtn = document.getElementById("followersBtn");
 const followingBtn = document.getElementById("followingBtn");
 const followBtn = document.getElementById("followBtn");
+const shhhBtn = document.getElementById("shhhBtn");
 const spotifyEmbedEl = document.getElementById("spotifyEmbed");
 const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
 
@@ -333,7 +335,9 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!viewedUid || viewedUid === user.uid)
     return location.href = "profile.html";
-
+  shhhBtn.onclick = () => {
+  window.location.href = `wall.html?uid=${viewedUid}`;
+};
   const myRef = doc(db,"users",user.uid);
   const viewedRef = doc(db,"users",viewedUid);
 
