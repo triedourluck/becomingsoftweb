@@ -47,7 +47,7 @@
     .spotify input { width:100%; padding:8px; border-radius:8px; border:1px solid #ddd; margin-top:8px; }
     .save-btn { margin-top:8px; padding:6px 12px; border:none; border-radius:8px; background:#111; color:white; cursor:pointer; font-size:12px; }
 
-    .bottom { margin-top:24px; display:flex; gap:12px; }
+    .bottom { margin-top:24px; display:flex; gap:12px; flex-wrap:wrap; }
     .logout, .gear, .icon-btn { padding:10px 14px; border:none; border-radius:10px; background:#111; color:white; cursor:pointer; font-size:14px; }
 
     .hidden { display:none; }
@@ -61,11 +61,45 @@
         padding:24px 18px 40px;
       }
 
-      .layout{
-        display:block;
+      .search{
+        top:14px;
+        right:16px;
       }
 
-      /* 👇 grid 3 x 2 */
+      .search input{
+        width:130px;
+        padding:7px 9px;
+      }
+
+      .search button{
+        padding:7px 11px;
+      }
+
+      .top{
+        gap:14px;
+        margin-top:40px;
+      }
+
+      .avatar{
+        width:64px;
+        height:64px;
+      }
+
+      .alias{
+        font-size:18px;
+      }
+
+      .stats{
+        font-size:12px;
+        margin-top:6px;
+      }
+
+      .layout{
+        display:block;
+        margin-top:22px;
+      }
+
+      /* grid 3x2 */
       .photos{
         grid-template-columns:repeat(3,1fr);
         gap:10px;
@@ -75,23 +109,17 @@
         height:110px;
       }
 
-      /* 👇 orden correcto mobile */
-      .right{
-        display:flex;
-        flex-direction:column;
-      }
-
-      .spotify{ order:1; }
-      .msgSection{ order:2; }
+      /* orden correcto: mensaje arriba, spotify abajo */
+      .msgSection{ margin-top:22px; }
+      .spotify{ margin-top:18px; }
 
       .bottom{
-        justify-content:space-between;
-        flex-wrap:wrap;
+        margin-top:26px;
+        justify-content:center;
       }
     }
   </style>
 </head>
-
 <body>
   <div class="container">
 
@@ -115,7 +143,6 @@
 
     <div class="layout">
 
-      <!-- FOTOS -->
       <div>
         <div class="photos">
           <img id="p1" class="photo" />
@@ -128,30 +155,27 @@
         <input type="file" id="photoInput" class="hidden" accept="image/*" />
       </div>
 
-      <!-- DERECHA -->
       <div class="right">
 
-        <!-- SPOTIFY -->
+        <div class="msgSection">
+          <h3 id="msgTitle">Envíame un mensaje</h3>
+          <textarea id="msgBox" placeholder="Escribe algo suave..."></textarea>
+        </div>
+
         <div class="spotify">
           <div id="spotifyEmbed"></div>
           <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify" />
           <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
         </div>
 
-        <!-- MENSAJE -->
-        <div class="msgSection">
-          <h3 id="msgTitle">Envíame un mensaje</h3>
-          <textarea id="msgBox" placeholder="Escribe algo suave..."></textarea>
-        </div>
-
       </div>
     </div>
 
-    <!-- BOTONES -->
     <div class="bottom">
       <button class="logout" onclick="logout()">Cerrar sesión</button>
       <button class="gear" onclick="location.href='settings.html'">⚙️</button> 
       <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
+      <button class="icon-btn" onclick="location.href='feed.html'">Feed</button>
       <button class="icon-btn" onclick="location.href='wall.html'">SHHH!</button>
     </div>
 
