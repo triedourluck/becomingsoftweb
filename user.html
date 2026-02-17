@@ -20,28 +20,31 @@ body{
   border-radius:20px;
   padding:32px;
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  position:relative;
 }
 
-/* BUSCADOR */
-.search{
-  position:absolute;
-  top:24px;
-  right:24px;
+/* HEADER */
+.header-top{
   display:flex;
-  gap:8px;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.search{
+  display:flex;
+  gap:6px;
 }
 
 .search input{
-  width:140px;
   padding:6px 10px;
   border-radius:10px;
   border:1px solid #ddd;
   font-size:12px;
+  width:140px;
 }
 
 .search button{
-  padding:6px 12px;
+  padding:6px 10px;
   border:none;
   border-radius:10px;
   background:#111;
@@ -50,51 +53,50 @@ body{
   cursor:pointer;
 }
 
-/* HEADER */
 .top{
   display:flex;
-  align-items:center;
-  gap:18px;
-  margin-top:24px;
+  gap:16px;
+  margin-top:10px;
 }
 
 .avatar{
-  width:90px;
-  height:90px;
+  width:70px;
+  height:70px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:22px;
+  font-size:18px;
   font-weight:600;
 }
 
 .stats{
-  font-size:14px;
+  font-size:13px;
   color:#666;
-  margin-top:4px;
+  margin-top:2px;
+  cursor:pointer;
 }
 
 .actions{
-  margin-top:10px;
+  margin-top:8px;
   display:flex;
-  gap:10px;
+  gap:8px;
 }
 
 .btn{
-  padding:6px 14px;
+  padding:6px 12px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:13px;
+  font-size:12px;
 }
 
 /* GRID */
 .photos{
-  margin-top:28px;
+  margin-top:26px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:14px;
@@ -102,15 +104,15 @@ body{
 
 .photo{
   width:100%;
-  height:150px;
-  border-radius:16px;
+  height:140px;
+  border-radius:14px;
   object-fit:cover;
   background:#eee;
 }
 
 /* MENSAJE */
 .message-box{
-  margin-top:30px;
+  margin-top:28px;
 }
 
 textarea{
@@ -138,9 +140,9 @@ textarea{
 }
 
 .send-btn{
-  padding:8px 18px;
+  padding:8px 16px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
@@ -160,7 +162,7 @@ textarea{
 /* VOLVER */
 .back{
   margin-top:14px;
-  font-size:14px;
+  font-size:13px;
   text-decoration:underline;
   cursor:pointer;
 }
@@ -171,24 +173,44 @@ textarea{
 .container{
   margin:0;
   border-radius:0;
-  padding:24px 18px 32px;
-}
-
-.search{
-  top:18px;
-  right:18px;
+  padding:22px 16px 30px;
 }
 
 .search input{
   width:120px;
+  font-size:11px;
+}
+
+.search button{
+  font-size:11px;
+  padding:6px 12px;
+}
+
+.avatar{
+  width:78px;
+  height:78px;
+}
+
+.alias{
+  font-size:20px;
+}
+
+.stats{
+  font-size:14px;
+}
+
+.btn{
+  font-size:13px;
+  padding:7px 14px;
 }
 
 .photos{
+  margin-top:22px;
   gap:10px;
 }
 
 .photo{
-  height:110px;
+  height:120px;
 }
 }
 </style>
@@ -199,20 +221,23 @@ textarea{
 <div class="container">
 
   <!-- BUSCADOR -->
-  <div class="search">
-    <input id="searchInput" placeholder="buscar usuario"/>
-    <button onclick="goSearch()">ir</button>
+  <div class="header-top">
+    <div></div>
+    <div class="search">
+      <input id="searchInput" placeholder="buscar usuario">
+      <button onclick="goSearch()">ir</button>
+    </div>
   </div>
 
-  <!-- HEADER -->
+  <!-- HEADER USER -->
   <div class="top">
-    <img id="avatar" class="avatar"/>
+    <img id="avatar" class="avatar">
     <div>
       <div id="alias" class="alias">...</div>
       <div id="stats" class="stats"></div>
 
       <div class="actions">
-        <button id="followBtn" class="btn"></button>
+        <button id="followBtn" class="btn">Follow</button>
         <button class="btn">SHHH!</button>
       </div>
     </div>
@@ -235,12 +260,13 @@ textarea{
 
       <button class="send-btn" onclick="sendMessage()">Enviar</button>
     </div>
-
-    <div class="back" onclick="history.back()">← Volver</div>
   </div>
 
   <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
+
+  <!-- VOLVER -->
+  <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
 
@@ -250,7 +276,7 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth
 import { getFirestore, doc, getDoc, addDoc, collection, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSy...",
+  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
   authDomain:"becomingsoft-84e72.firebaseapp.com",
   projectId:"becomingsoft-84e72",
   storageBucket:"becomingsoft-84e72.firebasestorage.app",
@@ -262,79 +288,85 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* UID desde URL */
 const params = new URLSearchParams(location.search);
-const viewedUid = params.get("uid");
+const aliasParam = params.get("alias");
 
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const stats = document.getElementById("stats");
 const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
+const titleText = document.getElementById("titleText");
+const msgInput = document.getElementById("msgInput");
 const followBtn = document.getElementById("followBtn");
 
-let viewedUser;
+let viewedUid = null;
 
-/* CARGAR USUARIO */
 async function loadUser(){
-  const snap = await getDoc(doc(db,"users",viewedUid));
-  if(!snap.exists()) return;
 
-  viewedUser = snap.data();
+  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
+  if(!aliasSnap.exists()) return;
 
-  aliasEl.textContent = viewedUser.alias;
-  stats.textContent = `${viewedUser.followers?.length||0} followers · ${viewedUser.following?.length||0} following`;
+  viewedUid = aliasSnap.data().uid;
 
-  if(viewedUser.photoURL) avatar.src = viewedUser.photoURL;
+  const userSnap = await getDoc(doc(db,"users",viewedUid));
+  const d = userSnap.data();
 
-  photos.innerHTML="";
-  (viewedUser.photos||[]).forEach(url=>{
-    const img=document.createElement("img");
-    img.src=url;
-    img.className="photo";
+  aliasEl.textContent = d.alias;
+  stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
+
+  if(d.photoURL) avatar.src = d.photoURL;
+
+  photos.innerHTML = "";
+  (d.photos||[]).forEach(url=>{
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "photo";
     photos.appendChild(img);
   });
 
-  if(viewedUser.spotifyEmbed) spotify.innerHTML=viewedUser.spotifyEmbed;
+  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
+
+  if(d.wallText){
+    titleText.textContent = d.wallText.title || "Envíame un mensaje";
+    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
+  }
 
   checkFollow();
 }
 
-/* FOLLOW / UNFOLLOW */
 async function checkFollow(){
   const user = auth.currentUser;
   if(!user) return;
 
-  const meSnap = await getDoc(doc(db,"users",user.uid));
-  const me = meSnap.data();
+  const mySnap = await getDoc(doc(db,"users",user.uid));
+  const following = mySnap.data().following || [];
 
-  const following = me.following || [];
-  const isFollowing = following.includes(viewedUid);
-
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async ()=>{
-    if(isFollowing){
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayRemove(viewedUid)
-      });
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayRemove(user.uid)
-      });
-    }else{
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayUnion(viewedUid)
-      });
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayUnion(user.uid)
-      });
-    }
-    location.reload();
-  };
+  followBtn.textContent = following.includes(viewedUid) ? "Unfollow" : "Follow";
 }
 
-/* MENSAJE */
-window.sendMessage = async ()=>{
+followBtn.onclick = async () => {
+  const user = auth.currentUser;
+  if(!user || !viewedUid) return;
+
+  const myRef = doc(db,"users",user.uid);
+  const viewedRef = doc(db,"users",viewedUid);
+
+  const mySnap = await getDoc(myRef);
+  const following = mySnap.data().following || [];
+
+  if(following.includes(viewedUid)){
+    await updateDoc(myRef,{ following: arrayRemove(viewedUid) });
+    await updateDoc(viewedRef,{ followers: arrayRemove(user.uid) });
+  }else{
+    await updateDoc(myRef,{ following: arrayUnion(viewedUid) });
+    await updateDoc(viewedRef,{ followers: arrayUnion(user.uid) });
+  }
+
+  loadUser();
+};
+
+window.sendMessage = async () => {
   const text = msgInput.value.trim();
   if(!text) return;
 
@@ -353,15 +385,9 @@ window.sendMessage = async ()=>{
   alert("enviado 🌷");
 };
 
-/* BUSCADOR → busca alias y navega por UID */
-window.goSearch = async ()=>{
-  const alias = document.getElementById("searchInput").value.trim();
-  if(!alias) return;
-
-  const snap = await getDoc(doc(db,"aliases",alias));
-  if(!snap.exists()) return alert("no existe");
-
-  location.href = `user.html?uid=${snap.data().uid}`;
+window.goSearch = () => {
+  const v = document.getElementById("searchInput").value.trim();
+  if(v) location.href = `user.html?alias=${v}`;
 };
 
 loadUser();
