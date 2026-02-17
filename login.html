@@ -46,6 +46,22 @@
       box-sizing:border-box;
     }
 
+    /* 👁 contenedor para el input de contraseña */
+    .pass-wrap{
+      position:relative;
+    }
+
+    .eye{
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform:translateY(-50%);
+      cursor:pointer;
+      font-size:14px;
+      color:#777;
+      user-select:none;
+    }
+
     button{
       width:100%;
       padding:12px;
@@ -81,7 +97,12 @@
     <div class="sub">a soft place to exist quietly</div>
 
     <input id="alias" placeholder="Alias"/>
-    <input id="pass" type="password" placeholder="Contraseña"/>
+
+    <!-- 👁 contraseña con ojito -->
+    <div class="pass-wrap">
+      <input id="pass" type="password" placeholder="Contraseña"/>
+      <span class="eye" onclick="togglePass()">👁</span>
+    </div>
 
     <button onclick="login()">Entrar</button>
 
@@ -111,6 +132,12 @@
       window.location.href = "index.html";
     };
 
+    /* 👁 mostrar / ocultar contraseña */
+    window.togglePass = () => {
+      const input = document.getElementById("pass");
+      input.type = input.type === "password" ? "text" : "password";
+    };
+
     window.login = async () => {
       const alias = document.getElementById("alias").value.trim();
       const pass = document.getElementById("pass").value.trim();
@@ -124,7 +151,6 @@
       loading.style.display = "block";
 
       try {
-        // 🔎 buscar usuario por alias en Firestore
         const q = query(collection(db, "users"), where("alias", "==", alias));
         const snap = await getDocs(q);
 
@@ -143,7 +169,6 @@
           return;
         }
 
-        // 🔐 login real en Firebase Auth
         await signInWithEmailAndPassword(auth, email, pass);
 
         window.location.href = "profile.html";
