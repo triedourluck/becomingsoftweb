@@ -23,7 +23,7 @@ body{
   position:relative;
 }
 
-/* SEARCH TOP RIGHT */
+/* SEARCH */
 .search{
   position:absolute;
   top:20px;
@@ -33,76 +33,76 @@ body{
 }
 
 .search input{
-  width:140px;
-  padding:6px 8px;
-  border-radius:10px;
+  width:150px;
+  padding:7px 10px;
+  border-radius:12px;
   border:1px solid #ddd;
-  font-size:12px;
+  font-size:13px;
 }
 
 .search button{
-  padding:6px 10px;
+  padding:7px 12px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:12px;
+  font-size:13px;
 }
 
 /* HEADER */
 .top{
   display:flex;
   align-items:center;
-  gap:14px;
-  margin-top:40px;
+  gap:16px;
+  margin-top:46px;
 }
 
 .avatar{
-  width:72px;
-  height:72px;
+  width:88px;
+  height:88px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:18px;
+  font-size:22px;
   font-weight:600;
 }
 
 .stats{
-  font-size:12px;
+  font-size:14px;
   color:#666;
   cursor:pointer;
 }
 
 .actions{
-  margin-top:6px;
+  margin-top:8px;
   display:flex;
-  gap:8px;
+  gap:10px;
 }
 
 .btn{
-  padding:6px 12px;
+  padding:8px 16px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:12px;
+  font-size:13px;
 }
 
 /* GRID */
 .photos{
-  margin-top:28px;
+  margin-top:30px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .photo{
   width:100%;
-  height:140px;
+  height:150px;
   border-radius:14px;
   object-fit:cover;
   background:#eee;
@@ -110,7 +110,7 @@ body{
 
 /* MESSAGE */
 .message-box{
-  margin-top:30px;
+  margin-top:34px;
 }
 
 textarea{
@@ -138,9 +138,9 @@ textarea{
 }
 
 .send-btn{
-  padding:8px 16px;
+  padding:8px 18px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#111;
   color:white;
   cursor:pointer;
@@ -148,7 +148,7 @@ textarea{
 
 /* SPOTIFY */
 .spotify{
-  margin-top:18px;
+  margin-top:20px;
 }
 
 .spotify iframe{
@@ -171,42 +171,53 @@ textarea{
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 18px 30px;
+  padding:24px 18px 32px;
 }
 
 .search{
-  top:14px;
+  top:16px;
   right:16px;
 }
 
 .search input{
-  width:120px;
+  width:130px;
+  font-size:12px;
+}
+
+.search button{
+  padding:6px 12px;
+  font-size:12px;
 }
 
 .top{
   margin-top:60px;
+  gap:14px;
 }
 
 .avatar{
-  width:64px;
-  height:64px;
+  width:80px;
+  height:80px;
 }
 
 .alias{
-  font-size:17px;
+  font-size:20px;
+}
+
+.stats{
+  font-size:13px;
 }
 
 .btn{
-  padding:5px 10px;
-  font-size:11px;
+  padding:7px 14px;
+  font-size:12px;
 }
 
 .photos{
-  gap:10px;
+  gap:12px;
 }
 
 .photo{
-  height:110px;
+  height:120px;
 }
 }
 </style>
@@ -216,13 +227,11 @@ textarea{
 
 <div class="container">
 
-  <!-- SEARCH -->
   <div class="search">
     <input id="searchInput" placeholder="buscar usuario" />
     <button onclick="searchUser()">ir</button>
   </div>
 
-  <!-- HEADER -->
   <div class="top">
     <img id="avatar" class="avatar" />
     <div>
@@ -236,10 +245,8 @@ textarea{
     </div>
   </div>
 
-  <!-- PHOTOS -->
   <div id="photos" class="photos"></div>
 
-  <!-- MESSAGE -->
   <div class="message-box">
     <h3 id="titleText">Envíame un mensaje</h3>
 
@@ -255,10 +262,8 @@ textarea{
     </div>
   </div>
 
-  <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
 
-  <!-- BACK -->
   <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
@@ -298,7 +303,6 @@ let viewedUid = null;
 async function loadUser(){
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
   const snap = await getDocs(q);
-
   if(snap.empty) return;
 
   const docData = snap.docs[0];
@@ -335,30 +339,18 @@ async function setupFollow(){
 
   const meSnap = await getDoc(doc(db,"users",user.uid));
   const me = meSnap.data();
-
   const isFollowing = me.following?.includes(viewedUid);
 
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
     if(isFollowing){
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayRemove(viewedUid)
-      });
-
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayRemove(user.uid)
-      });
+      await updateDoc(doc(db,"users",user.uid),{ following: arrayRemove(viewedUid) });
+      await updateDoc(doc(db,"users",viewedUid),{ followers: arrayRemove(user.uid) });
     }else{
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayUnion(viewedUid)
-      });
-
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayUnion(user.uid)
-      });
+      await updateDoc(doc(db,"users",user.uid),{ following: arrayUnion(viewedUid) });
+      await updateDoc(doc(db,"users",viewedUid),{ followers: arrayUnion(user.uid) });
     }
-
     location.reload();
   };
 }
