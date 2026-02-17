@@ -29,24 +29,22 @@ body{
   top:20px;
   right:24px;
   display:flex;
-  gap:6px;
+  gap:8px;
 }
 
 .search input{
-  width:130px;
-  padding:6px 8px;
-  border-radius:8px;
+  width:160px;
+  padding:8px 10px;
+  border-radius:10px;
   border:1px solid #ddd;
-  font-size:12px;
 }
 
 .search button{
-  padding:6px 12px;
+  padding:8px 14px;
   border:none;
-  border-radius:8px;
+  border-radius:10px;
   background:#111;
   color:white;
-  font-size:12px;
   cursor:pointer;
 }
 
@@ -54,41 +52,45 @@ body{
 .top{
   display:flex;
   align-items:center;
-  gap:14px;
+  gap:16px;
+  margin-top:10px;
 }
 
 .avatar{
-  width:70px;
-  height:70px;
+  width:80px;
+  height:80px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:18px;
+  font-size:20px;
   font-weight:600;
 }
 
 .stats{
   font-size:13px;
   color:#666;
-  font-weight:500;
+}
+
+.stats span{
+  cursor:pointer;
 }
 
 .actions{
-  margin-top:6px;
+  margin-top:8px;
   display:flex;
-  gap:8px;
+  gap:10px;
 }
 
 .btn{
-  padding:5px 10px;
+  padding:8px 14px;
   border:none;
-  border-radius:9px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:11px;
+  font-size:13px;
 }
 
 /* GRID */
@@ -96,12 +98,12 @@ body{
   margin-top:24px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:12px;
+  gap:14px;
 }
 
 .photo{
   width:100%;
-  height:130px;
+  height:150px;
   border-radius:14px;
   object-fit:cover;
   background:#eee;
@@ -109,7 +111,7 @@ body{
 
 /* MENSAJE */
 .message-box{
-  margin-top:26px;
+  margin-top:28px;
 }
 
 textarea{
@@ -158,7 +160,7 @@ textarea{
 
 /* VOLVER */
 .back{
-  margin-top:18px;
+  margin-top:12px;
   font-size:14px;
   text-decoration:underline;
   cursor:pointer;
@@ -170,60 +172,54 @@ textarea{
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 16px 30px;
+  padding:28px 18px 40px;
 }
 
-/* 🔎 buscador */
+/* buscador más visible */
 .search{
-  top:14px;
-  right:14px;
-  gap:4px;
+  top:18px;
+  right:16px;
 }
 
 .search input{
-  width:90px;
-  padding:4px 6px;
-  font-size:10px;
+  width:180px;
+  padding:9px 10px;
 }
 
 .search button{
-  padding:4px 12px; /* ← más ancho */
-  font-size:10px;
+  padding:9px 16px;
 }
 
-/* 👤 header */
-.avatar{
-  width:58px;
-  height:58px;
+/* header más abajo */
+.top{
+  margin-top:48px;
 }
 
-.alias{
-  font-size:17px;
-}
-
-/* 👥 followers más chicos */
-.stats{
-  font-size:12px;
-  font-weight:500;
-}
-
-/* 🔘 botones más chicos */
+/* botones equilibrados */
 .btn{
-  padding:3px 9px;
-  font-size:10px;
-  border-radius:8px;
+  padding:7px 12px;
+  font-size:12px;
 }
 
-/* grid */
+/* grid más abajo */
 .photos{
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
+  margin-top:30px;
+  gap:12px;
 }
 
 .photo{
-  height:105px;
+  height:120px;
 }
 
+/* followers clickeables */
+.stats{
+  font-size:13px;
+}
+
+/* volver */
+.back{
+  margin-top:16px;
+}
 }
 </style>
 </head>
@@ -234,16 +230,21 @@ textarea{
 
   <!-- BUSCADOR -->
   <div class="search">
-    <input id="searchInput" placeholder="buscar usuario"/>
+    <input id="searchInput" placeholder="buscar usuario">
     <button onclick="searchUser()">ir</button>
   </div>
 
   <!-- HEADER -->
   <div class="top">
     <img id="avatar" class="avatar"/>
+
     <div>
       <div id="alias" class="alias">...</div>
-      <div id="stats" class="stats"></div>
+
+      <div class="stats">
+        <span id="followersBtn">0 followers</span> ·
+        <span id="followingBtn">0 following</span>
+      </div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
@@ -269,20 +270,19 @@ textarea{
 
       <button class="send-btn" onclick="sendMessage()">Enviar</button>
     </div>
+
+    <div class="back" onclick="history.back()">← Volver</div>
   </div>
 
   <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
-
-  <!-- VOLVER -->
-  <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, doc, getDoc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -302,27 +302,30 @@ const aliasParam = params.get("alias");
 
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
-const stats = document.getElementById("stats");
+const followersBtn = document.getElementById("followersBtn");
+const followingBtn = document.getElementById("followingBtn");
 const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
-const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
 async function loadUser(){
+  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
+  if(!aliasSnap.exists()) return;
 
-  const q = query(collection(db,"users"), where("alias","==",aliasParam));
-  const snap = await getDocs(q);
-  if(snap.empty) return;
+  viewedUid = aliasSnap.data().uid;
 
-  const docSnap = snap.docs[0];
-  viewedUid = docSnap.id;
-  const d = docSnap.data();
+  const userSnap = await getDoc(doc(db,"users",viewedUid));
+  const d = userSnap.data();
 
   aliasEl.textContent = d.alias;
-  stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
+  followersBtn.textContent = `${d.followers?.length||0} followers`;
+  followingBtn.textContent = `${d.following?.length||0} following`;
+
+  followersBtn.onclick = () => location.href=`list.html?uid=${viewedUid}&type=followers`;
+  followingBtn.onclick = () => location.href=`list.html?uid=${viewedUid}&type=following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
@@ -338,50 +341,19 @@ async function loadUser(){
   if(d.spotifyEmbed) spotify.innerHTML=d.spotifyEmbed;
 
   if(d.wallText){
-    titleText.textContent = d.wallText.title || "Envíame un mensaje";
-    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
+    titleText.textContent=d.wallText.title||"Envíame un mensaje";
+    msgInput.placeholder=d.wallText.box||"Escribe algo suave...";
   }
-
-  setupFollow(d);
-}
-
-async function setupFollow(userData){
-  const current = auth.currentUser;
-  if(!current) return;
-
-  const isFollowing = userData.followers?.includes(current.uid);
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async () => {
-    const ref = doc(db,"users",viewedUid);
-    const snap = await getDoc(ref);
-    const data = snap.data();
-
-    let followers = data.followers || [];
-
-    if(followers.includes(current.uid)){
-      followers = followers.filter(id=>id!==current.uid);
-    }else{
-      followers.push(current.uid);
-    }
-
-    await updateDoc(ref,{followers});
-    loadUser();
-  };
 }
 
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
   if(!text) return;
 
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const user = auth.currentUser;
-
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    fromAlias: mode==="alias" && user ? user.uid : null,
-    createdAt: Date.now(),
+    createdAt:Date.now(),
     published:false
   });
 
@@ -390,9 +362,8 @@ window.sendMessage = async () => {
 };
 
 window.searchUser = () => {
-  const a = document.getElementById("searchInput").value.trim();
-  if(!a) return;
-  location.href = `user.html?alias=${a}`;
+  const a=document.getElementById("searchInput").value.trim();
+  if(a) location.href=`user.html?alias=${a}`;
 };
 
 loadUser();
