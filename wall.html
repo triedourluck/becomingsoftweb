@@ -25,49 +25,43 @@
     .header{
       display:flex;
       align-items:center;
-      justify-content:space-between;
+      gap:16px;
       margin-bottom:24px;
     }
 
-    .user{
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-
     .avatar{
-      width:60px;
-      height:60px;
+      width:70px;
+      height:70px;
       border-radius:50%;
       background:#ddd;
       object-fit:cover;
     }
 
     .alias{
+      font-size:20px;
       font-weight:600;
-      font-size:18px;
     }
 
     .msg{
-      border:1px solid #eee;
+      padding:14px 16px;
       border-radius:14px;
-      padding:14px;
-      margin-bottom:12px;
       background:#fafafa;
+      border:1px solid #eee;
+      margin-bottom:12px;
+      font-size:14px;
     }
 
-    .reply{
-      margin-top:10px;
-      font-size:14px;
-      color:#444;
-      border-left:3px solid #111;
-      padding-left:10px;
+    .from{
+      font-size:12px;
+      color:#666;
+      margin-bottom:4px;
     }
 
     .empty{
       text-align:center;
       color:#888;
-      margin-top:40px;
+      margin-top:30px;
+      font-size:14px;
     }
   </style>
 </head>
@@ -76,17 +70,16 @@
   <div class="container">
 
     <div class="header">
-      <div class="user">
-        <img id="avatar" class="avatar" />
-        <div id="alias" class="alias">...</div>
-      </div>
+      <img id="avatar" class="avatar" />
+      <div id="alias" class="alias">...</div>
     </div>
 
     <div id="wall"></div>
-    <div id="empty" class="empty" style="display:none">Aún no hay mensajes publicados</div>
+    <div id="empty" class="empty" style="display:none">Aún no hay mensajes publicados 🌙</div>
 
   </div>
 
+  <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
     import {
@@ -119,7 +112,10 @@
     const aliasEl = document.getElementById("alias");
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) return location.href = "login.html";
+      if (!user) {
+        location.href = "login.html";
+        return;
+      }
 
       const params = new URLSearchParams(window.location.search);
       const uid = params.get("uid") || user.uid;
@@ -131,7 +127,7 @@
       aliasEl.textContent = userData?.alias || "sin alias";
       if (userData?.photoURL) avatarEl.src = userData.photoURL;
 
-      // 🔥 QUERY CORRECTA DEL WALL
+      // query real del wall
       const q = query(
         collection(db, "messages"),
         where("to", "==", uid),
@@ -147,20 +143,22 @@
       }
 
       snap.forEach((docSnap) => {
-  const data = docSnap.data();
+        const data = docSnap.data();
 
-  const div = document.createElement("div");
-  div.className = "msg";
+        const div = document.createElement("div");
+        div.className = "msg";
 
-  div.innerHTML = `
-    <div style="font-size:13px;color:#666;margin-bottom:6px;">
-      ${data.fromAlias || "Anónimo"}
-    </div>
-    <div>${data.text}</div>
-  `;
+        const from = document.createElement("div");
+        from.className = "from";
+        from.textContent = data.fromAlias || "Anónimo";
 
-  wallEl.appendChild(div);
-});
+        const text = document.createElement("div");
+        text.textContent = data.text;
+
+        div.appendChild(from);
+        div.appendChild(text);
+        wallEl.appendChild(div);
+      });
     });
   </script>
 </body>
