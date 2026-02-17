@@ -62,7 +62,7 @@ body{
   font-size:13px;
 }
 
-/* GRID DESKTOP */
+/* GRID */
 .photos{
   margin-top:24px;
   display:grid;
@@ -127,7 +127,7 @@ textarea{
   border-radius:14px;
 }
 
-/* ================= MOBILE ================= */
+/* MOBILE */
 @media (max-width:700px){
 
 .container{
@@ -136,7 +136,6 @@ textarea{
   padding:22px 18px 30px;
 }
 
-/* GRID 3x2 */
 .photos{
   grid-template-columns:repeat(3,1fr);
   gap:10px;
@@ -146,13 +145,6 @@ textarea{
   height:110px;
 }
 
-textarea{
-  width:100%;
-}
-
-.send-row{
-  gap:10px;
-}
 }
 </style>
 </head>
@@ -161,7 +153,6 @@ textarea{
 
 <div class="container">
 
-  <!-- HEADER -->
   <div class="top">
     <img id="avatar" class="avatar"/>
     <div>
@@ -169,16 +160,14 @@ textarea{
       <div id="stats" class="stats"></div>
 
       <div class="actions">
-        <button id="followBtn" class="btn"></button>
-        <button id="shhhBtn" class="btn">SHHH!</button>
+        <button id="followBtn" class="btn">Follow</button>
+        <button class="btn">SHHH!</button>
       </div>
     </div>
   </div>
 
-  <!-- FOTOS -->
   <div id="photos" class="photos"></div>
 
-  <!-- MENSAJE -->
   <div class="message-box">
     <h3 id="titleText">Envíame un mensaje</h3>
 
@@ -194,7 +183,6 @@ textarea{
     </div>
   </div>
 
-  <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
 
 </div>
@@ -202,7 +190,7 @@ textarea{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -232,25 +220,16 @@ let viewedUid = null;
 
 async function loadUser(){
 
-  // 1️⃣ alias → uid
-  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
-  if(!aliasSnap.exists()){
-    aliasEl.textContent = "usuario no encontrado";
-    return;
-  }
+  const q = query(collection(db,"users"), where("alias","==", aliasParam));
+  const snap = await getDocs(q);
 
-  viewedUid = aliasSnap.data().uid;
+  if(snap.empty) return;
 
-  // 2️⃣ uid → user data
-  const userSnap = await getDoc(doc(db,"users",viewedUid));
-  if(!userSnap.exists()){
-    aliasEl.textContent = "usuario sin datos";
-    return;
-  }
+  const docData = snap.docs[0];
+  viewedUid = docData.id;
+  const d = docData.data();
 
-  const d = userSnap.data();
-
-  aliasEl.textContent = d.alias || "...";
+  aliasEl.textContent = d.alias;
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
@@ -274,7 +253,7 @@ async function loadUser(){
 
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
-  if(!text) return;
+  if(!text || !viewedUid) return;
 
   const mode = document.querySelector('input[name="mode"]:checked').value;
   const user = auth.currentUser;
