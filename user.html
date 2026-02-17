@@ -18,87 +18,91 @@ body{
   margin:40px auto;
   background:white;
   border-radius:20px;
-  padding:32px;
+  padding:28px 22px 40px;
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
+  position:relative;
 }
 
-/* HEADER */
-.header-top{
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  margin-bottom:20px;
-}
-
+/* buscador arriba derecha */
 .search{
-  padding:8px 12px;
-  border-radius:12px;
+  position:absolute;
+  top:18px;
+  right:18px;
+  display:flex;
+  gap:6px;
+}
+
+.search input{
+  width:150px;
+  padding:7px 10px;
+  border-radius:10px;
   border:1px solid #ddd;
   font-size:13px;
-  width:160px;
 }
 
-.go-btn{
-  padding:8px 14px;
+.search button{
+  padding:7px 12px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
   font-size:13px;
   cursor:pointer;
 }
 
+/* HEADER */
 .top{
   display:flex;
   align-items:center;
-  gap:16px;
-  margin-top:10px;
+  gap:14px;
+  margin-top:26px;
 }
 
 .avatar{
-  width:90px;
-  height:90px;
+  width:78px;
+  height:78px;
   border-radius:50%;
   object-fit:cover;
 }
 
 .alias{
-  font-size:22px;
-  font-weight:700;
+  font-size:20px;
+  font-weight:600;
 }
 
 .stats{
   font-size:14px;
   color:#666;
-  margin:4px 0 8px;
+  margin-top:2px;
 }
 
 .actions{
+  margin-top:8px;
   display:flex;
-  gap:10px;
+  gap:8px;
 }
 
 .btn{
-  padding:8px 16px;
+  padding:7px 13px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
-  cursor:pointer;
   font-size:13px;
+  cursor:pointer;
 }
 
 /* GRID */
 .photos{
-  margin-top:28px;
+  margin-top:26px;
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:14px;
+  gap:12px;
 }
 
 .photo{
   width:100%;
-  height:150px;
+  height:140px;
   border-radius:14px;
   object-fit:cover;
   background:#eee;
@@ -106,7 +110,7 @@ body{
 
 /* MENSAJE */
 .message-box{
-  margin-top:32px;
+  margin-top:34px;
 }
 
 textarea{
@@ -136,18 +140,32 @@ textarea{
 .send-btn{
   padding:8px 16px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
 }
 
+/* volver */
 .back{
-  display:inline-block;
-  margin-top:18px;
+  margin-top:14px;
   font-size:14px;
+}
+
+.back a{
+  color:#111;
   text-decoration:underline;
-  cursor:pointer;
+}
+
+/* spotify */
+.spotify{
+  margin-top:18px;
+}
+
+.spotify iframe{
+  width:100%;
+  border:none;
+  border-radius:14px;
 }
 
 /* MOBILE */
@@ -156,52 +174,14 @@ textarea{
 .container{
   margin:0;
   border-radius:0;
-  padding:20px 16px 30px;
 }
 
-.header-top{
-  justify-content:flex-end;
-}
-
-.search{
-  width:140px;
-  font-size:12px;
-}
-
-.go-btn{
-  padding:7px 12px;
-  font-size:12px;
-}
-
-.avatar{
-  width:100px;
-  height:100px;
-}
-
-.alias{
-  font-size:24px;
-}
-
-.stats{
-  font-size:15px;
-}
-
-.btn{
-  padding:7px 14px;
-  font-size:12px;
-}
-
-.photos{
-  margin-top:32px;
-  gap:12px;
+.search input{
+  width:120px;
 }
 
 .photo{
-  height:120px;
-}
-
-textarea{
-  height:130px;
+  height:110px;
 }
 }
 </style>
@@ -211,13 +191,15 @@ textarea{
 
 <div class="container">
 
-  <div class="header-top">
-    <input id="searchInput" class="search" placeholder="buscar usuario" />
-    <button class="go-btn" onclick="goSearch()">ir</button>
+  <div class="search">
+    <input id="searchInput" placeholder="buscar usuario">
+    <button onclick="goSearch()">ir</button>
   </div>
 
+  <!-- HEADER -->
   <div class="top">
-    <img id="avatar" class="avatar" />
+    <img id="avatar" class="avatar"/>
+
     <div>
       <div id="alias" class="alias">...</div>
       <div id="stats" class="stats"></div>
@@ -229,10 +211,12 @@ textarea{
     </div>
   </div>
 
+  <!-- FOTOS -->
   <div id="photos" class="photos"></div>
 
+  <!-- MENSAJE -->
   <div class="message-box">
-    <h3>Envíame un mensaje</h3>
+    <h3 id="titleText">Envíame un mensaje</h3>
 
     <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
@@ -245,15 +229,20 @@ textarea{
       <button class="send-btn" onclick="sendMessage()">Enviar</button>
     </div>
 
-    <div class="back" onclick="history.back()">← Volver</div>
+    <div class="back">
+      <a href="index.html">← Volver</a>
+    </div>
   </div>
+
+  <!-- SPOTIFY -->
+  <div id="spotify" class="spotify"></div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -275,23 +264,37 @@ const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const stats = document.getElementById("stats");
 const photos = document.getElementById("photos");
+const spotify = document.getElementById("spotify");
+const msgInput = document.getElementById("msgInput");
 
 let viewedUid = null;
 
 async function loadUser(){
-  if(!aliasParam) return;
 
-  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
-  if(!aliasSnap.exists()) return;
+  if(!aliasParam){
+    aliasEl.textContent = "usuario no encontrado";
+    return;
+  }
 
-  viewedUid = aliasSnap.data().uid;
+  // buscar UID por alias
+  const aliasDoc = await getDoc(doc(db,"aliases",aliasParam));
+  if(!aliasDoc.exists()){
+    aliasEl.textContent = "alias no existe";
+    return;
+  }
 
+  viewedUid = aliasDoc.data().uid;
+
+  // cargar user real
   const userSnap = await getDoc(doc(db,"users",viewedUid));
-  if(!userSnap.exists()) return;
+  if(!userSnap.exists()){
+    aliasEl.textContent = "usuario sin datos";
+    return;
+  }
 
   const d = userSnap.data();
 
-  aliasEl.textContent = d.alias || "user";
+  aliasEl.textContent = d.alias || aliasParam;
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
@@ -303,27 +306,31 @@ async function loadUser(){
     img.className = "photo";
     photos.appendChild(img);
   });
+
+  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
 }
 
 window.sendMessage = async () => {
-  const text = document.getElementById("msgInput").value.trim();
+  const text = msgInput.value.trim();
   if(!text || !viewedUid) return;
+
+  const user = auth.currentUser;
 
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    createdAt: Date.now(),
+    from:user?.uid || null,
+    createdAt:Date.now(),
     published:false
   });
 
-  document.getElementById("msgInput").value="";
+  msgInput.value="";
   alert("enviado 🌷");
 };
 
 window.goSearch = () => {
-  const v = document.getElementById("searchInput").value.trim();
-  if(!v) return;
-  location.href = `user.html?alias=${v}`;
+  const val = document.getElementById("searchInput").value.trim();
+  if(val) location.href = `user.html?alias=${val}`;
 };
 
 loadUser();
