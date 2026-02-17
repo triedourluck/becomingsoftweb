@@ -23,20 +23,20 @@ body{
   position:relative;
 }
 
-/* 🔎 buscador */
+/* BUSCADOR */
 .search{
   position:absolute;
-  top:16px;
-  right:18px;
+  top:18px;
+  right:24px;
   display:flex;
   gap:6px;
 }
 
 .search input{
+  width:140px;
   padding:6px 8px;
   border-radius:10px;
   border:1px solid #ddd;
-  width:110px;
   font-size:12px;
 }
 
@@ -46,8 +46,8 @@ body{
   border-radius:10px;
   background:#111;
   color:white;
-  cursor:pointer;
   font-size:12px;
+  cursor:pointer;
 }
 
 /* HEADER */
@@ -55,7 +55,7 @@ body{
   display:flex;
   align-items:center;
   gap:16px;
-  margin-top:20px;
+  margin-top:10px;
 }
 
 .avatar{
@@ -73,26 +73,24 @@ body{
 .stats{
   font-size:13px;
   color:#666;
-}
-
-.stats span{
   cursor:pointer;
 }
 
 .actions{
   margin-top:8px;
   display:flex;
-  gap:10px;
+  gap:8px;
 }
 
 .btn{
-  padding:8px 14px;
+  padding:6px 12px;
   border:none;
   border-radius:10px;
   background:#111;
   color:white;
   cursor:pointer;
-  font-size:13px;
+  font-size:12px;
+  line-height:1;
 }
 
 /* GRID */
@@ -160,37 +158,43 @@ textarea{
   border-radius:14px;
 }
 
-/* 🔙 volver abajo izquierda */
-.back-bottom{
-  position:fixed;
-  bottom:18px;
-  left:18px;
-  font-size:14px;
+/* VOLVER */
+.back{
+  margin-top:16px;
+  font-size:13px;
   text-decoration:underline;
   cursor:pointer;
-  background:rgba(255,255,255,0.9);
-  padding:6px 10px;
-  border-radius:8px;
+  display:inline-block;
 }
 
-/* MOBILE */
+/* ================= MOBILE ================= */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 18px 60px;
+  padding:22px 18px 30px;
 }
 
-.photos{
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
+.search input{ width:110px; font-size:11px; }
+.search button{ font-size:11px; padding:5px 8px; }
+
+/* botones más pequeños */
+.actions{ margin-top:6px; gap:6px; }
+
+.btn{
+  padding:5px 10px;
+  font-size:11px;
+  border-radius:9px;
 }
 
-.photo{
-  height:110px;
-}
+/* grid 3x2 */
+.photos{ gap:10px; }
+.photo{ height:110px; }
 
+/* orden */
+.message-box{ order:1; }
+.spotify{ order:2; margin-top:14px; }
 }
 </style>
 </head>
@@ -199,29 +203,30 @@ textarea{
 
 <div class="container">
 
+  <!-- BUSCADOR -->
   <div class="search">
     <input id="searchInput" placeholder="buscar usuario">
     <button onclick="searchUser()">ir</button>
   </div>
 
+  <!-- HEADER -->
   <div class="top">
     <img id="avatar" class="avatar"/>
     <div>
       <div id="alias" class="alias">...</div>
-      <div id="stats" class="stats">
-        <span id="followers"></span> ·
-        <span id="following"></span>
-      </div>
+      <div id="stats" class="stats"></div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
-        <button class="btn">SHHH!</button>
+        <button class="btn" onclick="goWall()">SHHH!</button>
       </div>
     </div>
   </div>
 
+  <!-- FOTOS -->
   <div id="photos" class="photos"></div>
 
+  <!-- MENSAJE -->
   <div class="message-box">
     <h3 id="titleText">Envíame un mensaje</h3>
 
@@ -237,18 +242,20 @@ textarea{
     </div>
   </div>
 
+  <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
 
-</div>
+  <!-- VOLVER -->
+  <div class="back" onclick="history.back()">← Volver</div>
 
-<div class="back-bottom" onclick="history.back()">← Volver</div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
-  getFirestore, collection, query, where, getDocs,
-  addDoc, doc, updateDoc, arrayUnion, arrayRemove, getDoc
+  getFirestore, doc, getDoc, addDoc, collection,
+  updateDoc, arrayUnion, arrayRemove
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -269,8 +276,7 @@ const aliasParam = params.get("alias");
 
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
-const followersEl = document.getElementById("followers");
-const followingEl = document.getElementById("following");
+const stats = document.getElementById("stats");
 const photos = document.getElementById("photos");
 const spotify = document.getElementById("spotify");
 const titleText = document.getElementById("titleText");
@@ -279,30 +285,27 @@ const followBtn = document.getElementById("followBtn");
 
 let viewedUid = null;
 
+/* CARGAR USUARIO */
 async function loadUser(){
-  const q = query(collection(db,"users"), where("alias","==", aliasParam));
-  const snap = await getDocs(q);
-  if(snap.empty) return;
+  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
+  if(!aliasSnap.exists()) return;
 
-  const docData = snap.docs[0];
-  viewedUid = docData.id;
-  const d = docData.data();
+  viewedUid = aliasSnap.data().uid;
+
+  const userSnap = await getDoc(doc(db,"users",viewedUid));
+  const d = userSnap.data();
 
   aliasEl.textContent = d.alias;
-  followersEl.textContent = `${d.followers?.length||0} followers`;
-  followingEl.textContent = `${d.following?.length||0} following`;
-
-  followersEl.onclick = () => location.href = `list.html?uid=${viewedUid}&type=followers`;
-  followingEl.onclick = () => location.href = `list.html?uid=${viewedUid}&type=following`;
+  stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
 
-  photos.innerHTML="";
+  photos.innerHTML = "";
   (d.photos||[]).forEach(url=>{
     if(!url) return;
-    const img=document.createElement("img");
-    img.src=url;
-    img.className="photo";
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "photo";
     photos.appendChild(img);
   });
 
@@ -313,35 +316,45 @@ async function loadUser(){
     msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
   }
 
-  checkFollowState();
+  updateFollowButton();
 }
 
-async function checkFollowState(){
+/* FOLLOW / UNFOLLOW */
+async function updateFollowButton(){
   const user = auth.currentUser;
-  if(!user) return followBtn.textContent="Follow";
+  if(!user) return;
 
-  const snap = await getDoc(doc(db,"users",user.uid));
-  const data = snap.data();
+  const meSnap = await getDoc(doc(db,"users",user.uid));
+  const me = meSnap.data();
 
-  const isFollowing = data.following?.includes(viewedUid);
+  const isFollowing = me.following?.includes(viewedUid);
 
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
     if(isFollowing){
-      await updateDoc(doc(db,"users",user.uid), { following: arrayRemove(viewedUid) });
-      await updateDoc(doc(db,"users",viewedUid), { followers: arrayRemove(user.uid) });
+      await updateDoc(doc(db,"users",user.uid),{
+        following: arrayRemove(viewedUid)
+      });
+      await updateDoc(doc(db,"users",viewedUid),{
+        followers: arrayRemove(user.uid)
+      });
     }else{
-      await updateDoc(doc(db,"users",user.uid), { following: arrayUnion(viewedUid) });
-      await updateDoc(doc(db,"users",viewedUid), { followers: arrayUnion(user.uid) });
+      await updateDoc(doc(db,"users",user.uid),{
+        following: arrayUnion(viewedUid)
+      });
+      await updateDoc(doc(db,"users",viewedUid),{
+        followers: arrayUnion(user.uid)
+      });
     }
     loadUser();
   };
 }
 
+/* ENVIAR MENSAJE */
 window.sendMessage = async () => {
   const text = msgInput.value.trim();
-  if(!text || !viewedUid) return;
+  if(!text) return;
 
   const mode = document.querySelector('input[name="mode"]:checked').value;
   const user = auth.currentUser;
@@ -358,11 +371,14 @@ window.sendMessage = async () => {
   alert("enviado 🌷");
 };
 
+/* BUSCAR */
 window.searchUser = () => {
-  const alias = document.getElementById("searchInput").value.trim();
-  if(!alias) return;
-  location.href = `user.html?alias=${alias}`;
+  const a = document.getElementById("searchInput").value.trim();
+  if(!a) return;
+  location.href = `user.html?alias=${a}`;
 };
+
+window.goWall = () => location.href = "wall.html";
 
 loadUser();
 </script>
