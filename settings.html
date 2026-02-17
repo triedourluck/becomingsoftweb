@@ -199,10 +199,7 @@
     const newPassEl = document.getElementById("newPass");
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+      if (!user) return window.location.href = "login.html";
 
       uid = user.uid;
 
@@ -210,12 +207,13 @@
       const data = snap.data();
 
       if (data?.theme) {
-        allowAnonToggle.checked = data.allowAnonymous ?? true;
         bgColorEl.value = data.theme.bgColor || "";
         cardColorEl.value = data.theme.cardColor || "";
         textColorEl.value = data.theme.textColor || "";
         buttonColorEl.value = data.theme.buttonColor || "";
       }
+
+      allowAnonToggle.checked = data?.allowAnonymous ?? true;
 
       if (data?.wallText) {
         titlePhraseEl.value = data.wallText.title || "";
@@ -241,18 +239,15 @@
 
       if (bgImageURL) theme.bgImage = bgImageURL;
 
-      const updates = {
+      await updateDoc(doc(db, "users", uid), {
         theme,
         allowAnonymous: allowAnonToggle.checked,
         wallText: {
           title: titlePhraseEl.value.trim(),
           box: boxPhraseEl.value.trim()
         }
-      };
+      });
 
-      await updateDoc(doc(db, "users", uid), updates);
-
-      // 🔐 cambiar contraseña si escribió algo
       if (newPassEl.value.trim().length >= 6) {
         await updatePassword(auth.currentUser, newPassEl.value.trim());
       }
@@ -260,34 +255,26 @@
       alert("Cambios guardados 🌿");
     };
 
-    window.goBack = () => {
-      window.location.href = "profile.html";
-    };
+    window.goBack = () => window.location.href = "profile.html";
 
     window.deleteAccount = async () => {
       const user = auth.currentUser;
       if (!user) return alert("No hay sesión activa");
 
-      const confirm1 = confirm("¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es permanente.");
-      if (!confirm1) return;
-
-      const confirm2 = confirm(
-        "Última confirmación:\n\nTu cuenta y todos tus datos serán eliminados para siempre.\n\nNo podrás recuperarlos."
-      );
-      if (!confirm2) return;
+      if (!confirm("¿Estás seguro de que quieres eliminar tu cuenta? Esta acción es permanente.")) return;
+      if (!confirm("Última confirmación:\n\nTu cuenta y todos tus datos serán eliminados para siempre.")) return;
 
       try {
         await deleteDoc(doc(db, "users", user.uid));
         await deleteUser(user);
-
         alert("Cuenta eliminada definitivamente.");
         window.location.href = "index.html";
       } catch (err) {
         if (err.code === "auth/requires-recent-login") {
-          alert("Por seguridad, vuelve a iniciar sesión antes de eliminar tu cuenta.");
+          alert("Vuelve a iniciar sesión antes de eliminar tu cuenta.");
           window.location.href = "login.html";
         } else {
-          alert("Error al eliminar la cuenta: " + err.message);
+          alert("Error: " + err.message);
         }
       }
     };
