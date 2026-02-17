@@ -1,3 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>becomingsoft — configuración</title>
+
+  <style>
+    body{
+      margin:0;
+      font-family:Arial, Helvetica, sans-serif;
+      background:#f5f5f5;
+      color:#111;
+    }
+
+    .container{
+      max-width:600px;
+      margin:40px auto;
+      background:white;
+      border-radius:20px;
+      padding:28px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    h1{margin-top:0;font-size:20px;}
+
+    label{
+      font-size:13px;
+      color:#666;
+      display:block;
+      margin-top:16px;
+      margin-bottom:6px;
+    }
+
+    input[type="text"],
+    input[type="password"]{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #ddd;
+      font-size:13px;
+      box-sizing:border-box;
+    }
+
+    .password-wrap{position:relative;}
+
+    .eye{
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      cursor:pointer;
+      font-size:14px;
+      color:#666;
+    }
+
+    .btn{
+      margin-top:22px;
+      padding:12px 16px;
+      border:none;
+      border-radius:12px;
+      background:#111;
+      color:white;
+      cursor:pointer;
+      font-size:14px;
+      width:100%;
+    }
+
+    .back{
+      margin-top:18px;
+      font-size:13px;
+      color:#666;
+      cursor:pointer;
+      text-align:center;
+    }
+
+    .danger-zone{
+      margin-top:30px;
+      padding:20px;
+      border-radius:12px;
+      background:#fff5f5;
+      border:1px solid #ffd6d6;
+    }
+
+    .danger-zone h3{
+      margin:0 0 10px 0;
+      color:#b00020;
+      font-size:16px;
+    }
+
+    .delete-btn{
+      margin-top:12px;
+      padding:10px 16px;
+      border:none;
+      border-radius:10px;
+      background:#b00020;
+      color:white;
+      cursor:pointer;
+      font-size:14px;
+      width:100%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Configuración</h1>
+
+    <label>Frase del título</label>
+    <input type="text" id="titlePhrase"/>
+
+    <label>Frase del recuadro</label>
+    <input type="text" id="boxPhrase"/>
+
+    <label>
+      <input type="checkbox" id="allowAnonToggle"/>
+      Permitir mensajes anónimos
+    </label>
+
+    <label>Contraseña actual</label>
+    <input type="password" id="currentPass"/>
+
+    <label>Nueva contraseña</label>
+    <div class="password-wrap">
+      <input type="password" id="newPass"/>
+      <span class="eye" onclick="togglePass()">👁</span>
+    </div>
+
+    <button class="btn" onclick="saveAll()">Guardar cambios</button>
+
+    <div class="danger-zone">
+      <h3>Eliminar cuenta</h3>
+      <button class="delete-btn" onclick="deleteAccount()">Eliminar mi cuenta</button>
+    </div>
+
+    <div class="back" onclick="goBack()">Volver al perfil</div>
+  </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import {
@@ -15,9 +153,8 @@ import {
   updateDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
-/* 🔥 CONFIG CORRECTA — MISMA QUE EN TODO EL PROYECTO */
+/* CONFIG REAL */
 const firebaseConfig = {
   apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
   authDomain: "becomingsoft-84e72.firebaseapp.com",
@@ -30,72 +167,64 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
-let uid = null;
+let uid=null;
 
-/* 🔐 MANTENER SESIÓN */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    location.href = "login.html";
-    return;
+onAuthStateChanged(auth, async(user)=>{
+  if(!user){location.href="login.html";return;}
+  uid=user.uid;
+
+  const snap=await getDoc(doc(db,"users",uid));
+  const d=snap.data();
+
+  if(d?.wallText){
+    titlePhrase.value=d.wallText.title||"";
+    boxPhrase.value=d.wallText.box||"";
   }
 
-  uid = user.uid;
-
-  const snap = await getDoc(doc(db, "users", uid));
-  const d = snap.data();
-
-  if (d?.wallText) {
-    titlePhrase.value = d.wallText.title || "";
-    boxPhrase.value = d.wallText.box || "";
-  }
-
-  allowAnonToggle.checked = d.allowAnonymous ?? true;
+  allowAnonToggle.checked=d.allowAnonymous??true;
 });
 
-/* 👁 ver contraseña */
-window.togglePass = () => {
-  newPass.type = newPass.type === "password" ? "text" : "password";
+window.togglePass=()=>{
+  newPass.type=newPass.type==="password"?"text":"password";
 };
 
-/* 💾 guardar cambios */
-window.saveAll = async () => {
-  const user = auth.currentUser;
+window.saveAll=async()=>{
+  const user=auth.currentUser;
 
-  /* 🔐 cambio de contraseña seguro */
-  if (newPass.value.trim()) {
-    try {
-      const cred = EmailAuthProvider.credential(user.email, currentPass.value);
-      await reauthenticateWithCredential(user, cred);
-      await updatePassword(user, newPass.value.trim());
+  if(newPass.value.trim()){
+    try{
+      const cred=EmailAuthProvider.credential(user.email,currentPass.value);
+      await reauthenticateWithCredential(user,cred);
+      await updatePassword(user,newPass.value.trim());
       alert("Contraseña actualizada 🌙");
-    } catch {
-      alert("Contraseña actual incorrecta o sesión antigua.");
+    }catch{
+      alert("Contraseña incorrecta.");
       return;
     }
   }
 
-  await updateDoc(doc(db, "users", uid), {
-    allowAnonymous: allowAnonToggle.checked,
-    wallText: {
-      title: titlePhrase.value.trim(),
-      box: boxPhrase.value.trim()
+  await updateDoc(doc(db,"users",uid),{
+    allowAnonymous:allowAnonToggle.checked,
+    wallText:{
+      title:titlePhrase.value.trim(),
+      box:boxPhrase.value.trim()
     }
   });
 
   alert("Cambios guardados 🌿");
 };
 
-/* 🗑 eliminar cuenta */
-window.deleteAccount = async () => {
-  const user = auth.currentUser;
-  if (!confirm("¿Eliminar cuenta permanentemente?")) return;
+window.deleteAccount=async()=>{
+  const user=auth.currentUser;
+  if(!confirm("¿Eliminar cuenta permanentemente?"))return;
 
-  await deleteDoc(doc(db, "users", user.uid));
+  await deleteDoc(doc(db,"users",user.uid));
   await deleteUser(user);
-  location.href = "index.html";
+  location.href="index.html";
 };
 
-window.goBack = () => location.href = "profile.html";
+window.goBack=()=>location.href="profile.html";
 </script>
+</body>
+</html>
