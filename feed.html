@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>becomingsoft — feed</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f5f5;
+      color: #111;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .post {
+      border: 1px solid #eee;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      background: #fafafa;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #ddd;
+    }
+
+    .alias {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .question {
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .reply {
+      font-size: 14px;
+      color: #444;
+      background: white;
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid #eee;
+    }
+
+    .back {
+      margin-top: 18px;
+      font-size: 13px;
+      text-decoration: underline;
+      cursor: pointer;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Feed</h1>
+
+    <div id="feed"></div>
+
+    <div class="back" onclick="goBack()">← Volver</div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      orderBy,
+      getDocs,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+      authDomain: "becomingsoft-84e72.firebaseapp.com",
+      projectId: "becomingsoft-84e72",
+      storageBucket: "becomingsoft-84e72.firebasestorage.app",
+      messagingSenderId: "605759003962",
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const feedEl = document.getElementById("feed");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // 🔎 obtener mis seguidos
+      const mySnap = await getDoc(doc(db, "users", user.uid));
+      const following = mySnap.data()?.following || [];
+
+      if (following.length === 0) {
+        feedEl.innerHTML = "<p>No sigues a nadie todavía 🌱</p>";
+        return;
+      }
+
+      // 🔎 buscar mensajes publicados de mis seguidos
+      const q = query(
+        collection(db, "messages"),
+        where("published", "==", true),
+        where("to", "in", following.slice(0, 10)),
+        orderBy("createdAt", "desc")
+      );
+
+      const snap = await getDocs(q);
+
+      if (snap.empty) {
+        feedEl.innerHTML = "<p>Aún no hay respuestas en tu feed ✨</p>";
+        return;
+      }
+
+      for (const msgDoc of snap.docs) {
+        const data = msgDoc.data();
+
+        // 🔎 obtener datos del dueño del wall
+        const userSnap = await getDoc(doc(db, "users", data.to));
+        const u = userSnap.data();
+
+        const post = document.createElement("div");
+        post.className = "post";
+
+        post.innerHTML = `
+          <div class="user-row" onclick="location.href='user.html?alias=${u.alias}'">
+            <img class="avatar" src="${u.photoURL || ""}" />
+            <div class="alias">@${u.alias}</div>
+          </div>
+
+          <div class="question">${data.text}</div>
+
+          ${data.reply ? `<div class="reply">${data.reply}</div>` : ""}
+        `;
+
+        feedEl.appendChild(post);
+      }
+    });
+
+    window.goBack = () => {
+      window.location.href = "profile.html";
+    };
+  </script>
+</body>
+</html>
