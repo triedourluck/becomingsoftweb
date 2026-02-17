@@ -23,13 +23,13 @@
 
     <div id="list"></div>
 
-    <div class="back" onclick="goBack()">Volver al perfil</div>
+    <div class="back" onclick="goBack()">Volver</div>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -37,8 +37,7 @@
       projectId: "becomingsoft-84e72",
       storageBucket: "becomingsoft-84e72.firebasestorage.app",
       messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403",
-      measurementId: "G-ZVBQBWYZ7M"
+      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -46,14 +45,27 @@
     const db = getFirestore(app);
 
     const params = new URLSearchParams(window.location.search);
-    const uid = params.get("uid");
+    let uid = params.get("uid");
+    const alias = params.get("alias");
     const type = params.get("type"); // followers | following
 
     const listEl = document.getElementById("list");
     const titleEl = document.getElementById("title");
 
     onAuthStateChanged(auth, async (user) => {
-      if (!user) { window.location.href = "login.html"; return; }
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // 🔍 si viene alias → buscar uid
+      if (!uid && alias) {
+        const q = query(collection(db, "users"), where("alias", "==", alias));
+        const snap = await getDocs(q);
+        if (!snap.empty) uid = snap.docs[0].id;
+      }
+
+      if (!uid) return;
 
       const snap = await getDoc(doc(db, "users", uid));
       if (!snap.exists()) return;
@@ -70,7 +82,7 @@
         const div = document.createElement("div");
         div.className = "user";
         div.textContent = "@" + u.data().alias;
-        div.onclick = () => window.location.href = `user.html?uid=${id}`;
+        div.onclick = () => window.location.href = `user.html?alias=${u.data().alias}`;
 
         listEl.appendChild(div);
       }
