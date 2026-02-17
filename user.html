@@ -6,210 +6,57 @@
 <title>becomingsoft — user</title>
 
 <style>
-body{
-  margin:0;
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f5f5f5;
-  color:#111;
-}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#111}
+.container{max-width:900px;margin:40px auto;background:#fff;border-radius:20px;padding:32px;box-shadow:0 10px 30px rgba(0,0,0,.08);position:relative}
 
-.container{
-  max-width:900px;
-  margin:40px auto;
-  background:white;
-  border-radius:20px;
-  padding:32px;
-  box-shadow:0 10px 30px rgba(0,0,0,0.08);
-  position:relative;
-}
+/* buscador */
+.search{position:absolute;top:18px;right:22px;display:flex;gap:8px}
+.search input{width:150px;padding:6px 10px;border-radius:10px;border:1px solid #ddd;font-size:12px}
+.search button{padding:6px 10px;border:none;border-radius:10px;background:#111;color:#fff;font-size:12px;cursor:pointer}
 
-/* SEARCH TOP RIGHT */
-.search{
-  position:absolute;
-  top:18px;
-  right:22px;
-  display:flex;
-  gap:8px;
-}
+/* header */
+.top{display:flex;align-items:center;gap:14px;margin-top:26px}
+.avatar{width:72px;height:72px;border-radius:50%;object-fit:cover}
+.alias{font-size:19px;font-weight:600}
+.stats{font-size:12px;color:#666;margin-top:2px;cursor:pointer}
+.actions{margin-top:6px;display:flex;gap:8px}
+.btn{padding:6px 12px;border:none;border-radius:10px;background:#111;color:#fff;font-size:12px;cursor:pointer}
 
-.search input{
-  width:180px;
-  padding:8px 10px;
-  border-radius:10px;
-  border:1px solid #ddd;
-}
+/* grid */
+.photos{margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.photo{width:100%;height:150px;border-radius:14px;object-fit:cover;background:#eee}
 
-.search button{
-  padding:8px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-}
+/* mensaje */
+.message-box{margin-top:30px}
+textarea{width:100%;height:120px;border-radius:14px;border:1px solid #ddd;padding:12px;font-size:14px;box-sizing:border-box}
+.send-row{margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+.send-options{display:flex;gap:12px;font-size:13px;color:#555}
+.send-btn{padding:8px 16px;border:none;border-radius:10px;background:#111;color:#fff;cursor:pointer}
 
-/* HEADER */
-.top{
-  display:flex;
-  align-items:center;
-  gap:18px;
-  margin-top:30px;
-}
+/* spotify */
+.spotify{margin-top:18px}
+.spotify iframe{width:100%;border:none;border-radius:14px}
 
-.avatar{
-  width:96px;
-  height:96px;
-  border-radius:50%;
-  object-fit:cover;
-}
+/* volver */
+.back{margin-top:18px;font-size:13px;text-decoration:underline;cursor:pointer}
 
-.alias{
-  font-size:24px;
-  font-weight:600;
-}
-
-.stats{
-  font-size:15px;
-  color:#666;
-  margin-top:4px;
-}
-
-.stats span{
-  cursor:pointer;
-}
-
-.actions{
-  margin-top:10px;
-  display:flex;
-  gap:12px;
-}
-
-.btn{
-  padding:10px 18px;
-  border:none;
-  border-radius:12px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-}
-
-/* GRID */
-.photos{
-  margin-top:30px;
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
-}
-
-.photo{
-  width:100%;
-  height:170px;
-  border-radius:16px;
-  object-fit:cover;
-  background:#eee;
-}
-
-/* MESSAGE */
-.message-box{
-  margin-top:34px;
-}
-
-textarea{
-  width:100%;
-  height:130px;
-  border-radius:16px;
-  border:1px solid #ddd;
-  padding:14px;
-  font-size:15px;
-  box-sizing:border-box́Fer;
-}
-
-.send-row{
-  margin-top:12px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.send-options{
-  display:flex;
-  gap:14px;
-  font-size:14px;
-  color:#555;
-}
-
-.send-btn{
-  padding:10px 18px;
-  border:none;
-  border-radius:12px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-}
-
-/* SPOTIFY */
-.spotify{
-  margin-top:22px;
-}
-
-.spotify iframe{
-  width:100%;
-  border:none;
-  border-radius:16px;
-}
-
-/* BACK */
-.back{
-  margin-top:18px;
-  font-size:14px;
-  text-decoration:underline;
-  cursor:pointer;
-}
-
-/* MOBILE */
+/* mobile */
 @media (max-width:700px){
+.container{margin:0;border-radius:0;padding:24px 18px 34px}
 
-.container{
-  margin:0;
-  border-radius:0;
-  padding:26px 18px 40px;
-}
+.search{top:14px;right:16px}
+.search input{width:130px;font-size:11px;padding:6px 8px}
+.search button{padding:6px 9px;font-size:11px}
 
-.search input{
-  width:140px;
-}
+.top{margin-top:40px}
+.avatar{width:68px;height:68px}
+.alias{font-size:18px}
+.stats{font-size:11px}
 
-.avatar{
-  width:90px;
-  height:90px;
-}
+.btn{padding:5px 10px;font-size:11px}
 
-.alias{
-  font-size:22px;
-}
-
-.stats{
-  font-size:14px;
-}
-
-.btn{
-  padding:8px 14px;
-  font-size:13px;
-}
-
-.photos{
-  margin-top:26px;
-  gap:12px;
-}
-
-.photo{
-  height:130px;
-}
-
-textarea{
-  height:120px;
-}
+.photos{gap:10px}
+.photo{height:110px}
 }
 </style>
 </head>
@@ -218,33 +65,31 @@ textarea{
 
 <div class="container">
 
-  <!-- SEARCH -->
+  <!-- buscador -->
   <div class="search">
     <input id="searchInput" placeholder="buscar usuario" />
     <button onclick="searchUser()">ir</button>
   </div>
 
-  <!-- HEADER -->
+  <!-- header -->
   <div class="top">
     <img id="avatar" class="avatar" />
 
     <div>
       <div id="alias" class="alias">...</div>
-      <div id="stats" class="stats">
-        <span id="followersBtn"></span> · <span id="followingBtn"></span>
-      </div>
+      <div id="stats" class="stats"></div>
 
       <div class="actions">
         <button id="followBtn" class="btn"></button>
-        <button class="btn" onclick="location.href='wall.html'">SHHH!</button>
+        <button class="btn" onclick="goWall()">SHHH!</button>
       </div>
     </div>
   </div>
 
-  <!-- PHOTOS -->
+  <!-- fotos -->
   <div id="photos" class="photos"></div>
 
-  <!-- MESSAGE -->
+  <!-- mensaje -->
   <div class="message-box">
     <h3 id="titleText">Envíame un mensaje</h3>
 
@@ -260,10 +105,10 @@ textarea{
     </div>
   </div>
 
-  <!-- SPOTIFY -->
+  <!-- spotify -->
   <div id="spotify" class="spotify"></div>
 
-  <!-- BACK -->
+  <!-- volver -->
   <div class="back" onclick="history.back()">← Volver</div>
 
 </div>
@@ -271,119 +116,102 @@ textarea{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, addDoc, collection, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain:"becomingsoft-84e72.firebaseapp.com",
-  projectId:"becomingsoft-84e72",
-  storageBucket:"becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId:"605759003962",
-  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
-};
+const firebaseConfig={apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",authDomain:"becomingsoft-84e72.firebaseapp.com",projectId:"becomingsoft-84e72",storageBucket:"becomingsoft-84e72.firebasestorage.app",messagingSenderId:"605759003962",appId:"1:605759003962:web:ea8603a8e97e42d2278403"};
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-const params = new URLSearchParams(location.search);
-const uid = params.get("uid");
+const params=new URLSearchParams(location.search);
+const uid=params.get("uid");
 
-const avatar = document.getElementById("avatar");
-const aliasEl = document.getElementById("alias");
-const stats = document.getElementById("stats");
-const followersBtn = document.getElementById("followersBtn");
-const followingBtn = document.getElementById("followingBtn");
-const followBtn = document.getElementById("followBtn");
-const photos = document.getElementById("photos");
-const spotify = document.getElementById("spotify");
-const titleText = document.getElementById("titleText");
-const msgInput = document.getElementById("msgInput");
+const avatar=document.getElementById("avatar");
+const aliasEl=document.getElementById("alias");
+const stats=document.getElementById("stats");
+const photos=document.getElementById("photos");
+const spotify=document.getElementById("spotify");
+const followBtn=document.getElementById("followBtn");
+const msgInput=document.getElementById("msgInput");
+const titleText=document.getElementById("titleText");
+
+let viewedUid=null;
 
 async function loadUser(){
-  const snap = await getDoc(doc(db,"users",uid));
+  if(!uid) return;
+
+  viewedUid=uid;
+
+  const snap=await getDoc(doc(db,"users",uid));
   if(!snap.exists()) return;
 
-  const d = snap.data();
+  const d=snap.data();
 
-  aliasEl.textContent = d.alias;
-  followersBtn.textContent = `${d.followers?.length||0} followers`;
-  followingBtn.textContent = `${d.following?.length||0} following`;
+  aliasEl.textContent=d.alias;
+  stats.textContent=`${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
-  followersBtn.onclick = () => location.href = `list.html?uid=${uid}&type=followers`;
-  followingBtn.onclick = () => location.href = `list.html?uid=${uid}&type=following`;
+  if(d.photoURL) avatar.src=d.photoURL;
 
-  if(d.photoURL) avatar.src = d.photoURL;
-
-  photos.innerHTML = "";
+  photos.innerHTML="";
   (d.photos||[]).forEach(url=>{
     if(!url) return;
-    const img = document.createElement("img");
-    img.src = url;
-    img.className = "photo";
+    const img=document.createElement("img");
+    img.src=url;
+    img.className="photo";
     photos.appendChild(img);
   });
 
-  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
+  if(d.spotifyEmbed) spotify.innerHTML=d.spotifyEmbed;
 
   if(d.wallText){
-    titleText.textContent = d.wallText.title || "Envíame un mensaje";
-    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
+    titleText.textContent=d.wallText.title||"Envíame un mensaje";
+    msgInput.placeholder=d.wallText.box||"Escribe algo suave...";
   }
 
-  const me = auth.currentUser?.uid;
-  if(me){
-    if(d.followers?.includes(me)){
-      followBtn.textContent = "Unfollow";
-      followBtn.onclick = () => toggleFollow(false);
+  setupFollow(d);
+}
+
+async function setupFollow(d){
+  const user=auth.currentUser;
+  if(!user) return followBtn.style.display="none";
+
+  const isFollowing=d.followers?.includes(user.uid);
+
+  followBtn.textContent=isFollowing?"Unfollow":"Follow";
+
+  followBtn.onclick=async()=>{
+    if(isFollowing){
+      await updateDoc(doc(db,"users",viewedUid),{followers:arrayRemove(user.uid)});
+      await updateDoc(doc(db,"users",user.uid),{following:arrayRemove(viewedUid)});
     }else{
-      followBtn.textContent = "Follow";
-      followBtn.onclick = () => toggleFollow(true);
+      await updateDoc(doc(db,"users",viewedUid),{followers:arrayUnion(user.uid)});
+      await updateDoc(doc(db,"users",user.uid),{following:arrayUnion(viewedUid)});
     }
-  }
+    location.reload();
+  };
 }
 
-async function toggleFollow(follow){
-  const me = auth.currentUser.uid;
-
-  const myRef = doc(db,"users",me);
-  const theirRef = doc(db,"users",uid);
-
-  if(follow){
-    await updateDoc(theirRef,{ followers: arrayUnion(me) });
-    await updateDoc(myRef,{ following: arrayUnion(uid) });
-  }else{
-    await updateDoc(theirRef,{ followers: arrayRemove(me) });
-    await updateDoc(myRef,{ following: arrayRemove(uid) });
-  }
-
-  loadUser();
-}
-
-window.sendMessage = async () => {
-  const text = msgInput.value.trim();
+window.sendMessage=async()=>{
+  const text=msgInput.value.trim();
   if(!text) return;
 
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const me = auth.currentUser;
+  const mode=document.querySelector('input[name="mode"]:checked').value;
+  const user=auth.currentUser;
 
-  await addDoc(collection(db,"messages"),{
-    text,
-    to:uid,
-    from: mode === "alias" && me ? me.uid : null,
-    createdAt: Date.now(),
-    published:false
-  });
+  await addDoc(collection(db,"messages"),{text,to:viewedUid,fromAlias:mode==="alias"&&user?user.uid:null,createdAt:Date.now(),published:false});
 
   msgInput.value="";
   alert("enviado 🌷");
 };
 
-window.searchUser = () => {
-  const alias = document.getElementById("searchInput").value.trim();
-  if(!alias) return;
-  location.href = `user.html?uid=${alias}`;
+window.searchUser=()=>{
+  const val=document.getElementById("searchInput").value.trim();
+  if(!val) return;
+  location.href=`user.html?uid=${val}`;
 };
+
+window.goWall=()=>location.href=`wall.html?uid=${viewedUid}`;
 
 loadUser();
 </script>
