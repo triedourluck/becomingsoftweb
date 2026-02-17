@@ -241,12 +241,11 @@ const msgInput = document.getElementById("msgInput");
 let viewedUid = null;
 
 async function loadUser(){
-  const snap = await getDoc(doc(db,"aliases",aliasParam));
-  if(!snap.exists()) return;
 
-  viewedUid = snap.data().uid;
+  const userSnap = await getDoc(doc(db,"users",aliasParam));
+  if(!userSnap.exists()) return;
 
-  const userSnap = await getDoc(doc(db,"users",viewedUid));
+  viewedUid = userSnap.id;
   const d = userSnap.data();
 
   aliasEl.textContent = d.alias;
