@@ -136,7 +136,7 @@ textarea{
   padding:22px 18px 30px;
 }
 
-/* 👇 GRID EXACTO 3x2 COMO ANTES */
+/* GRID 3x2 */
 .photos{
   grid-template-columns:repeat(3,1fr);
   gap:10px;
@@ -144,16 +144,6 @@ textarea{
 
 .photo{
   height:110px;
-}
-
-/* 👇 orden correcto */
-.message-box{
-  order:1;
-}
-
-.spotify{
-  order:2;
-  margin-top:14px;
 }
 
 textarea{
@@ -204,7 +194,7 @@ textarea{
     </div>
   </div>
 
-  <!-- SPOTIFY DEBAJO -->
+  <!-- SPOTIFY -->
   <div id="spotify" class="spotify"></div>
 
 </div>
@@ -242,13 +232,25 @@ let viewedUid = null;
 
 async function loadUser(){
 
-  const userSnap = await getDoc(doc(db,"users",aliasParam));
-  if(!userSnap.exists()) return;
+  // 1️⃣ alias → uid
+  const aliasSnap = await getDoc(doc(db,"aliases",aliasParam));
+  if(!aliasSnap.exists()){
+    aliasEl.textContent = "usuario no encontrado";
+    return;
+  }
 
-  viewedUid = userSnap.id;
+  viewedUid = aliasSnap.data().uid;
+
+  // 2️⃣ uid → user data
+  const userSnap = await getDoc(doc(db,"users",viewedUid));
+  if(!userSnap.exists()){
+    aliasEl.textContent = "usuario sin datos";
+    return;
+  }
+
   const d = userSnap.data();
 
-  aliasEl.textContent = d.alias;
+  aliasEl.textContent = d.alias || "...";
   stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
   if(d.photoURL) avatar.src = d.photoURL;
@@ -293,4 +295,4 @@ loadUser();
 </script>
 
 </body>
-</html> 
+</html>
