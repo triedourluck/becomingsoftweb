@@ -1,286 +1,327 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — user</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>becomingsoft — user</title>
 
-  <style>
-    body { margin:0; font-family:Arial, Helvetica, sans-serif; background:#f5f5f5; color:#111; }
+<style>
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
 
-    .container { 
-      max-width:900px; 
-      margin:40px auto; 
-      background:white; 
-      border-radius:20px; 
-      padding:32px; 
-      box-shadow:0 10px 30px rgba(0,0,0,0.08);
-      position:relative;
-    }
+.container{
+  max-width:900px;
+  margin:40px auto;
+  background:white;
+  border-radius:20px;
+  padding:32px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
 
-    /* BUSCADOR */
-    .search {
-      position:absolute;
-      top:20px;
-      right:24px;
-      display:flex;
-      gap:8px;
-    }
+/* HEADER */
+.top{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
 
-    .search input { 
-      width:160px;
-      padding:8px 10px; 
-      border-radius:10px; 
-      border:1px solid #ddd; 
-    }
+.avatar{
+  width:80px;
+  height:80px;
+  border-radius:50%;
+  object-fit:cover;
+}
 
-    .search button { 
-      padding:8px 12px; 
-      border:none; 
-      border-radius:10px; 
-      background:#111; 
-      color:white; 
-      cursor:pointer; 
-    }
+.alias{
+  font-size:20px;
+  font-weight:600;
+}
 
-    .top { display:flex; gap:20px; align-items:center; margin-top:10px; }
-    .avatar { width:80px; height:80px; border-radius:50%; background:#ddd; object-fit:cover; }
-    .alias { font-size:20px; font-weight:600; }
+.stats{
+  font-size:13px;
+  color:#666;
+}
 
-    .stats { font-size:13px; color:#666; margin-top:4px; }
+.actions{
+  margin-top:8px;
+  display:flex;
+  gap:10px;
+}
 
-    .actions { margin-top:10px; display:flex; gap:10px; }
+.btn{
+  padding:8px 14px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+}
 
-    .btn {
-      padding:10px 16px;
-      border:none;
-      border-radius:12px;
-      background:#111;
-      color:white;
-      cursor:pointer;
-      font-size:14px;
-    }
+/* GRID DESKTOP */
+.photos{
+  margin-top:24px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+}
 
-    .layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; align-items:start; }
+.photo{
+  width:100%;
+  height:150px;
+  border-radius:14px;
+  object-fit:cover;
+  background:#eee;
+}
 
-    .photos { 
-      display:grid; 
-      grid-template-columns:repeat(2,1fr); 
-      gap:12px;
-    }
+/* MENSAJE */
+.message-box{
+  margin-top:28px;
+}
 
-    .photo { width:100%; height:140px; background:#eee; border-radius:12px; object-fit:cover; }
+textarea{
+  width:100%;
+  height:120px;
+  border-radius:14px;
+  border:1px solid #ddd;
+  padding:12px;
+  font-size:14px;
+  box-sizing:border-box;
+}
 
-    .right { display:flex; flex-direction:column; gap:20px; }
+.send-row{
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-    textarea { width:100%; height:120px; border-radius:12px; border:1px solid #ddd; padding:10px; }
+.send-options{
+  display:flex;
+  gap:12px;
+  font-size:13px;
+  color:#555;
+}
 
-    /* 📱 MOBILE FIX */
-    @media (max-width:700px) {
+.send-btn{
+  padding:8px 16px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+}
 
-      .container { margin:0; border-radius:0; }
+/* SPOTIFY */
+.spotify{
+  margin-top:18px;
+}
 
-      .layout { grid-template-columns:1fr; }
+.spotify iframe{
+  width:100%;
+  border:none;
+  border-radius:14px;
+}
 
-      .top { align-items:flex-start; }
+/* ================= MOBILE ================= */
+@media (max-width:700px){
 
-      .actions {
-        flex-direction:row;
-        gap:8px;
-        margin-top:8px;
-      }
+.container{
+  margin:0;
+  border-radius:0;
+  padding:22px 18px 30px;
+}
 
-      textarea {
-        width:92%;
-        margin:0 auto;
-        display:block;
-      }
+/* 🔍 buscador más pequeño */
+.search input{
+  width:130px;
+  padding:6px 8px;
+  font-size:13px;
+}
 
-      .send-options {
-        width:92%;
-        margin:10px auto 0;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        gap:10px;
-      }
+.search button{
+  padding:6px 10px;
+  font-size:13px;
+}
 
-      .send-btn {
-        padding:8px 14px;
-        border:none;
-        border-radius:10px;
-        background:#111;
-        color:white;
-        cursor:pointer;
-        font-size:13px;
-      }
-    }
-  </style>
+.search{
+  margin-bottom:12px;
+}
+
+/* 👤 header más compacto */
+.avatar{
+  width:64px;
+  height:64px;
+}
+
+.alias{
+  font-size:18px;
+}
+
+.stats{
+  font-size:12px;
+}
+
+/* 📸 GRID EXACTO 3x2 */
+.photos{
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.photo{
+  height:110px;
+}
+
+/* 📝 orden correcto */
+.message-box{
+  order:1;
+}
+
+.spotify{
+  order:2;
+  margin-top:14px;
+}
+
+textarea{
+  width:100%;
+}
+
+.send-row{
+  gap:10px;
+}
+}
+</style>
 </head>
+
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <!-- BUSCADOR -->
-    <div class="search">
-      <input id="searchInput" placeholder="buscar usuario" />
-      <button onclick="searchUser()">ir</button>
-    </div>
+  <!-- HEADER -->
+  <div class="top">
+    <img id="avatar" class="avatar"/>
+    <div>
+      <div id="alias" class="alias">...</div>
+      <div id="stats" class="stats"></div>
 
-    <!-- PERFIL -->
-    <div class="top">
-      <img id="avatar" class="avatar" />
-
-      <div>
-        <div class="alias" id="alias">...</div>
-        <div class="stats" id="stats">0 followers · 0 following</div>
-
-        <!-- BOTONES (FOLLOW + SHHH!) -->
-        <div class="actions">
-          <button id="followBtn" class="btn">Follow</button>
-          <button id="wallBtn" class="btn">SHHH!</button>
-        </div>
+      <div class="actions">
+        <button id="followBtn" class="btn"></button>
+        <button id="shhhBtn" class="btn">SHHH!</button>
       </div>
     </div>
-
-    <div class="layout">
-
-      <!-- FOTOS -->
-      <div class="photos" id="photos"></div>
-
-      <!-- MENSAJE -->
-      <div class="right">
-        <div>
-          <h3 id="title">Envíame un mensaje</h3>
-          <textarea id="msgBox" placeholder="Escribe algo suave..."></textarea>
-
-          <div class="send-options">
-            <label><input type="radio" name="anon" value="yes" checked /> Anónimo</label>
-            <label><input type="radio" name="anon" value="no" /> Con mi alias</label>
-            <button class="send-btn" onclick="sendMsg()">Enviar</button>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, collection, addDoc, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+  <!-- FOTOS -->
+  <div id="photos" class="photos"></div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-      authDomain: "becomingsoft-84e72.firebaseapp.com",
-      projectId: "becomingsoft-84e72",
-      storageBucket: "becomingsoft-84e72.firebasestorage.app",
-      messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
-    };
+  <!-- MENSAJE -->
+  <div class="message-box">
+    <h3 id="titleText">Envíame un mensaje</h3>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+    <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
-    const aliasParam = new URLSearchParams(location.search).get("alias");
+    <div class="send-row">
+      <div class="send-options">
+        <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
+        <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
+      </div>
 
-    const avatarEl = document.getElementById("avatar");
-    const aliasEl = document.getElementById("alias");
-    const statsEl = document.getElementById("stats");
-    const photosEl = document.getElementById("photos");
-    const followBtn = document.getElementById("followBtn");
-    const wallBtn = document.getElementById("wallBtn");
-    const titleEl = document.getElementById("title");
-    const msgBox = document.getElementById("msgBox");
+      <button class="send-btn" onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
 
-    let viewedUid = null;
+  <!-- SPOTIFY DEBAJO -->
+  <div id="spotify" class="spotify"></div>
 
-    async function loadUser() {
-      const q = query(collection(db, "users"), where("alias", "==", aliasParam));
-      const snap = await getDocs(q);
-      if (snap.empty) return;
+</div>
 
-      const docSnap = snap.docs[0];
-      viewedUid = docSnap.id;
-      const d = docSnap.data();
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-      aliasEl.textContent = d.alias;
-      statsEl.textContent = `${d.followers?.length || 0} followers · ${d.following?.length || 0} following`;
+const firebaseConfig = {
+  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  authDomain:"becomingsoft-84e72.firebaseapp.com",
+  projectId:"becomingsoft-84e72",
+  storageBucket:"becomingsoft-84e72.firebasestorage.app",
+  messagingSenderId:"605759003962",
+  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
+};
 
-      if (d.photoURL) avatarEl.src = d.photoURL;
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-      // frases custom
-      if (d.wallText) {
-        if (d.wallText.title) titleEl.textContent = d.wallText.title;
-        if (d.wallText.box) msgBox.placeholder = d.wallText.box;
-      }
+const params = new URLSearchParams(location.search);
+const aliasParam = params.get("alias");
 
-      // fotos
-      (d.photos || []).forEach(url => {
-        if (!url) return;
-        const img = document.createElement("img");
-        img.src = url;
-        img.className = "photo";
-        photosEl.appendChild(img);
-      });
+const avatar = document.getElementById("avatar");
+const aliasEl = document.getElementById("alias");
+const stats = document.getElementById("stats");
+const photos = document.getElementById("photos");
+const spotify = document.getElementById("spotify");
+const titleText = document.getElementById("titleText");
+const msgInput = document.getElementById("msgInput");
 
-      setupFollow(d);
-      wallBtn.onclick = () => location.href = `wall.html?uid=${viewedUid}`;
-    }
+let viewedUid = null;
 
-    async function setupFollow(d) {
-      const user = auth.currentUser;
-      if (!user) return;
+async function loadUser(){
+  const snap = await getDoc(doc(db,"aliases",aliasParam));
+  if(!snap.exists()) return;
 
-      const isFollowing = d.followers?.includes(user.uid);
+  viewedUid = snap.data().uid;
 
-      followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+  const userSnap = await getDoc(doc(db,"users",viewedUid));
+  const d = userSnap.data();
 
-      followBtn.onclick = async () => {
-        const ref = doc(db, "users", viewedUid);
-        const myRef = doc(db, "users", user.uid);
+  aliasEl.textContent = d.alias;
+  stats.textContent = `${d.followers?.length||0} followers · ${d.following?.length||0} following`;
 
-        if (isFollowing) {
-          await updateDoc(ref, { followers: arrayRemove(user.uid) });
-          await updateDoc(myRef, { following: arrayRemove(viewedUid) });
-        } else {
-          await updateDoc(ref, { followers: arrayUnion(user.uid) });
-          await updateDoc(myRef, { following: arrayUnion(viewedUid) });
-        }
+  if(d.photoURL) avatar.src = d.photoURL;
 
-        location.reload();
-      };
-    }
+  photos.innerHTML = "";
+  (d.photos||[]).forEach(url=>{
+    if(!url) return;
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "photo";
+    photos.appendChild(img);
+  });
 
-    window.sendMsg = async () => {
-      const text = msgBox.value.trim();
-      if (!text) return;
+  if(d.spotifyEmbed) spotify.innerHTML = d.spotifyEmbed;
 
-      const user = auth.currentUser;
+  if(d.wallText){
+    titleText.textContent = d.wallText.title || "Envíame un mensaje";
+    msgInput.placeholder = d.wallText.box || "Escribe algo suave...";
+  }
+}
 
-      const isAnon = document.querySelector('input[name="anon"]:checked').value === "yes";
+window.sendMessage = async () => {
+  const text = msgInput.value.trim();
+  if(!text) return;
 
-      await addDoc(collection(db, "messages"), {
-        text,
-        to: viewedUid,
-        from: isAnon ? null : user?.uid || null,
-        createdAt: new Date(),
-        published: false
-      });
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const user = auth.currentUser;
 
-      msgBox.value = "";
-      alert("Mensaje enviado 🌿");
-    };
+  await addDoc(collection(db,"messages"),{
+    text,
+    to:viewedUid,
+    fromAlias: mode==="alias" && user ? user.uid : null,
+    createdAt: Date.now(),
+    published:false
+  });
 
-    window.searchUser = () => {
-      const a = document.getElementById("searchInput").value.trim();
-      if (!a) return;
-      location.href = `user.html?alias=${a}`;
-    };
+  msgInput.value="";
+  alert("enviado 🌷");
+};
 
-    loadUser();
-  </script>
+loadUser();
+</script>
+
 </body>
 </html>
