@@ -103,17 +103,6 @@ input[type="file"]{
 
 <h1>Configuración</h1>
 
-<label>Frase del título</label>
-<input type="text" id="titlePhrase"/>
-
-<label>Frase del recuadro</label>
-<input type="text" id="boxPhrase"/>
-
-<label>
-<input type="checkbox" id="allowAnonToggle"/>
-Permitir mensajes anónimos
-</label>
-
 <h2>🎨 Perfil</h2>
 
 <label>Color fondo perfil (HEX)</label>
@@ -140,36 +129,15 @@ Permitir mensajes anónimos
 
 <button class="btn" onclick="saveAll()">Guardar cambios</button>
 
-<div class="danger-zone">
-<button class="delete-btn" onclick="deleteAccount()">Eliminar mi cuenta</button>
-</div>
-
-<div class="back" onclick="goBack()">Volver al perfil</div>
+<div class="back" onclick="location.href='profile.html'">Volver al perfil</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged, 
-  deleteUser,
-  EmailAuthProvider,
-  reauthenticateWithCredential
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { 
-  getFirestore, 
-  doc, 
-  getDoc, 
-  updateDoc, 
-  deleteDoc 
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { 
-  getStorage, 
-  ref, 
-  uploadBytes, 
-  getDownloadURL 
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -205,34 +173,10 @@ onAuthStateChanged(auth, async(user)=>{
   }
 });
 
-window.removeProfileBg = async()=>{
-  const snap = await getDoc(doc(db,"users",uid));
-  const data = snap.data();
-  const theme = data.theme || {};
-  theme.profile = theme.profile || {};
-  theme.profile.backgroundImage = "";
-  await updateDoc(doc(db,"users",uid),{ theme });
-  alert("Imagen de fondo eliminada.");
-};
-
-window.removeWallBg = async()=>{
-  const snap = await getDoc(doc(db,"users",uid));
-  const data = snap.data();
-  const theme = data.theme || {};
-  theme.wall = theme.wall || {};
-  theme.wall.backgroundImage = "";
-  await updateDoc(doc(db,"users",uid),{ theme });
-  alert("Imagen de fondo eliminada.");
-};
-
 window.saveAll = async()=>{
 
-  const snap = await getDoc(doc(db,"users",uid));
-  const existingData = snap.data() || {};
-  const existingTheme = existingData.theme || {};
-
-  let profileBgURL = existingTheme.profile?.backgroundImage || "";
-  let wallBgURL = existingTheme.wall?.backgroundImage || "";
+  let profileBgURL = "";
+  let wallBgURL = "";
 
   if(profileBgInput.files[0]){
     const refP = ref(storage,`backgrounds/${uid}_profile`);
@@ -246,7 +190,7 @@ window.saveAll = async()=>{
     wallBgURL = await getDownloadURL(refW);
   }
 
-  const newTheme = {
+  const theme = {
     profile:{
       pageBg: profilePageBg.value.trim(),
       cardBg: profileCardBg.value.trim(),
@@ -259,40 +203,28 @@ window.saveAll = async()=>{
     }
   };
 
-  await updateDoc(doc(db,"users",uid),{
-    theme: newTheme
-  });
+  await setDoc(doc(db,"users",uid), { theme }, { merge:true });
 
-  alert("Theme actualizado 🌷");
+  alert("Theme guardado 🌷");
 };
 
-window.deleteAccount = async()=>{
-  const user = auth.currentUser;
-  if(!user) return;
-
-  if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.\nNo podrás recuperarla.\n¿Deseas continuar?")) return;
-
-  const password = prompt("Ingresa tu contraseña para confirmar:");
-  if(!password) return;
-
-  try{
-    const credential = EmailAuthProvider.credential(user.email,password);
-    await reauthenticateWithCredential(user,credential);
-  }catch{
-    alert("Contraseña incorrecta.");
-    return;
-  }
-
-  if(!confirm("❗ Última confirmación.\nTu cuenta será eliminada definitivamente.\n¿Eliminar ahora?")) return;
-
-  await deleteUser(user);
-  await deleteDoc(doc(db,"users",uid));
-
-  alert("Cuenta eliminada.");
-  location.href="index.html";
+window.removeProfileBg = async()=>{
+  await setDoc(doc(db,"users",uid),{
+    theme:{
+      profile:{ backgroundImage:"" }
+    }
+  },{merge:true});
+  alert("Imagen perfil eliminada");
 };
 
-window.goBack = ()=>location.href="profile.html";
+window.removeWallBg = async()=>{
+  await setDoc(doc(db,"users",uid),{
+    theme:{
+      wall:{ backgroundImage:"" }
+    }
+  },{merge:true});
+  alert("Imagen wall eliminada");
+};
 </script>
 </body>
 </html>
