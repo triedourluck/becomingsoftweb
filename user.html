@@ -26,21 +26,21 @@ body{
 /* SEARCH DESKTOP */
 .search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
 .search input {
-  width: 190px;              /* ← más ancho */
-  padding: 10px 12px;        /* ← más alto */
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  font-size: 14px;
+  width:190px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:14px;
 }
 
 .search button {
-  padding: 10px 16px;        /* ← botón más grande */
-  border: none;
-  border-radius: 12px;
-  background: #111;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
+  padding:10px 16px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
 }
 
 /* HEADER DESKTOP */
@@ -52,7 +52,7 @@ body{
 }
 
 .avatar{
-  width:110px; /* más grande solo desktop */
+  width:110px;
   height:110px;
   border-radius:50%;
   object-fit:cover;
@@ -66,7 +66,7 @@ body{
 .stats{
   font-size:14px;
   color:#666;
-  margin-top:10px; /* bajar followers */
+  margin-top:10px;
 }
 
 .stats span{
@@ -163,13 +163,13 @@ textarea{
   cursor:pointer;
 }
 
-/* ================= MOBILE (NO TOCAR) ================= */
+/* MOBILE */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
-  padding:22px 18px 30px;
+  padding:20px 16px 28px;
 }
 
 .layout{
@@ -182,101 +182,55 @@ textarea{
 }
 
 .photo{
-  height:110px;
-}
-/* ================= MOBILE FIX REAL ================= */
-@media (max-width:700px){
-
-  .container{
-    margin:0;
-    border-radius:0;
-    padding:20px 16px 28px;
-  }
-  
-  /* ordenar bloques en mobile */
-.spotify{
-  order: 3;
+  height:120px;
 }
 
-.message-box{
-  order: 2;
+.search{
+  position:static;
+  margin-bottom:14px;
+  justify-content:flex-end;
 }
 
-/* contenedor en columna para que funcione order */
-.container{
-  display: flex;
-  flex-direction: column;
+.search input{
+  width:150px;
+  padding:8px 10px;
+  font-size:13px;
 }
 
-  /* buscador vuelve arriba sin tapar nada */
-  .search{
-    position:static;
-    margin-bottom:14px;
-    justify-content:flex-end;
-  }
+.search button{
+  padding:8px 12px;
+  font-size:13px;
+}
 
-  .search input{
-    width:150px;
-    padding:8px 10px;
-    font-size:13px;
-  }
+.top{
+  margin-top:6px;
+  align-items:center;
+}
 
-  .search button{
-    padding:8px 12px;
-    font-size:13px;
-  }
+.avatar{
+  width:78px;
+  height:78px;
+}
 
-  /* header ordenado */
-  .top{
-    margin-top:6px;
-    align-items:center;
-  }
+.alias{
+  font-size:18px;
+}
 
-  .avatar{
-    width:78px;
-    height:78px;
-  }
+.stats{
+  font-size:13px;
+  margin-top:4px;
+}
 
-  .alias{
-    font-size:18px;
-  }
+.actions{
+  margin-top:8px;
+  gap:10px;
+}
 
-  .stats{
-    font-size:13px;
-    margin-top:4px;
-  }
-
-  .actions{
-    margin-top:8px;
-    gap:10px;
-  }
-
-  .btn{
-    padding:7px 14px;
-    font-size:13px;
-    border-radius:12px;
-  }
-
-  /* fotos respiran más */
-  .photos{
-    margin-top:22px;
-    gap:10px;
-  }
-
-  .photo{
-    height:120px;
-  }
-
-  /* spotify espacio correcto */
-  .spotify{
-    margin-top:18px;
-  }
-
-  /* mensaje */
-  .message-box{
-    margin-top:26px;
-  }
-}  
+.btn{
+  padding:7px 14px;
+  font-size:13px;
+  border-radius:12px;
+}
 }
 </style>
 </head>
@@ -285,63 +239,56 @@ textarea{
 
 <div class="container">
 
-  <!-- SEARCH -->
-  <div class="search">
-    <input id="searchInput" placeholder="buscar usuario" />
-    <button onclick="searchUser()">ir</button>
-  </div>
+<div class="search">
+  <input id="searchInput" placeholder="buscar usuario" />
+  <button onclick="searchUser()">ir</button>
+</div>
 
-  <!-- HEADER -->
-  <div class="top">
-    <img id="avatar" class="avatar" />
+<div class="top">
+  <img id="avatar" class="avatar" />
+
+  <div>
+    <div id="alias" class="alias">...</div>
+
+    <div id="stats" class="stats">
+      <span id="followersLink"></span> ·
+      <span id="followingLink"></span>
+    </div>
+
+    <div class="actions">
+      <button id="followBtn" class="btn"></button>
+      <button id="shhhBtn" class="btn">SHHH!</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div id="photos" class="photos"></div>
+
+  <div class="right">
+
+    <div id="spotify" class="spotify"></div>
 
     <div>
-      <div id="alias" class="alias">...</div>
+      <h3 id="titleText">Envíame un mensaje</h3>
 
-      <div id="stats" class="stats">
-        <span id="followersLink"></span> ·
-        <span id="followingLink"></span>
-      </div>
+      <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
-      <div class="actions">
-        <button id="followBtn" class="btn"></button>
-        <button id="shhhBtn" class="btn">SHHH!</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- LAYOUT -->
-  <div class="layout">
-
-    <!-- PHOTOS -->
-    <div id="photos" class="photos"></div>
-
-    <!-- RIGHT -->
-    <div class="right">
-
-      <!-- SPOTIFY ARRIBA (desktop) -->
-      <div id="spotify" class="spotify"></div>
-
-      <!-- MESSAGE -->
-      <div>
-        <h3 id="titleText">Envíame un mensaje</h3>
-
-        <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
-
-        <div class="send-row">
-          <div class="send-options">
-            <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
-            <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
-          </div>
-
-          <button class="send-btn" onclick="sendMessage()">Enviar</button>
+      <div class="send-row">
+        <div class="send-options">
+          <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
+          <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
         </div>
+
+        <button class="send-btn" onclick="sendMessage()">Enviar</button>
       </div>
-
     </div>
-  </div>
 
-  <div class="back" onclick="history.back()">← Volver</div>
+  </div>
+</div>
+
+<div class="back" onclick="history.back()">← Volver</div>
 
 </div>
 
@@ -391,6 +338,25 @@ async function loadUser(){
   viewedUid = docData.id;
   const d = docData.data();
 
+  /* 🎨 APPLY THEME (PUBLIC PROFILE) */
+  if(d.theme){
+
+    if(d.theme.pageBg){
+      document.body.style.background = d.theme.pageBg;
+    }
+
+    if(d.theme.backgroundImage){
+      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+    }
+
+    if(d.theme.cardBg){
+      document.querySelector(".container").style.background = d.theme.cardBg;
+    }
+
+  }
+
   aliasEl.textContent = d.alias;
 
   followersLink.textContent = `${d.followers?.length||0} followers`;
@@ -418,10 +384,10 @@ async function loadUser(){
   }
 
   setupFollow();
-  // 🔊 botón SHHH! → ir al wall del usuario visto
-shhhBtn.onclick = () => {
-  window.location.href = `wall.html?uid=${viewedUid}`;
-};
+
+  shhhBtn.onclick = () => {
+    window.location.href = `wall.html?uid=${viewedUid}`;
+  };
 }
 
 async function setupFollow(){
