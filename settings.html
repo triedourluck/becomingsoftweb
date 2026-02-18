@@ -151,9 +151,26 @@ Permitir mensajes anónimos
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  deleteUser,
+  EmailAuthProvider,
+  reauthenticateWithCredential
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  deleteDoc 
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { 
+  getStorage, 
+  ref, 
+  uploadBytes, 
+  getDownloadURL 
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -240,9 +257,41 @@ window.saveAll = async()=>{
 
 window.deleteAccount = async()=>{
   const user = auth.currentUser;
-  await deleteDoc(doc(db,"users",user.uid));
-  await deleteUser(user);
-  location.href="index.html";
+  if(!user) return;
+
+  const confirmStep1 = confirm(
+    "⚠️ Esta acción eliminará tu cuenta permanentemente.\n\nNo podrás recuperarla.\n\n¿Deseas continuar?"
+  );
+  if(!confirmStep1) return;
+
+  const password = prompt("Ingresa tu contraseña para confirmar:");
+  if(!password){
+    alert("Operación cancelada.");
+    return;
+  }
+
+  try {
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+  } catch {
+    alert("Contraseña incorrecta. No se eliminó la cuenta.");
+    return;
+  }
+
+  const confirmStep2 = confirm(
+    "❗ Última confirmación.\n\nTu cuenta será eliminada definitivamente.\n\n¿Eliminar ahora?"
+  );
+  if(!confirmStep2) return;
+
+  try {
+    await deleteDoc(doc(db,"users",user.uid));
+    await deleteUser(user);
+    alert("Cuenta eliminada correctamente.");
+    location.href="index.html";
+  } catch (err) {
+    alert("Ocurrió un error al eliminar la cuenta.");
+    console.error(err);
+  }
 };
 
 window.goBack = ()=>location.href="profile.html";
