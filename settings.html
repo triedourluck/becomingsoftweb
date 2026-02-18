@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>becomingsoft — configuración</title>
 
@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-  max-width:600px;
+  max-width:650px;
   margin:40px auto;
   background:white;
   border-radius:20px;
@@ -23,6 +23,7 @@ body{
 }
 
 h1{margin-top:0;font-size:20px;}
+h2{margin-top:30px;font-size:16px;}
 
 label{
   font-size:13px;
@@ -42,20 +43,22 @@ input[type="password"]{
   box-sizing:border-box;
 }
 
-.password-wrap{position:relative;}
+input[type="file"]{
+  margin-top:6px;
+}
 
-.eye{
-  position:absolute;
-  right:10px;
-  top:50%;
-  transform:translateY(-50%);
+.small-btn{
+  margin-top:6px;
+  padding:6px 10px;
+  font-size:12px;
+  border:none;
+  border-radius:8px;
+  background:#eee;
   cursor:pointer;
-  font-size:14px;
-  color:#666;
 }
 
 .btn{
-  margin-top:22px;
+  margin-top:28px;
   padding:12px 16px;
   border:none;
   border-radius:12px;
@@ -66,26 +69,12 @@ input[type="password"]{
   width:100%;
 }
 
-.back{
-  margin-top:18px;
-  font-size:13px;
-  color:#666;
-  cursor:pointer;
-  text-align:center;
-}
-
 .danger-zone{
   margin-top:30px;
   padding:20px;
   border-radius:12px;
   background:#fff5f5;
   border:1px solid #ffd6d6;
-}
-
-.danger-zone h3{
-  margin:0 0 10px 0;
-  color:#b00020;
-  font-size:16px;
 }
 
 .delete-btn{
@@ -101,7 +90,6 @@ input[type="password"]{
 }
 </style>
 </head>
-
 <body>
 <div class="container">
 
@@ -118,59 +106,43 @@ input[type="password"]{
 Permitir mensajes anónimos
 </label>
 
-<!-- 🎨 THEME -->
-<label>Color fondo de página (HEX)</label>
-<input type="text" id="pageBgColor" placeholder="#f5f5f5"/>
+<h2>🎨 Perfil</h2>
 
-<label>Color del recuadro principal (HEX)</label>
-<input type="text" id="cardBgColor" placeholder="#ffffff"/>
+<label>Color fondo perfil (HEX)</label>
+<input type="text" id="profilePageBg"/>
 
-<label>Imagen de fondo</label>
-<input type="file" id="bgImageInput" accept="image/*"/>
+<label>Color recuadro perfil (HEX)</label>
+<input type="text" id="profileCardBg"/>
 
-<label>Contraseña actual</label>
-<input type="password" id="currentPass"/>
+<label>Imagen de fondo perfil</label>
+<input type="file" id="profileBgInput" accept="image/*"/>
+<button class="small-btn" onclick="removeProfileBg()">Eliminar imagen perfil</button>
 
-<label>Nueva contraseña</label>
-<div class="password-wrap">
-<input type="password" id="newPass"/>
-<span class="eye" onclick="togglePass()">👁</span>
-</div>
+<h2>🌙 Wall</h2>
+
+<label>Color fondo wall (HEX)</label>
+<input type="text" id="wallPageBg"/>
+
+<label>Color recuadro wall (HEX)</label>
+<input type="text" id="wallCardBg"/>
+
+<label>Imagen de fondo wall</label>
+<input type="file" id="wallBgInput" accept="image/*"/>
+<button class="small-btn" onclick="removeWallBg()">Eliminar imagen wall</button>
 
 <button class="btn" onclick="saveAll()">Guardar cambios</button>
 
 <div class="danger-zone">
-<h3>Eliminar cuenta</h3>
 <button class="delete-btn" onclick="deleteAccount()">Eliminar mi cuenta</button>
 </div>
-
-<div class="back" onclick="goBack()">Volver al perfil</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import {
-getAuth,
-onAuthStateChanged,
-deleteUser,
-updatePassword,
-EmailAuthProvider,
-reauthenticateWithCredential
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import {
-getFirestore,
-doc,
-getDoc,
-updateDoc,
-deleteDoc
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import {
-getStorage,
-ref,
-uploadBytes,
-getDownloadURL
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+import { getAuth, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -186,89 +158,81 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-let uid = null;
-let existingTheme = {};
+let uid;
+let currentTheme = {};
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href="login.html";
-    return;
-  }
-
+  if(!user){location.href="login.html";return;}
   uid = user.uid;
 
   const snap = await getDoc(doc(db,"users",uid));
   const d = snap.data();
 
-  if(d?.wallText){
-    titlePhrase.value = d.wallText.title || "";
-    boxPhrase.value = d.wallText.box || "";
+  if(d?.theme) currentTheme = d.theme;
+
+  if(currentTheme.profile){
+    profilePageBg.value = currentTheme.profile.pageBg || "";
+    profileCardBg.value = currentTheme.profile.cardBg || "";
   }
 
-  allowAnonToggle.checked = d.allowAnonymous ?? true;
-
-  if(d?.theme){
-    existingTheme = d.theme;
-    pageBgColor.value = d.theme.pageBg || "";
-    cardBgColor.value = d.theme.cardBg || "";
+  if(currentTheme.wall){
+    wallPageBg.value = currentTheme.wall.pageBg || "";
+    wallCardBg.value = currentTheme.wall.cardBg || "";
   }
 });
 
-window.togglePass = ()=>{
-  newPass.type = newPass.type==="password" ? "text" : "password";
+window.removeProfileBg = ()=>{
+  currentTheme.profile = currentTheme.profile || {};
+  currentTheme.profile.backgroundImage = "";
+  alert("Imagen de perfil eliminada (guardar para aplicar)");
+};
+
+window.removeWallBg = ()=>{
+  currentTheme.wall = currentTheme.wall || {};
+  currentTheme.wall.backgroundImage = "";
+  alert("Imagen de wall eliminada (guardar para aplicar)");
 };
 
 window.saveAll = async()=>{
-  const user = auth.currentUser;
+  let profileBgURL = currentTheme.profile?.backgroundImage || "";
+  let wallBgURL = currentTheme.wall?.backgroundImage || "";
 
-  if(newPass.value.trim()){
-    try{
-      const cred = EmailAuthProvider.credential(user.email,currentPass.value);
-      await reauthenticateWithCredential(user,cred);
-      await updatePassword(user,newPass.value.trim());
-      alert("Contraseña actualizada 🌙");
-    }catch{
-      alert("Contraseña incorrecta.");
-      return;
-    }
+  if(profileBgInput.files[0]){
+    const refP = ref(storage,`backgrounds/${uid}_profile`);
+    await uploadBytes(refP,profileBgInput.files[0]);
+    profileBgURL = await getDownloadURL(refP);
   }
 
-  let bgImageURL = existingTheme.backgroundImage || "";
-  const file = bgImageInput.files[0];
-
-  if(file){
-    const storageRef = ref(storage,`backgrounds/${uid}`);
-    await uploadBytes(storageRef,file);
-    bgImageURL = await getDownloadURL(storageRef);
+  if(wallBgInput.files[0]){
+    const refW = ref(storage,`backgrounds/${uid}_wall`);
+    await uploadBytes(refW,wallBgInput.files[0]);
+    wallBgURL = await getDownloadURL(refW);
   }
 
   await updateDoc(doc(db,"users",uid),{
-    allowAnonymous:allowAnonToggle.checked,
-    wallText:{
-      title:titlePhrase.value.trim(),
-      box:boxPhrase.value.trim()
-    },
     theme:{
-      pageBg:pageBgColor.value.trim(),
-      cardBg:cardBgColor.value.trim(),
-      backgroundImage:bgImageURL
+      profile:{
+        pageBg:profilePageBg.value.trim(),
+        cardBg:profileCardBg.value.trim(),
+        backgroundImage:profileBgURL
+      },
+      wall:{
+        pageBg:wallPageBg.value.trim(),
+        cardBg:wallCardBg.value.trim(),
+        backgroundImage:wallBgURL
+      }
     }
   });
 
-  alert("Cambios guardados 🌿");
+  alert("Theme actualizado 🌷");
 };
 
 window.deleteAccount = async()=>{
   const user = auth.currentUser;
-  if(!confirm("¿Eliminar cuenta permanentemente?"))return;
-
   await deleteDoc(doc(db,"users",user.uid));
   await deleteUser(user);
   location.href="index.html";
 };
-
-window.goBack = ()=>location.href="profile.html";
 </script>
-
 </body>
 </html>
