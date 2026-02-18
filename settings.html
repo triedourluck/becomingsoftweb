@@ -33,8 +33,7 @@ label{
   margin-bottom:6px;
 }
 
-input[type="text"],
-input[type="password"]{
+input[type="text"]{
   width:100%;
   padding:10px;
   border-radius:10px;
@@ -187,7 +186,6 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 
 let uid;
-let currentTheme = {};
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){location.href="login.html";return;}
@@ -196,34 +194,45 @@ onAuthStateChanged(auth, async(user)=>{
   const snap = await getDoc(doc(db,"users",uid));
   const d = snap.data();
 
-  if(d?.theme) currentTheme = d.theme;
-
-  if(currentTheme.profile){
-    profilePageBg.value = currentTheme.profile.pageBg || "";
-    profileCardBg.value = currentTheme.profile.cardBg || "";
+  if(d?.theme?.profile){
+    profilePageBg.value = d.theme.profile.pageBg || "";
+    profileCardBg.value = d.theme.profile.cardBg || "";
   }
 
-  if(currentTheme.wall){
-    wallPageBg.value = currentTheme.wall.pageBg || "";
-    wallCardBg.value = currentTheme.wall.cardBg || "";
+  if(d?.theme?.wall){
+    wallPageBg.value = d.theme.wall.pageBg || "";
+    wallCardBg.value = d.theme.wall.cardBg || "";
   }
 });
 
-window.removeProfileBg = ()=>{
-  currentTheme.profile = currentTheme.profile || {};
-  currentTheme.profile.backgroundImage = "";
-  alert("Imagen de fondo eliminada (guardar para aplicar)");
+window.removeProfileBg = async()=>{
+  const snap = await getDoc(doc(db,"users",uid));
+  const data = snap.data();
+  const theme = data.theme || {};
+  theme.profile = theme.profile || {};
+  theme.profile.backgroundImage = "";
+  await updateDoc(doc(db,"users",uid),{ theme });
+  alert("Imagen de fondo eliminada.");
 };
 
-window.removeWallBg = ()=>{
-  currentTheme.wall = currentTheme.wall || {};
-  currentTheme.wall.backgroundImage = "";
-  alert("Imagen de fondo eliminada (guardar para aplicar)");
+window.removeWallBg = async()=>{
+  const snap = await getDoc(doc(db,"users",uid));
+  const data = snap.data();
+  const theme = data.theme || {};
+  theme.wall = theme.wall || {};
+  theme.wall.backgroundImage = "";
+  await updateDoc(doc(db,"users",uid),{ theme });
+  alert("Imagen de fondo eliminada.");
 };
 
 window.saveAll = async()=>{
-  let profileBgURL = currentTheme.profile?.backgroundImage || "";
-  let wallBgURL = currentTheme.wall?.backgroundImage || "";
+
+  const snap = await getDoc(doc(db,"users",uid));
+  const existingData = snap.data() || {};
+  const existingTheme = existingData.theme || {};
+
+  let profileBgURL = existingTheme.profile?.backgroundImage || "";
+  let wallBgURL = existingTheme.wall?.backgroundImage || "";
 
   if(profileBgInput.files[0]){
     const refP = ref(storage,`backgrounds/${uid}_profile`);
@@ -237,19 +246,21 @@ window.saveAll = async()=>{
     wallBgURL = await getDownloadURL(refW);
   }
 
-  await updateDoc(doc(db,"users",uid),{
-    theme:{
-      profile:{
-        pageBg:profilePageBg.value.trim(),
-        cardBg:profileCardBg.value.trim(),
-        backgroundImage:profileBgURL
-      },
-      wall:{
-        pageBg:wallPageBg.value.trim(),
-        cardBg:wallCardBg.value.trim(),
-        backgroundImage:wallBgURL
-      }
+  const newTheme = {
+    profile:{
+      pageBg: profilePageBg.value.trim(),
+      cardBg: profileCardBg.value.trim(),
+      backgroundImage: profileBgURL
+    },
+    wall:{
+      pageBg: wallPageBg.value.trim(),
+      cardBg: wallCardBg.value.trim(),
+      backgroundImage: wallBgURL
     }
+  };
+
+  await updateDoc(doc(db,"users",uid),{
+    theme: newTheme
   });
 
   alert("Theme actualizado 🌷");
@@ -259,39 +270,26 @@ window.deleteAccount = async()=>{
   const user = auth.currentUser;
   if(!user) return;
 
-  const confirmStep1 = confirm(
-    "⚠️ Esta acción eliminará tu cuenta permanentemente.\n\nNo podrás recuperarla.\n\n¿Deseas continuar?"
-  );
-  if(!confirmStep1) return;
+  if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.\nNo podrás recuperarla.\n¿Deseas continuar?")) return;
 
   const password = prompt("Ingresa tu contraseña para confirmar:");
-  if(!password){
-    alert("Operación cancelada.");
+  if(!password) return;
+
+  try{
+    const credential = EmailAuthProvider.credential(user.email,password);
+    await reauthenticateWithCredential(user,credential);
+  }catch{
+    alert("Contraseña incorrecta.");
     return;
   }
 
-  try {
-    const credential = EmailAuthProvider.credential(user.email, password);
-    await reauthenticateWithCredential(user, credential);
-  } catch {
-    alert("Contraseña incorrecta. No se eliminó la cuenta.");
-    return;
-  }
+  if(!confirm("❗ Última confirmación.\nTu cuenta será eliminada definitivamente.\n¿Eliminar ahora?")) return;
 
-  const confirmStep2 = confirm(
-    "❗ Última confirmación.\n\nTu cuenta será eliminada definitivamente.\n\n¿Eliminar ahora?"
-  );
-  if(!confirmStep2) return;
+  await deleteUser(user);
+  await deleteDoc(doc(db,"users",uid));
 
-  try {
-    await deleteDoc(doc(db,"users",user.uid));
-    await deleteUser(user);
-    alert("Cuenta eliminada correctamente.");
-    location.href="index.html";
-  } catch (err) {
-    alert("Ocurrió un error al eliminar la cuenta.");
-    console.error(err);
-  }
+  alert("Cuenta eliminada.");
+  location.href="index.html";
 };
 
 window.goBack = ()=>location.href="profile.html";
