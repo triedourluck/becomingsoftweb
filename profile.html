@@ -21,24 +21,24 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 /* SEARCH DESKTOP */
 .search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
 .search input {
-  width: 190px;              /* ← más ancho */
-  padding: 10px 12px;        /* ← más alto */
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  font-size: 14px;
+  width:190px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:14px;
 }
 
 .search button {
-  padding: 10px 16px;        /* ← botón más grande */
-  border: none;
-  border-radius: 12px;
-  background: #111;
-  color: white;
-  cursor: pointer;
-  font-size: 14px;
+  padding:10px 16px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
 }
 
-/* 🔐 LOGOUT DESKTOP → debajo del buscador */
+/* LOGOUT */
 .logout{
   position:absolute;
   top:64px;
@@ -66,52 +66,51 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
 .right{display:flex;flex-direction:column;gap:20px;}
 
-/* SPOTIFY */
-/* separación real del grid de fotos */
-.spotify {
-  margin-top: 40px;   /* ← más abajo en desktop y mobile */
-  width: 100%;
+.spotify{
+  margin-top:40px;
+  width:100%;
 }
 
-.spotify iframe {
-  width: 100%;
-  border: none;
-  border-radius: 12px;
-  display: block;
-}
-  
-/* contenedor alineado perfecto */
-.spotify {
-  width: 100%;
+.spotify iframe{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  display:block;
 }
 
-/* embed */
-.spotify iframe {
-  width: 100%;
-  max-width: 100%;
-  border: none;
-  border-radius: 12px;
-  display: block;
+.spotify input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  margin-top:14px;
+  box-sizing:border-box;
 }
 
-/* input exactamente mismo ancho visual */
-.spotify input {
-  width: 100%;
-  max-width: 100%;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  margin-top: 14px;
-  box-sizing: border-box;
+.save-btn{
+  margin-top:8px;
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:12px;
 }
-.save-btn{margin-top:8px;padding:6px 12px;border:none;border-radius:8px;background:#111;color:white;cursor:pointer;font-size:12px;}
 
 .bottom{margin-top:24px;display:flex;gap:12px;}
-.gear,.icon-btn{padding:10px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:14px;}
+.gear,.icon-btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
+}
 
 .hidden{display:none;}
 
-/* ================= MOBILE ================= */
 @media (max-width:700px){
 
 .container{
@@ -120,7 +119,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
   padding:20px 18px 90px;
 }
 
-/* buscador arriba derecha */
 .search{
   position:absolute;
   top:14px;
@@ -129,7 +127,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 .search input{width:130px;padding:6px 8px;font-size:12px;}
 .search button{padding:6px 10px;font-size:12px;}
 
-/* logout debajo del buscador */
 .logout{
   top:54px;
   right:16px;
@@ -143,13 +140,11 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 .alias{font-size:18px;}
 .stats{font-size:12px;margin-top:4px;}
 
-/* grid 3x2 */
 .layout{display:block;margin-top:20px;}
 
 .photos{grid-template-columns:repeat(3,1fr);gap:10px;}
 .photo{height:100px;}
 
-/* botones fondo */
 .bottom{
   position:fixed;
   bottom:18px;
@@ -164,197 +159,197 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 <body>
 <div class="container">
 
-  <div class="search">
-    <input id="searchInput" placeholder="buscar usuario"/>
-    <button onclick="searchUser()">ir</button>
-  </div>
+<div class="search">
+<input id="searchInput" placeholder="buscar usuario"/>
+<button onclick="searchUser()">ir</button>
+</div>
 
-  <button class="logout" onclick="logout()">Cerrar sesión</button>
+<button class="logout" onclick="logout()">Cerrar sesión</button>
 
-  <div class="top">
-    <img id="avatar" class="avatar"/>
-    <input type="file" id="avatarInput" class="hidden" accept="image/*"/>
+<div class="top">
+<img id="avatar" class="avatar"/>
+<input type="file" id="avatarInput" class="hidden" accept="image/*"/>
 
-    <div>
-      <div class="alias" id="alias">...</div>
-      <div class="stats">
-        <span id="followersBtn">0 followers</span> ·
-        <span id="followingBtn">0 following</span>
-      </div>
-    </div>
-  </div>
+<div>
+<div class="alias" id="alias">...</div>
+<div class="stats">
+<span id="followersBtn">0 followers</span> ·
+<span id="followingBtn">0 following</span>
+</div>
+</div>
+</div>
 
-  <div class="layout">
+<div class="layout">
 
-    <div>
-      <div class="photos">
-        <img id="p1" class="photo"/>
-        <img id="p2" class="photo"/>
-        <img id="p3" class="photo"/>
-        <img id="p4" class="photo"/>
-        <img id="p5" class="photo"/>
-        <img id="p6" class="photo"/>
-      </div>
-      <input type="file" id="photoInput" class="hidden" accept="image/*"/>
-    </div>
+<div>
+<div class="photos">
+<img id="p1" class="photo"/>
+<img id="p2" class="photo"/>
+<img id="p3" class="photo"/>
+<img id="p4" class="photo"/>
+<img id="p5" class="photo"/>
+<img id="p6" class="photo"/>
+</div>
+<input type="file" id="photoInput" class="hidden" accept="image/*"/>
+</div>
 
-    <!-- solo spotify ahora (mensaje eliminado) -->
-    <div class="right">
-      <div class="spotify">
-        <div id="spotifyEmbed"></div>
-        <input id="spotifyInput" placeholder="Pega aquí el embed de Spotify"/>
-        <button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
-      </div>
-    </div>
+<div class="right">
+<div class="spotify">
+<div id="spotifyEmbed"></div>
+<input id="spotifyInput" placeholder="Pega aquí el embed de Spotify"/>
+<button class="save-btn" onclick="saveSpotify()">Guardar playlist</button>
+</div>
+</div>
 
-  </div>
+</div>
 
-  <div class="bottom">
-    <button class="gear" onclick="location.href='settings.html'">⚙️</button>
-    <button class="icon-btn" onclick="location.href='feed.html'">Feed</button>
-    <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
-    <button class="icon-btn" onclick="location.href='wall.html'">SHHH!</button>
-  </div>
+<div class="bottom">
+<button class="gear" onclick="location.href='settings.html'">⚙️</button>
+<button class="icon-btn" onclick="location.href='feed.html'">Feed</button>
+<button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
+<button class="icon-btn" onclick="location.href='wall.html'">SHHH!</button>
+</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
+import { getAuth,onAuthStateChanged,signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getFirestore,doc,getDoc,updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getStorage,ref,uploadBytes,getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain: "becomingsoft-84e72.firebaseapp.com",
-  projectId: "becomingsoft-84e72",
-  storageBucket: "becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId: "605759003962",
-  appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+apiKey:"AIzaSy...",
+authDomain:"becomingsoft-84e72.firebaseapp.com",
+projectId:"becomingsoft-84e72",
+storageBucket:"becomingsoft-84e72.firebasestorage.app",
+messagingSenderId:"605759003962",
+appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const storage=getStorage(app);
 
-const avatarEl = document.getElementById("avatar");
-const avatarInput = document.getElementById("avatarInput");
-const aliasEl = document.getElementById("alias");
-const followersBtn = document.getElementById("followersBtn");
-const followingBtn = document.getElementById("followingBtn");
+const avatarEl=document.getElementById("avatar");
+const avatarInput=document.getElementById("avatarInput");
+const aliasEl=document.getElementById("alias");
+const followersBtn=document.getElementById("followersBtn");
+const followingBtn=document.getElementById("followingBtn");
 
-const photoEls = ["p1","p2","p3","p4","p5","p6"].map(id => document.getElementById(id));
-const photoInput = document.getElementById("photoInput");
+const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
+const photoInput=document.getElementById("photoInput");
 
-const spotifyEmbedEl = document.getElementById("spotifyEmbed");
-const spotifyInput = document.getElementById("spotifyInput");
+const spotifyEmbedEl=document.getElementById("spotifyEmbed");
+const spotifyInput=document.getElementById("spotifyInput");
 
-let uid = null;
-let photoIndex = 0;
+let uid=null;
+let photoIndex=0;
 
-/* AUTH */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    location.href = "login.html";
-    return;
-  }
+onAuthStateChanged(auth, async(user)=>{
+if(!user){location.href="login.html";return;}
 
-  uid = user.uid;
+uid=user.uid;
 
-  const snap = await getDoc(doc(db, "users", uid));
-  const d = snap.data();
+const snap=await getDoc(doc(db,"users",uid));
+const d=snap.data();
 
-  aliasEl.textContent = d.alias || "sin alias";
-  followersBtn.textContent = `${d.followers?.length || 0} followers`;
-  followingBtn.textContent = `${d.following?.length || 0} following`;
+aliasEl.textContent=d.alias||"sin alias";
+followersBtn.textContent=`${d.followers?.length||0} followers`;
+followingBtn.textContent=`${d.following?.length||0} following`;
 
-  /* links a list.html */
-  followersBtn.onclick = () => {
-    location.href = `list.html?uid=${uid}&type=followers`;
-  };
+followersBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
+followingBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
 
-  followingBtn.onclick = () => {
-    location.href = `list.html?uid=${uid}&type=following`;
-  };
+if(d.photoURL) avatarEl.src=d.photoURL;
 
-  if (d.photoURL) avatarEl.src = d.photoURL;
-
-  (d.photos || []).forEach((url, i) => {
-    if (url) photoEls[i].src = url;
-  });
-
-  if (d.spotifyEmbed) spotifyEmbedEl.innerHTML = d.spotifyEmbed;
+(d.photos||[]).forEach((url,i)=>{
+if(url) photoEls[i].src=url;
 });
 
-/* AVATAR */
-avatarEl.onclick = () => avatarInput.click();
+if(d.spotifyEmbed) spotifyEmbedEl.innerHTML=d.spotifyEmbed;
 
-avatarInput.onchange = async () => {
-  const file = avatarInput.files[0];
-  if (!file) return;
+/* 🎨 APPLY THEME */
+if(d.theme){
 
-  const storageRef = ref(storage, `avatars/${uid}`);
-  await uploadBytes(storageRef, file);
-  const url = await getDownloadURL(storageRef);
+if(d.theme.pageBg){
+document.body.style.background=d.theme.pageBg;
+}
 
-  await updateDoc(doc(db, "users", uid), { photoURL: url });
-  avatarEl.src = url;
-};
+if(d.theme.backgroundImage){
+document.body.style.backgroundImage=`url(${d.theme.backgroundImage})`;
+document.body.style.backgroundSize="cover";
+document.body.style.backgroundPosition="center";
+}
 
-/* PHOTOS */
-photoEls.forEach((el, i) => {
-  el.onclick = () => {
-    photoIndex = i;
-    photoInput.click();
-  };
+if(d.theme.cardBg){
+document.querySelector(".container").style.background=d.theme.cardBg;
+}
+}
 });
 
-photoInput.onchange = async () => {
-  const file = photoInput.files[0];
-  if (!file) return;
+avatarEl.onclick=()=>avatarInput.click();
 
-  const storageRef = ref(storage, `spaces/${uid}/${photoIndex}`);
-  await uploadBytes(storageRef, file);
-  const url = await getDownloadURL(storageRef);
+avatarInput.onchange=async()=>{
+const file=avatarInput.files[0];
+if(!file)return;
 
-  const snap = await getDoc(doc(db, "users", uid));
-  const data = snap.data();
-  const photos = data.photos || ["","","","","",""];
-  photos[photoIndex] = url;
+const storageRef=ref(storage,`avatars/${uid}`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
 
-  await updateDoc(doc(db, "users", uid), { photos });
-  photoEls[photoIndex].src = url;
+await updateDoc(doc(db,"users",uid),{photoURL:url});
+avatarEl.src=url;
 };
 
-/* SPOTIFY */
-window.saveSpotify = async () => {
-  const embed = spotifyInput.value.trim();
-  if (!embed) return;
+photoEls.forEach((el,i)=>{
+el.onclick=()=>{
+photoIndex=i;
+photoInput.click();
+};
+});
 
-  await updateDoc(doc(db, "users", uid), { spotifyEmbed: embed });
-  spotifyEmbedEl.innerHTML = embed;
-  spotifyInput.value = "";
+photoInput.onchange=async()=>{
+const file=photoInput.files[0];
+if(!file)return;
+
+const storageRef=ref(storage,`spaces/${uid}/${photoIndex}`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
+
+const snap=await getDoc(doc(db,"users",uid));
+const data=snap.data();
+const photos=data.photos||["","","","","",""];
+photos[photoIndex]=url;
+
+await updateDoc(doc(db,"users",uid),{photos});
+photoEls[photoIndex].src=url;
 };
 
-/* LOGOUT */
-window.logout = async () => {
-  await signOut(auth);
-  location.href = "login.html";
+window.saveSpotify=async()=>{
+const embed=spotifyInput.value.trim();
+if(!embed)return;
+
+await updateDoc(doc(db,"users",uid),{spotifyEmbed:embed});
+spotifyEmbedEl.innerHTML=embed;
+spotifyInput.value="";
 };
 
-/* SEARCH USER */
-window.searchUser = () => {
-  const alias = document.getElementById("searchInput").value.trim();
-  if (!alias) return;
-  location.href = `user.html?alias=${alias}`;
+window.logout=async()=>{
+await signOut(auth);
+location.href="login.html";
 };
 
-document
-  .getElementById("searchInput")
-  .addEventListener("keydown", (e) => {
-    if (e.key === "Enter") searchUser();
-  });
+window.searchUser=()=>{
+const alias=document.getElementById("searchInput").value.trim();
+if(!alias)return;
+location.href=`user.html?alias=${alias}`;
+};
+
+document.getElementById("searchInput").addEventListener("keydown",(e)=>{
+if(e.key==="Enter") searchUser();
+});
 </script>
 
 </body>
