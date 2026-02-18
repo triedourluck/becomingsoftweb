@@ -69,6 +69,15 @@ input[type="file"]{
   width:100%;
 }
 
+.back{
+  margin-top:18px;
+  font-size:13px;
+  color:#666;
+  cursor:pointer;
+  text-align:center;
+  text-decoration:underline;
+}
+
 .danger-zone{
   margin-top:30px;
   padding:20px;
@@ -116,7 +125,7 @@ Permitir mensajes anónimos
 
 <label>Imagen de fondo perfil</label>
 <input type="file" id="profileBgInput" accept="image/*"/>
-<button class="small-btn" onclick="removeProfileBg()">Eliminar imagen perfil</button>
+<button class="small-btn" onclick="removeProfileBg()">Eliminar imagen de fondo</button>
 
 <h2>🌙 Wall</h2>
 
@@ -128,13 +137,15 @@ Permitir mensajes anónimos
 
 <label>Imagen de fondo wall</label>
 <input type="file" id="wallBgInput" accept="image/*"/>
-<button class="small-btn" onclick="removeWallBg()">Eliminar imagen wall</button>
+<button class="small-btn" onclick="removeWallBg()">Eliminar imagen de fondo</button>
 
 <button class="btn" onclick="saveAll()">Guardar cambios</button>
 
 <div class="danger-zone">
 <button class="delete-btn" onclick="deleteAccount()">Eliminar mi cuenta</button>
 </div>
+
+<div class="back" onclick="goBack()">Volver al perfil</div>
 
 </div>
 
@@ -184,13 +195,13 @@ onAuthStateChanged(auth, async(user)=>{
 window.removeProfileBg = ()=>{
   currentTheme.profile = currentTheme.profile || {};
   currentTheme.profile.backgroundImage = "";
-  alert("Imagen de perfil eliminada (guardar para aplicar)");
+  alert("Imagen de fondo eliminada (guardar para aplicar)");
 };
 
 window.removeWallBg = ()=>{
   currentTheme.wall = currentTheme.wall || {};
   currentTheme.wall.backgroundImage = "";
-  alert("Imagen de wall eliminada (guardar para aplicar)");
+  alert("Imagen de fondo eliminada (guardar para aplicar)");
 };
 
 window.saveAll = async()=>{
@@ -233,6 +244,8 @@ window.deleteAccount = async()=>{
   await deleteUser(user);
   location.href="index.html";
 };
+
+window.goBack = ()=>location.href="profile.html";
 </script>
 </body>
 </html>
