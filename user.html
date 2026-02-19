@@ -57,7 +57,7 @@ body{
 }
 
 .avatar{
-  width:80px;          /* EXACTO como profile */
+  width:80px;
   height:80px;
   border-radius:50%;
   object-fit:cover;
@@ -65,7 +65,7 @@ body{
 }
 
 .alias{
-  font-size:20px;      /* EXACTO como profile */
+  font-size:20px;
   font-weight:600;
 }
 
@@ -133,6 +133,16 @@ body{
   border-radius:12px;
   object-fit:cover;
   background:#eee;
+}
+
+/* SPOTIFY */
+.spotify{
+  width:100%;
+}
+.spotify iframe{
+  width:100%;
+  border:none;
+  border-radius:12px;
 }
 
 /* RIGHT */
@@ -223,7 +233,6 @@ textarea{
 .top{
   margin-top:6px;
   gap:12px;
-  align-items:center;
 }
 
 .avatar{
@@ -248,7 +257,6 @@ textarea{
 .btn{
   padding:6px 12px;
   font-size:12px;
-  border-radius:10px;
 }
 
 .bottom{
@@ -292,8 +300,12 @@ textarea{
   <div id="photos" class="photos"></div>
 
   <div class="right">
+
+    <!-- SPOTIFY -->
+    <div id="spotify" class="spotify"></div>
+
     <div>
-      <h3 id="titleText">Envíame un mensaje</h3>
+      <h3>Envíame un mensaje</h3>
       <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
       <div class="send-row">
@@ -305,6 +317,7 @@ textarea{
         <button class="send-btn" onclick="sendMessage()">Enviar</button>
       </div>
     </div>
+
   </div>
 
 </div>
@@ -328,15 +341,7 @@ import {
   doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain:"becomingsoft-84e72.firebaseapp.com",
-  projectId:"becomingsoft-84e72",
-  storageBucket:"becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId:"605759003962",
-  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
-};
-
+const firebaseConfig = { ... };
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -347,15 +352,11 @@ const aliasParam = params.get("alias");
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const photos = document.getElementById("photos");
+const spotifyContainer = document.getElementById("spotify");
 const followBtn = document.getElementById("followBtn");
-const followersLink = document.getElementById("followersLink");
-const followingLink = document.getElementById("followingLink");
 const shhhBtn = document.getElementById("shhhBtn");
-const searchInput = document.getElementById("searchInput");
 
 let viewedUid = null;
-
-/* ---------------- LOAD USER ---------------- */
 
 async function loadUser(){
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
@@ -366,144 +367,40 @@ async function loadUser(){
   viewedUid = userDoc.id;
   const d = userDoc.data();
 
-  /* SHHH BUTTON */
-  shhhBtn.onclick = () => {
-    if (!viewedUid) return;
+  shhhBtn.onclick = ()=>{
     window.location.href = `wall.html?uid=${viewedUid}`;
   };
 
   aliasEl.textContent = d.alias;
-  followersLink.textContent = `${d.followers?.length||0} followers`;
-  followingLink.textContent = `${d.following?.length||0} following`;
-
-  followersLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=followers`;
-  followingLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=following`;
-
   if(d.photoURL) avatar.src = d.photoURL;
 
-  photos.innerHTML = "";
+  /* SPOTIFY RENDER */
+  if(d.spotifyEmbed){
+    spotifyContainer.innerHTML = d.spotifyEmbed;
+  }else{
+    spotifyContainer.innerHTML = "";
+  }
 
+  /* PHOTOS */
+  photos.innerHTML="";
   const isMobile = window.innerWidth <= 700;
-
-  let desktopArray = d.photosDesktop || d.photos || ["","","","","",""];
-  let mobileArray  = d.photosMobile  || d.photos || ["","","","","",""];
-
+  let desktopArray = d.photosDesktop || d.photos || [];
+  let mobileArray  = d.photosMobile  || d.photos || [];
   let currentPhotos = isMobile ? mobileArray : desktopArray;
 
   currentPhotos.forEach(url=>{
     if(!url) return;
-
-    const img = document.createElement("img");
-    img.src = url;
-    img.className = "photo";
+    const img=document.createElement("img");
+    img.src=url;
+    img.className="photo";
     photos.appendChild(img);
   });
 
   setupFollow();
 }
 
-/* ---------------- FOLLOW ---------------- */
-
-async function setupFollow(){
-  const user = auth.currentUser;
-  if(!user) return;
-
-  if(user.uid === viewedUid){
-    followBtn.style.display="none";
-    return;
-  }
-
-  const meSnap = await getDoc(doc(db,"users",user.uid));
-  const me = meSnap.data();
-
-  const isFollowing = me.following?.includes(viewedUid);
-
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async ()=>{
-    if(isFollowing){
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayRemove(viewedUid)
-      });
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayRemove(user.uid)
-      });
-    }else{
-      await updateDoc(doc(db,"users",user.uid),{
-        following: arrayUnion(viewedUid)
-      });
-      await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayUnion(user.uid)
-      });
-    }
-    location.reload();
-  };
-}
-
-/* ---------------- SEND MESSAGE ---------------- */
-
-window.sendMessage = async ()=>{
-  const text = document.getElementById("msgInput").value.trim();
-  if(!text) return;
-
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const currentUser = auth.currentUser;
-
-  let senderUid = null;
-  if(mode==="alias" && currentUser){
-    senderUid = currentUser.uid;
-  }
-
-  await addDoc(collection(db,"messages"),{
-    text,
-    to:viewedUid,
-    fromAlias:senderUid,
-    createdAt:Date.now(),
-    published:false,
-    likes:[]
-  });
-
-  document.getElementById("msgInput").value="";
-  alert("enviado 🌷");
-};
-
-/* ---------------- SEARCH (SMART) ---------------- */
-
-async function handleSearch(){
-  const value = searchInput.value.trim();
-  if(!value) return;
-
-  const currentUser = auth.currentUser;
-  if(!currentUser){
-    location.href=`user.html?alias=${value}`;
-    return;
-  }
-
-  const mySnap = await getDoc(doc(db,"users",currentUser.uid));
-  const myData = mySnap.data();
-
-  if(myData?.alias?.toLowerCase() === value.toLowerCase()){
-    location.href="profile.html";
-  }else{
-    location.href=`user.html?alias=${value}`;
-  }
-}
-
-window.searchUser = handleSearch;
-
-searchInput.addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){
-    handleSearch();
-  }
-});
-
-/* ---------------- INIT ---------------- */
-
 onAuthStateChanged(auth,(user)=>{
-  if(!user){
-    location.href="login.html";
-    return;
-  }
+  if(!user){ location.href="login.html"; return; }
   loadUser();
 });
 </script>
