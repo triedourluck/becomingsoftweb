@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>becomingsoft — Feed ॐ</title>
 
 <style>
@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-  max-width:700px;
+  max-width:650px;
   margin:40px auto;
   background:white;
   border-radius:20px;
@@ -24,99 +24,94 @@ body{
 
 h1{
   margin-top:0;
-  font-size:22px;
+  font-size:20px;
   font-weight:600;
 }
-
-/* POST */
 
 .post{
   border:1px solid #eee;
   border-radius:16px;
-  padding:22px;
-  margin-bottom:22px;
+  padding:18px;
+  margin-bottom:18px;
   background:#fafafa;
 }
 
-/* USER ROW */
-
+/* HEADER USER */
 .user-row{
   display:flex;
   align-items:center;
   gap:12px;
-  margin-bottom:12px;
+  margin-bottom:14px;
 }
 
 .avatar{
-  width:42px;   /* MÁS GRANDE */
-  height:42px;
+  width:48px;
+  height:48px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
 }
 
-.username{
+.wall-alias{
   font-weight:600;
-  font-size:16px;
   cursor:pointer;
 }
 
-.username:hover{
+.wall-alias:hover{
   opacity:0.7;
 }
 
 /* MENSAJE */
-
-.question{
-  font-size:16px;
-  margin-bottom:16px;
-  line-height:1.5;
-}
-
-/* RESPUESTA */
-
-.owner-name{
+.sender{
   font-weight:600;
-  font-size:15px;
   margin-bottom:6px;
   cursor:pointer;
 }
 
-.owner-name:hover{
+.sender:hover{
   opacity:0.7;
 }
 
+.message{
+  font-size:15px;
+  margin-bottom:10px;
+}
+
+.receiver{
+  font-weight:600;
+  margin-top:8px;
+}
+
 .reply{
-  font-size:16px;
-  color:#666;   /* gris para diferenciar */
-  margin-bottom:12px;
-  line-height:1.5;
+  font-size:15px;
+  color:#555;
+  margin-top:4px;
 }
 
 /* IMAGEN */
-
 .reply-img{
-  width:100%;
-  max-width:420px;
-  max-height:320px;
-  object-fit:cover;
+  max-width:220px;
+  max-height:220px;
   border-radius:12px;
   margin-top:10px;
+  object-fit:cover;
+  display:block;
 }
 
 /* LIKE */
-
 .like{
+  margin-top:12px;
   display:flex;
   align-items:center;
   gap:6px;
   cursor:pointer;
-  font-size:14px;
-  margin-top:14px;
+  font-size:15px;
   user-select:none;
 }
 
-/* BACK */
+.like:hover{
+  opacity:0.7;
+}
 
 .back{
   margin-top:18px;
@@ -128,16 +123,15 @@ h1{
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
-
 <h1>Feed ॐ</h1>
 
 <div id="feed"></div>
 
 <div class="back" onclick="goBack()">← Volver</div>
-
 </div>
 
 <script type="module">
@@ -151,7 +145,8 @@ import {
   orderBy,
   getDocs,
   doc,
-  getDoc
+  getDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
@@ -175,89 +170,139 @@ if(!user){
   return;
 }
 
+/* usuarios que sigo + yo */
 const mySnap=await getDoc(doc(db,"users",user.uid));
 const following=mySnap.data()?.following||[];
+const sources=[...following,user.uid];
 
-if(following.length===0){
-  feedEl.innerHTML="<p>No sigues a nadie todavía 🌱</p>";
+if(sources.length===0){
+  feedEl.innerHTML="<p>No hay actividad todavía 🌱</p>";
   return;
 }
 
 const q=query(
   collection(db,"messages"),
   where("published","==",true),
-  where("to","in",following.slice(0,10)),
+  where("to","in",sources.slice(0,10)),
   orderBy("createdAt","desc")
 );
 
 const snap=await getDocs(q);
 
 if(snap.empty){
-  feedEl.innerHTML="<p>Aún no hay respuestas en Feed ॐ ✨</p>";
+  feedEl.innerHTML="<p>Aún no hay respuestas en tu feed ✨</p>";
   return;
 }
 
 for(const msgDoc of snap.docs){
 
-const data=msgDoc.data();
+  const data=msgDoc.data();
 
-/* USUARIO QUE RECIBE */
-const ownerSnap=await getDoc(doc(db,"users",data.to));
-const owner=ownerSnap.data();
+  const wallSnap=await getDoc(doc(db,"users",data.to));
+  if(!wallSnap.exists()) continue;
+  const wallUser=wallSnap.data();
 
-/* USUARIO QUE ENVÍA */
-let senderName="anónimo";
-let senderPhoto="anon.png";
-let senderAlias=null;
+  const post=document.createElement("div");
+  post.className="post";
 
-if(data.fromAlias){
-  const senderSnap=await getDoc(doc(db,"users",data.fromAlias));
-  const sender=senderSnap.data();
-  senderName=sender.alias;
-  senderPhoto=sender.photoURL || "anon.png";
-  senderAlias=sender.alias;
-}
+  /* HEADER WALL OWNER */
+  const userRow=document.createElement("div");
+  userRow.className="user-row";
 
-const post=document.createElement("div");
-post.className="post";
+  const avatar=document.createElement("img");
+  avatar.className="avatar";
+  avatar.src=wallUser.photoURL||"anon.png";
 
-post.innerHTML=`
-  <div class="user-row">
-    <img class="avatar" src="${senderPhoto}">
-    ${
-      senderAlias
-      ? `<div class="username" onclick="location.href='user.html?alias=${senderAlias}'">${senderName}</div>`
-      : `<div class="username" style="cursor:default;">anónimo</div>`
+  const wallAlias=document.createElement("div");
+  wallAlias.className="wall-alias";
+  wallAlias.textContent=wallUser.alias;
+  wallAlias.onclick=()=>{
+    location.href=`user.html?alias=${wallUser.alias}`;
+  };
+
+  userRow.appendChild(avatar);
+  userRow.appendChild(wallAlias);
+  post.appendChild(userRow);
+
+  /* QUIÉN ENVÍA */
+  let senderAlias="anónimo";
+  let senderClickable=false;
+
+  if(data.fromAlias){
+    const senderSnap=await getDoc(doc(db,"users",data.fromAlias));
+    if(senderSnap.exists()){
+      senderAlias=senderSnap.data().alias;
+      senderClickable=true;
     }
-  </div>
-
-  <div class="question">
-    ${data.text || ""}
-  </div>
-
-  <div class="owner-name" onclick="location.href='user.html?alias=${owner.alias}'">
-    ${owner.alias}
-  </div>
-
-  ${
-    data.reply
-    ? `<div class="reply">${data.reply}</div>`
-    : ""
   }
 
-  ${
-    data.replyImage
-    ? `<img class="reply-img" src="${data.replyImage}">`
-    : ""
+  const sender=document.createElement("div");
+  sender.className="sender";
+  sender.textContent=senderAlias;
+
+  if(senderClickable){
+    sender.onclick=()=>{
+      location.href=`user.html?alias=${senderAlias}`;
+    };
   }
 
-  <div class="like">
-    ♡ ${data.likes?.length || 0}
-  </div>
-`;
+  post.appendChild(sender);
 
-feedEl.appendChild(post);
+  /* MENSAJE */
+  const message=document.createElement("div");
+  message.className="message";
+  message.textContent=data.text||"";
+  post.appendChild(message);
+
+  /* QUIÉN RECIBE */
+  const receiver=document.createElement("div");
+  receiver.className="receiver";
+  receiver.textContent=wallUser.alias;
+  post.appendChild(receiver);
+
+  /* RESPUESTA */
+  if(data.reply){
+    const reply=document.createElement("div");
+    reply.className="reply";
+    reply.textContent=data.reply;
+    post.appendChild(reply);
+  }
+
+  /* IMAGEN RESPUESTA */
+  if(data.imageURL){
+    const img=document.createElement("img");
+    img.src=data.imageURL;
+    img.className="reply-img";
+    post.appendChild(img);
+  }
+
+  /* LIKE */
+  const like=document.createElement("div");
+  like.className="like";
+
+  const likes=data.likes||[];
+  const hasLiked=likes.includes(user.uid);
+
+  like.innerHTML=`${hasLiked?"♥︎":"♡"} ${likes.length}`;
+
+  like.onclick=async()=>{
+    if(hasLiked){
+      await updateDoc(doc(db,"messages",msgDoc.id),{
+        likes:likes.filter(id=>id!==user.uid)
+      });
+    }else{
+      await updateDoc(doc(db,"messages",msgDoc.id),{
+        likes:[...likes,user.uid]
+      });
+    }
+    location.reload();
+  };
+
+  post.appendChild(like);
+
+  feedEl.appendChild(post);
 }
+
 });
 
 window.goBack=()=>{
