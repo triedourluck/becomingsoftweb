@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>becomingsoft — inbox privado</title>
 
 <style>
@@ -22,16 +22,13 @@ body{
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-h1{
-  margin-top:0;
-  font-weight:600;
-}
+h1{margin-top:0;}
 
 .msg{
   border:1px solid #eee;
   border-radius:14px;
-  padding:14px;
-  margin-bottom:12px;
+  padding:16px;
+  margin-bottom:16px;
   background:#fafafa;
 }
 
@@ -42,36 +39,66 @@ h1{
 }
 
 .text{
-  margin-bottom:10px;
+  margin-bottom:12px;
+}
+
+.reply-box{
+  position:relative;
+}
+
+textarea{
+  width:100%;
+  min-height:90px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  padding:12px;
+  padding-right:40px;
+  font-size:13px;
+  resize:vertical;
+  box-sizing:border-box;
+}
+
+.image-icon{
+  position:absolute;
+  bottom:10px;
+  right:10px;
+  cursor:pointer;
+  font-size:16px;
+  opacity:0.6;
+}
+
+.image-icon:hover{
+  opacity:1;
 }
 
 .actions{
   display:flex;
   gap:8px;
-  flex-wrap:wrap;
-  margin-top:8px;
+  margin-top:10px;
 }
 
 button{
   border:none;
   border-radius:10px;
-  padding:8px 12px;
+  padding:8px 14px;
   cursor:pointer;
   font-size:12px;
 }
 
-.publish{ background:#111; color:white; }
-.reply{ background:#e9e9e9; }
-.delete{ background:#ff4d4d; color:white; }
+.publish{
+  background:#111;
+  color:white;
+}
 
-textarea{
-  width:100%;
+.delete{
+  background:#ff4d4d;
+  color:white;
+}
+
+.preview-img{
   margin-top:8px;
+  max-width:100%;
   border-radius:10px;
-  border:1px solid #ddd;
-  padding:8px;
-  font-size:12px;
-  resize:vertical;
 }
 
 .back{
@@ -89,9 +116,7 @@ textarea{
 
 <div class="container">
 <h1>Inbox privado</h1>
-
 <div id="list"></div>
-
 <div class="back" onclick="goBack()">Volver a mi perfil</div>
 </div>
 
@@ -109,6 +134,12 @@ import {
   updateDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -122,6 +153,7 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
+const storage=getStorage(app);
 
 const listEl=document.getElementById("list");
 
@@ -131,7 +163,6 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-  // ✨ versión elegante
   const q=query(
     collection(db,"messages"),
     where("to","==",user.uid),
@@ -155,54 +186,71 @@ onAuthStateChanged(auth, async(user)=>{
     div.innerHTML=`
       <div class="meta">${data.fromAlias ? "Usuario" : "Anónimo"}</div>
       <div class="text">${data.text}</div>
+
+      <div class="reply-box">
+        <textarea placeholder="Escribe tu respuesta..."></textarea>
+        <span class="image-icon">📷</span>
+        <input type="file" accept="image/*" style="display:none" />
+      </div>
+
+      <img class="preview-img" style="display:none"/>
+
       <div class="actions">
         <button class="publish">Publicar</button>
-        <button class="reply">Responder</button>
         <button class="delete">Eliminar</button>
       </div>
-      <textarea placeholder="Escribe tu respuesta..." style="display:none"></textarea>
     `;
 
-    const publishBtn=div.querySelector(".publish");
-    const replyBtn=div.querySelector(".reply");
-    const deleteBtn=div.querySelector(".delete");
     const textarea=div.querySelector("textarea");
+    const publishBtn=div.querySelector(".publish");
+    const deleteBtn=div.querySelector(".delete");
+    const fileInput=div.querySelector("input[type=file]");
+    const icon=div.querySelector(".image-icon");
+    const preview=div.querySelector(".preview-img");
 
-    // PUBLICAR
+    let selectedFile=null;
+
+    // Abrir selector imagen
+    icon.onclick=()=>fileInput.click();
+
+    fileInput.onchange=()=>{
+      selectedFile=fileInput.files[0];
+      if(!selectedFile)return;
+
+      preview.src=URL.createObjectURL(selectedFile);
+      preview.style.display="block";
+    };
+
+    // PUBLICAR RESPUESTA
     publishBtn.onclick=async()=>{
+      const replyText=textarea.value.trim();
+
+      if(!replyText && !selectedFile){
+        alert("Escribe algo o sube una imagen 🌷");
+        return;
+      }
+
+      let imageURL=null;
+
+      if(selectedFile){
+        const storageRef=ref(storage,`replies/${docSnap.id}`);
+        await uploadBytes(storageRef,selectedFile);
+        imageURL=await getDownloadURL(storageRef);
+      }
+
       await updateDoc(doc(db,"messages",docSnap.id),{
+        reply:replyText||"",
+        replyImage:imageURL||null,
         published:true
       });
+
       div.remove();
     };
 
-    // MOSTRAR RESPUESTA
-    replyBtn.onclick=()=>{
-      textarea.style.display=
-        textarea.style.display==="none"?"block":"none";
-    };
-
-    // GUARDAR RESPUESTA (Enter)
-    textarea.addEventListener("keydown",async(e)=>{
-      if(e.key==="Enter" && !e.shiftKey){
-        e.preventDefault();
-        const replyText=textarea.value.trim();
-        if(!replyText)return;
-
-        await updateDoc(doc(db,"messages",docSnap.id),{
-          reply:replyText
-        });
-
-        textarea.value="";
-        alert("Respuesta guardada 💌");
-      }
-    });
-
     // ELIMINAR
     deleteBtn.onclick=async()=>{
-      const ok=confirm("¿Eliminar este mensaje? No se puede deshacer.");
+      const ok=confirm("¿Eliminar este mensaje?");
       if(!ok)return;
-
       await deleteDoc(doc(db,"messages",docSnap.id));
       div.remove();
     };
