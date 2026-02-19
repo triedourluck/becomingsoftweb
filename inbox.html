@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>becomingsoft — inbox privado</title>
+<title>Inbox privado</title>
 
 <style>
 body{
   margin:0;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:Arial, Helvetica, sans-serif;
   background:#f5f5f5;
   color:#111;
 }
@@ -22,59 +22,52 @@ body{
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-h1{margin-top:0;}
+h1{
+  margin-top:0;
+  font-weight:600;
+}
 
 .msg{
   border:1px solid #eee;
   border-radius:14px;
   padding:16px;
-  margin-bottom:16px;
+  margin-bottom:14px;
   background:#fafafa;
 }
 
 .meta{
-  font-size:12px;
-  color:#666;
+  font-size:13px;
+  font-weight:600;
   margin-bottom:6px;
 }
 
 .text{
   margin-bottom:12px;
-}
-
-.reply-box{
-  position:relative;
+  font-size:15px;
 }
 
 textarea{
   width:100%;
-  min-height:90px;
   border-radius:12px;
   border:1px solid #ddd;
-  padding:12px;
-  padding-right:40px;
-  font-size:13px;
+  padding:10px;
+  font-size:14px;
   resize:vertical;
   box-sizing:border-box;
 }
 
-.image-icon{
-  position:absolute;
-  bottom:10px;
-  right:10px;
-  cursor:pointer;
-  font-size:16px;
-  opacity:0.6;
-}
-
-.image-icon:hover{
-  opacity:1;
+.reply-img{
+  max-width:100%;
+  max-height:300px;
+  border-radius:12px;
+  margin-top:10px;
+  object-fit:cover;
 }
 
 .actions{
+  margin-top:12px;
   display:flex;
   gap:8px;
-  margin-top:10px;
 }
 
 button{
@@ -82,7 +75,7 @@ button{
   border-radius:10px;
   padding:8px 14px;
   cursor:pointer;
-  font-size:12px;
+  font-size:13px;
 }
 
 .publish{
@@ -91,23 +84,29 @@ button{
 }
 
 .delete{
-  background:#ff4d4d;
+  background:#111;
   color:white;
+  opacity:0.6;
 }
 
-.preview-img{
+.delete:hover{
+  opacity:1;
+}
+
+.image-upload{
   margin-top:8px;
-  max-width:100%;
-  border-radius:10px;
+  font-size:13px;
+  cursor:pointer;
+  color:#666;
 }
 
 .back{
-  margin-top:18px;
-  font-size:13px;
-  color:#666;
-  cursor:pointer;
-  text-decoration:underline;
+  margin-top:20px;
   text-align:center;
+  font-size:13px;
+  text-decoration:underline;
+  cursor:pointer;
+  color:#666;
 }
 </style>
 </head>
@@ -116,8 +115,10 @@ button{
 
 <div class="container">
 <h1>Inbox privado</h1>
+
 <div id="list"></div>
-<div class="back" onclick="goBack()">Volver a mi perfil</div>
+
+<div class="back" onclick="location.href='profile.html'">Volver a mi perfil</div>
 </div>
 
 <script type="module">
@@ -131,6 +132,7 @@ import {
   orderBy,
   getDocs,
   doc,
+  getDoc,
   updateDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
@@ -158,111 +160,88 @@ const storage=getStorage(app);
 const listEl=document.getElementById("list");
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href="login.html";
-    return;
+if(!user){
+  location.href="login.html";
+  return;
+}
+
+const q=query(
+  collection(db,"messages"),
+  where("to","==",user.uid),
+  orderBy("createdAt","desc")
+);
+
+const snap=await getDocs(q);
+
+for(const docSnap of snap.docs){
+
+  const data=docSnap.data();
+
+  /* 🔎 OBTENER NOMBRE REAL */
+  let senderName="Anónimo";
+
+  if(data.fromUid){
+    const senderSnap=await getDoc(doc(db,"users",data.fromUid));
+    const senderData=senderSnap.data();
+    senderName=senderData?.alias||"Usuario";
   }
 
-  const q=query(
-    collection(db,"messages"),
-    where("to","==",user.uid),
-    where("published","==",false),
-    orderBy("createdAt","desc")
-  );
+  const div=document.createElement("div");
+  div.className="msg";
 
-  const snap=await getDocs(q);
+  div.innerHTML=`
+    <div class="meta">${senderName}</div>
+    <div class="text">${data.text}</div>
+    <textarea placeholder="Escribe tu respuesta...">${data.reply||""}</textarea>
+    <div class="image-upload">Agregar imagen</div>
+    <input type="file" style="display:none" accept="image/*"/>
+    ${data.replyImage ? `<img src="${data.replyImage}" class="reply-img"/>` : ""}
+    <div class="actions">
+      <button class="publish">Publicar</button>
+      <button class="delete">Eliminar</button>
+    </div>
+  `;
 
-  if(snap.empty){
-    listEl.innerHTML="<p style='color:#888'>No tienes mensajes nuevos 🌙</p>";
-    return;
-  }
+  const textarea=div.querySelector("textarea");
+  const publishBtn=div.querySelector(".publish");
+  const deleteBtn=div.querySelector(".delete");
+  const uploadBtn=div.querySelector(".image-upload");
+  const fileInput=div.querySelector("input[type=file]");
 
-  snap.forEach(docSnap=>{
-    const data=docSnap.data();
+  let imageURL=data.replyImage||null;
 
-    const div=document.createElement("div");
-    div.className="msg";
+  uploadBtn.onclick=()=>fileInput.click();
 
-    div.innerHTML=`
-      <div class="meta">${data.fromAlias ? "Usuario" : "Anónimo"}</div>
-      <div class="text">${data.text}</div>
+  fileInput.onchange=async()=>{
+    const file=fileInput.files[0];
+    if(!file) return;
 
-      <div class="reply-box">
-        <textarea placeholder="Escribe tu respuesta..."></textarea>
-        <span class="image-icon">📷</span>
-        <input type="file" accept="image/*" style="display:none" />
-      </div>
+    const storageRef=ref(storage,`replies/${docSnap.id}`);
+    await uploadBytes(storageRef,file);
+    imageURL=await getDownloadURL(storageRef);
 
-      <img class="preview-img" style="display:none"/>
+    alert("Imagen subida ✨");
+  };
 
-      <div class="actions">
-        <button class="publish">Publicar</button>
-        <button class="delete">Eliminar</button>
-      </div>
-    `;
+  publishBtn.onclick=async()=>{
+    await updateDoc(doc(db,"messages",docSnap.id),{
+      reply:textarea.value.trim(),
+      replyImage:imageURL||null,
+      published:true
+    });
 
-    const textarea=div.querySelector("textarea");
-    const publishBtn=div.querySelector(".publish");
-    const deleteBtn=div.querySelector(".delete");
-    const fileInput=div.querySelector("input[type=file]");
-    const icon=div.querySelector(".image-icon");
-    const preview=div.querySelector(".preview-img");
+    location.reload();
+  };
 
-    let selectedFile=null;
+  deleteBtn.onclick=async()=>{
+    await deleteDoc(doc(db,"messages",docSnap.id));
+    location.reload();
+  };
 
-    // Abrir selector imagen
-    icon.onclick=()=>fileInput.click();
-
-    fileInput.onchange=()=>{
-      selectedFile=fileInput.files[0];
-      if(!selectedFile)return;
-
-      preview.src=URL.createObjectURL(selectedFile);
-      preview.style.display="block";
-    };
-
-    // PUBLICAR RESPUESTA
-    publishBtn.onclick=async()=>{
-      const replyText=textarea.value.trim();
-
-      if(!replyText && !selectedFile){
-        alert("Escribe algo o sube una imagen 🌷");
-        return;
-      }
-
-      let imageURL=null;
-
-      if(selectedFile){
-        const storageRef=ref(storage,`replies/${docSnap.id}`);
-        await uploadBytes(storageRef,selectedFile);
-        imageURL=await getDownloadURL(storageRef);
-      }
-
-      await updateDoc(doc(db,"messages",docSnap.id),{
-        reply:replyText||"",
-        replyImage:imageURL||null,
-        published:true
-      });
-
-      div.remove();
-    };
-
-    // ELIMINAR
-    deleteBtn.onclick=async()=>{
-      const ok=confirm("¿Eliminar este mensaje?");
-      if(!ok)return;
-      await deleteDoc(doc(db,"messages",docSnap.id));
-      div.remove();
-    };
-
-    listEl.appendChild(div);
-  });
+  listEl.appendChild(div);
+}
 
 });
-
-window.goBack=()=>{
-  location.href="profile.html";
-};
 </script>
 
 </body>
