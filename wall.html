@@ -30,9 +30,7 @@ body{
   transition:0.2s ease;
 }
 
-.header:hover{
-  opacity:0.85;
-}
+.header:hover{opacity:0.85;}
 
 .avatar{
   width:60px;
@@ -65,11 +63,14 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
-  cursor:pointer;
   margin-bottom:8px;
 }
 
-.user-row:hover{
+.user-row.clickable{
+  cursor:pointer;
+}
+
+.user-row.clickable:hover{
   opacity:0.8;
 }
 
@@ -88,7 +89,6 @@ body{
 .username.anon{
   font-size:12px;
   color:#777;
-  cursor:default;
 }
 
 .reply-img{
@@ -209,13 +209,16 @@ const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
 const headerEl=document.getElementById("header");
 
+/* ✅ CORREGIDO: anon.png */
+const ANON_IMAGE="anon.png";
+
 onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
 
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid")||user.uid;
 
-/* CARGAR PERFIL */
+/* PERFIL */
 const userSnap=await getDoc(doc(db,"users",uid));
 const userData=userSnap.data();
 
@@ -227,21 +230,7 @@ headerEl.onclick=()=>{
 window.location.href=`user.html?alias=${userData.alias}`;
 };
 
-/* THEME WALL */
-if(userData.theme){
-document.body.style.backgroundColor=userData.theme.wallPageBg||"#f5f5f5";
-document.querySelector(".container").style.backgroundColor=userData.theme.wallCardBg||"transparent";
-
-if(userData.theme.wallBackgroundImage){
-document.body.style.backgroundImage=`url(${userData.theme.wallBackgroundImage})`;
-document.body.style.backgroundSize="cover";
-document.body.style.backgroundPosition="center";
-}else{
-document.body.style.backgroundImage="none";
-}
-}
-
-/* CARGAR MENSAJES */
+/* MENSAJES */
 const q=query(
 collection(db,"messages"),
 where("to","==",uid),
@@ -262,19 +251,26 @@ const data=docSnap.data();
 const div=document.createElement("div");
 div.className="msg";
 
-/* USER INFO */
+/* USER */
 let fromAlias="anónimo";
-let fromPhoto="anon.jpg";
+let fromPhoto=ANON_IMAGE;
 
 if(data.fromAlias){
 const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
 const fromData=fromSnap.data();
 fromAlias=fromData.alias;
-fromPhoto=fromData.photoURL||"anon.jpg";
+fromPhoto=fromData.photoURL||ANON_IMAGE;
 }
 
 const userRow=document.createElement("div");
 userRow.className="user-row";
+
+if(data.fromAlias){
+userRow.classList.add("clickable");
+userRow.onclick=()=>{
+window.location.href=`user.html?alias=${fromAlias}`;
+};
+}
 
 const userAvatar=document.createElement("img");
 userAvatar.className="user-avatar";
@@ -284,15 +280,8 @@ const username=document.createElement("div");
 username.className=data.fromAlias?"username":"username anon";
 username.textContent=fromAlias;
 
-if(data.fromAlias){
-userRow.onclick=()=>{
-window.location.href=`user.html?alias=${fromAlias}`;
-};
-}
-
 userRow.appendChild(userAvatar);
 userRow.appendChild(username);
-
 div.appendChild(userRow);
 
 /* TEXTO */
@@ -302,15 +291,17 @@ textEl.textContent=data.text;
 div.appendChild(textEl);
 }
 
-/* IMAGEN */
-if(data.imageURL){
+/* IMAGEN (soporta image y imageURL) */
+const imageField=data.imageURL||data.image;
+
+if(imageField){
 const img=document.createElement("img");
-img.src=data.imageURL;
+img.src=imageField;
 img.className="reply-img";
 div.appendChild(img);
 }
 
-/* ACTIONS */
+/* ACCIONES */
 const actions=document.createElement("div");
 actions.className="actions";
 
@@ -343,19 +334,17 @@ likes:[...likesArray,user.uid]
 location.reload();
 };
 
-/* EDITAR (DESPUBLICAR) */
+/* EDITAR */
 if(uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
 editBtn.textContent="Editar";
-
 editBtn.onclick=async()=>{
 await updateDoc(doc(db,"messages",docSnap.id),{
 published:false
 });
 location.reload();
 };
-
 actions.appendChild(editBtn);
 }
 
