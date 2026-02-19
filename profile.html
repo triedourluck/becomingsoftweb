@@ -19,35 +19,10 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 }
 
 .search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
-.search input {
-  width:190px;
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  font-size:14px;
-}
-.search button {
-  padding:10px 16px;
-  border:none;
-  border-radius:12px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-}
+.search input{width:190px;padding:10px 12px;border-radius:12px;border:1px solid #ddd;font-size:14px;}
+.search button{padding:10px 16px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;font-size:14px;}
 
-.logout{
-  position:absolute;
-  top:64px;
-  right:24px;
-  padding:8px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:13px;
-}
+.logout{position:absolute;top:64px;right:24px;padding:8px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:13px;}
 
 .top{display:flex;gap:20px;align-items:center;margin-top:10px;}
 .avatar{width:80px;height:80px;border-radius:50%;background:#ddd;object-fit:cover;cursor:pointer;}
@@ -63,49 +38,16 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
 .right{display:flex;flex-direction:column;gap:20px;}
 
-.spotify {margin-top:40px;width:100%;}
-.spotify iframe {width:100%;border:none;border-radius:12px;display:block;}
-.spotify input {width:100%;padding:12px 14px;border-radius:12px;border:1px solid #ddd;margin-top:14px;box-sizing:border-box;}
+.spotify{margin-top:40px;width:100%;}
+.spotify iframe{width:100%;border:none;border-radius:12px;display:block;}
+.spotify input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #ddd;margin-top:14px;box-sizing:border-box;}
 
-.save-btn{
-  margin-top:8px;
-  padding:6px 12px;
-  border:none;
-  border-radius:8px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:12px;
-}
+.save-btn{margin-top:8px;padding:6px 12px;border:none;border-radius:8px;background:#111;color:white;cursor:pointer;font-size:12px;}
 
 .bottom{margin-top:24px;display:flex;gap:12px;}
-.gear,.icon-btn{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-}
+.gear,.icon-btn{padding:10px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:14px;}
 
 .hidden{display:none;}
-
-@media (max-width:700px){
-.container{margin:0;border-radius:0;padding:20px 18px 90px;}
-.search{position:absolute;top:14px;right:16px;}
-.search input{width:130px;padding:6px 8px;font-size:12px;}
-.search button{padding:6px 10px;font-size:12px;}
-.logout{top:54px;right:16px;font-size:12px;padding:6px 10px;}
-.top{margin-top:80px;gap:12px;}
-.avatar{width:64px;height:64px;}
-.alias{font-size:18px;}
-.stats{font-size:12px;margin-top:4px;}
-.layout{display:block;margin-top:20px;}
-.photos{grid-template-columns:repeat(3,1fr);gap:10px;}
-.photo{height:100px;}
-.bottom{position:fixed;bottom:18px;left:0;width:100%;justify-content:center;}
-}
 </style>
 </head>
 
@@ -122,7 +64,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 <div class="top">
 <img id="avatar" class="avatar"/>
 <input type="file" id="avatarInput" class="hidden" accept="image/*"/>
-
 <div>
 <div class="alias" id="alias">...</div>
 <div class="stats">
@@ -178,31 +119,32 @@ messagingSenderId:"605759003962",
 appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const storage=getStorage(app);
 
-/* DOM REFS */
-const avatar = document.getElementById("avatar");
-const avatarInput = document.getElementById("avatarInput");
-const alias = document.getElementById("alias");
-const followersBtn = document.getElementById("followersBtn");
-const followingBtn = document.getElementById("followingBtn");
-const spotifyEmbed = document.getElementById("spotifyEmbed");
-const spotifyInput = document.getElementById("spotifyInput");
-const saveSpotifyBtn = document.getElementById("saveSpotifyBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const searchBtn = document.getElementById("searchBtn");
-const searchInput = document.getElementById("searchInput");
+/* DOM */
+const avatar=document.getElementById("avatar");
+const avatarInput=document.getElementById("avatarInput");
+const alias=document.getElementById("alias");
+const followersBtn=document.getElementById("followersBtn");
+const followingBtn=document.getElementById("followingBtn");
+const spotifyEmbed=document.getElementById("spotifyEmbed");
+const spotifyInput=document.getElementById("spotifyInput");
+const saveSpotifyBtn=document.getElementById("saveSpotifyBtn");
+const logoutBtn=document.getElementById("logoutBtn");
+const searchBtn=document.getElementById("searchBtn");
+const searchInput=document.getElementById("searchInput");
+const photoInput=document.getElementById("photoInput");
+const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
 
 let uid=null;
 let photoIndex=0;
 
 /* AUTH */
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
-
 uid=user.uid;
 
 const snap=await getDoc(doc(db,"users",uid));
@@ -216,11 +158,10 @@ followersBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
 followingBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
 
 if(d.photoURL) avatar.src=d.photoURL;
-
-(d.photos||[]).forEach((url,i)=>{if(url) document.getElementById(`p${i+1}`).src=url;});
+(d.photos||[]).forEach((url,i)=>{if(url) photoEls[i].src=url;});
 if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
 
-/* APPLY THEME */
+/* THEME */
 if(d.theme){
 document.body.style.backgroundColor=d.theme.pageBg||"#f5f5f5";
 document.querySelector(".container").style.backgroundColor=d.theme.cardBg||"#ffffff";
@@ -235,25 +176,66 @@ document.body.style.backgroundImage="none";
 }
 });
 
+/* AVATAR CLICK */
+avatar.addEventListener("click",()=>avatarInput.click());
+
+avatarInput.addEventListener("change",async()=>{
+const file=avatarInput.files[0];
+if(!file)return;
+
+const storageRef=ref(storage,`avatars/${uid}`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
+
+await updateDoc(doc(db,"users",uid),{photoURL:url});
+avatar.src=url;
+});
+
+/* GRID CLICK */
+photoEls.forEach((el,i)=>{
+el.addEventListener("click",()=>{
+photoIndex=i;
+photoInput.click();
+});
+});
+
+photoInput.addEventListener("change",async()=>{
+const file=photoInput.files[0];
+if(!file)return;
+
+const storageRef=ref(storage,`spaces/${uid}/${photoIndex}`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
+
+const snap=await getDoc(doc(db,"users",uid));
+const data=snap.data();
+const photos=data.photos||["","","","","",""];
+photos[photoIndex]=url;
+
+await updateDoc(doc(db,"users",uid),{photos});
+photoEls[photoIndex].src=url;
+});
+
+/* SPOTIFY */
+saveSpotifyBtn.addEventListener("click",async()=>{
+const embed=spotifyInput.value.trim();
+if(!embed)return;
+await updateDoc(doc(db,"users",uid),{spotifyEmbed:embed});
+spotifyEmbed.innerHTML=embed;
+spotifyInput.value="";
+});
+
 /* LOGOUT */
-logoutBtn.addEventListener("click", async()=>{
+logoutBtn.addEventListener("click",async()=>{
 await signOut(auth);
 location.href="login.html";
 });
 
 /* SEARCH */
-searchBtn.addEventListener("click", ()=>{
+searchBtn.addEventListener("click",()=>{
 const value=searchInput.value.trim();
-if(!value) return;
+if(!value)return;
 location.href=`user.html?alias=${value}`;
-});
-
-searchInput.addEventListener("keydown",(e)=>{
-if(e.key==="Enter"){
-const value=searchInput.value.trim();
-if(!value) return;
-location.href=`user.html?alias=${value}`;
-}
 });
 </script>
 
