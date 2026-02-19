@@ -173,17 +173,22 @@ const q=query(
 
 const snap=await getDocs(q);
 
+if(snap.empty){
+  listEl.innerHTML="<p>No tienes mensajes todavía 🌙</p>";
+  return;
+}
+
 for(const docSnap of snap.docs){
 
   const data=docSnap.data();
 
-  /* 🔎 OBTENER NOMBRE REAL */
   let senderName="Anónimo";
 
-  if(data.fromUid){
-    const senderSnap=await getDoc(doc(db,"users",data.fromUid));
-    const senderData=senderSnap.data();
-    senderName=senderData?.alias||"Usuario";
+  if(data.fromAlias){
+    const senderSnap=await getDoc(doc(db,"users",data.fromAlias));
+    if(senderSnap.exists()){
+      senderName=senderSnap.data().alias||"Usuario";
+    }
   }
 
   const div=document.createElement("div");
@@ -191,7 +196,7 @@ for(const docSnap of snap.docs){
 
   div.innerHTML=`
     <div class="meta">${senderName}</div>
-    <div class="text">${data.text}</div>
+    <div class="text">${data.text||""}</div>
     <textarea placeholder="Escribe tu respuesta...">${data.reply||""}</textarea>
     <div class="image-upload">Agregar imagen</div>
     <input type="file" style="display:none" accept="image/*"/>
@@ -219,7 +224,6 @@ for(const docSnap of snap.docs){
     const storageRef=ref(storage,`replies/${docSnap.id}`);
     await uploadBytes(storageRef,file);
     imageURL=await getDownloadURL(storageRef);
-
     alert("Imagen subida ✨");
   };
 
