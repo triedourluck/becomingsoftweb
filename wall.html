@@ -6,62 +6,102 @@
 <title>Wall</title>
 
 <style>
-body {
-  margin: 0;
-  font-family: sans-serif;
-  background: #f5f5f5;
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f5f5;
 }
 
-.container {
-  max-width: 600px;
-  margin: 40px auto;
-  padding: 20px;
+.container{
+  max-width:600px;
+  margin:40px auto;
+  padding:20px;
 }
 
-.header {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+/* HEADER */
+.header{
+  background:white;
+  border-radius:20px;
+  padding:20px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.05);
 }
 
-.avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: #ddd;
-  object-fit: cover;
+.avatar{
+  width:60px;
+  height:60px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#ddd;
 }
 
-.alias {
-  font-weight: bold;
-  font-size: 18px;
+.alias-block{
+  display:flex;
+  flex-direction:column;
 }
 
-.msg {
-  background: white;
-  border-radius: 15px;
-  padding: 15px;
-  margin-top: 15px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+.alias{
+  font-weight:600;
+  font-size:18px;
 }
 
-.from {
-  font-weight: bold;
-  margin-bottom: 5px;
-  cursor: pointer;
-  text-decoration: underline;
+.stats{
+  font-size:13px;
+  color:#666;
+  margin-top:4px;
 }
 
-.empty {
-  text-align: center;
-  margin-top: 30px;
-  color: #888;
+.stats span{
+  cursor:pointer;
 }
 
+/* MESSAGE */
+.msg{
+  background:white;
+  border-radius:16px;
+  padding:15px;
+  margin-top:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
+
+.msg-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:6px;
+}
+
+.msg-avatar{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  object-fit:cover;
+}
+
+.msg-alias{
+  font-size:13px;
+  cursor:pointer;
+}
+
+.msg-anon{
+  font-size:12px;
+  color:#777;
+}
+
+.text{
+  font-size:14px;
+  line-height:1.4;
+}
+
+.empty{
+  text-align:center;
+  margin-top:30px;
+  color:#888;
+}
+
+/* NAV */
 .top-nav{
   display:flex;
   gap:8px;
@@ -84,19 +124,25 @@ body {
 <div class="container">
 
 <div class="top-nav">
-<button onclick="goFeed()">Feed</button>
-<button onclick="goProfile()">Mi perfil</button>
+  <button onclick="goFeed()">Feed</button>
+  <button onclick="goProfile()">Mi perfil</button>
 </div>
 
 <div class="header">
-<img id="avatar" class="avatar" />
-<div id="alias" class="alias">...</div>
+  <img id="avatar" class="avatar"/>
+  <div class="alias-block">
+    <div id="alias" class="alias">...</div>
+    <div class="stats">
+      <span id="followers"></span> ·
+      <span id="following"></span>
+    </div>
+  </div>
 </div>
 
 <div id="wall"></div>
 
 <div id="empty" class="empty" style="display:none;">
-Aún no hay mensajes publicados 🌙
+  Aún no hay mensajes publicados 🌙
 </div>
 
 </div>
@@ -105,17 +151,17 @@ Aún no hay mensajes publicados 🌙
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
-getFirestore,
-collection,
-query,
-where,
-orderBy,
-getDocs,
-doc,
-getDoc
+  getFirestore,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  doc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig = {
+const firebaseConfig={
 apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
 authDomain:"becomingsoft-84e72.firebaseapp.com",
 projectId:"becomingsoft-84e72",
@@ -132,40 +178,50 @@ const wallEl=document.getElementById("wall");
 const emptyEl=document.getElementById("empty");
 const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
+const followersEl=document.getElementById("followers");
+const followingEl=document.getElementById("following");
 
-onAuthStateChanged(auth, async(user)=>{
+/* 👇 Imagen default anónimo */
+const DEFAULT_ANON="anon.png"; // <-- sube esta imagen a tu proyecto
+
+onAuthStateChanged(auth,async(user)=>{
 if(!user){
-location.href="login.html";
-return;
+  location.href="login.html";
+  return;
 }
 
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid")||user.uid;
 
-/* 🔹 CARGAR PERFIL */
+/* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
 const userData=userSnap.data();
 
 aliasEl.textContent=userData?.alias||"sin alias";
+
+followersEl.textContent=`${userData?.followers?.length||0} followers`;
+followingEl.textContent=`${userData?.following?.length||0} following`;
+
+followersEl.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
+followingEl.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
+
 if(userData?.photoURL) avatarEl.src=userData.photoURL;
 
-/* 🎨 APPLY WALL THEME */
+/* APPLY THEME */
 if(userData?.theme){
 
-document.body.style.backgroundColor=userData.theme.wallPageBg||"#f5f5f5";
-document.querySelector(".container").style.backgroundColor=userData.theme.wallCardBg||"transparent";
+if(userData.theme.pageBg)
+document.body.style.background=userData.theme.pageBg;
 
-if(userData.theme.wallBackgroundImage){
-document.body.style.backgroundImage=`url(${userData.theme.wallBackgroundImage})`;
+if(userData.theme.backgroundImage){
+document.body.style.backgroundImage=`url(${userData.theme.backgroundImage})`;
 document.body.style.backgroundSize="cover";
 document.body.style.backgroundPosition="center";
-}else{
-document.body.style.backgroundImage="none";
 }
 
 }
 
-/* 🔹 QUERY WALL */
+/* LOAD WALL */
 const q=query(
 collection(db,"messages"),
 where("to","==",uid),
@@ -186,40 +242,53 @@ const data=docSnap.data();
 const div=document.createElement("div");
 div.className="msg";
 
-let fromAlias="Anónimo";
+const header=document.createElement("div");
+header.className="msg-header";
 
 if(data.fromAlias){
+
 const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
-fromAlias=fromSnap.data()?.alias||"usuario";
+const fromData=fromSnap.data();
+
+const img=document.createElement("img");
+img.className="msg-avatar";
+img.src=fromData?.photoURL||DEFAULT_ANON;
+
+const name=document.createElement("div");
+name.className="msg-alias";
+name.textContent=fromData?.alias||"usuario";
+name.onclick=()=>location.href=`user.html?alias=${fromData.alias}`;
+
+header.appendChild(img);
+header.appendChild(name);
+
+}else{
+
+const img=document.createElement("img");
+img.className="msg-avatar";
+img.src=DEFAULT_ANON;
+
+const anon=document.createElement("div");
+anon.className="msg-anon";
+anon.textContent="anónimo";
+
+header.appendChild(img);
+header.appendChild(anon);
 }
 
-const fromEl=document.createElement("div");
-fromEl.className="from";
-fromEl.textContent="@"+fromAlias;
+const text=document.createElement("div");
+text.className="text";
+text.textContent=data.text;
 
-if(data.fromAlias){
-fromEl.onclick=()=>{
-window.location.href=`user.html?alias=${fromAlias}`;
-};
-}
-
-const textEl=document.createElement("div");
-textEl.textContent=data.text;
-
-div.appendChild(fromEl);
-div.appendChild(textEl);
+div.appendChild(header);
+div.appendChild(text);
 wallEl.appendChild(div);
 }
 
 });
 
-window.goFeed=()=>{
-window.location.href="feed.html";
-};
-
-window.goProfile=()=>{
-window.location.href="profile.html";
-};
+window.goFeed=()=>location.href="feed.html";
+window.goProfile=()=>location.href="profile.html";
 </script>
 
 </body>
