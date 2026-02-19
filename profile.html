@@ -18,11 +18,38 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
   position:relative;
 }
 
+/* SEARCH DESKTOP */
 .search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
-.search input{width:190px;padding:10px 12px;border-radius:12px;border:1px solid #ddd;font-size:14px;}
-.search button{padding:10px 16px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;font-size:14px;}
+.search input{
+  width:190px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  font-size:14px;
+}
+.search button{
+  padding:10px 16px;
+  border:none;
+  border-radius:12px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
+}
 
-.logout{position:absolute;top:64px;right:24px;padding:8px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:13px;}
+/* LOGOUT DESKTOP */
+.logout{
+  position:absolute;
+  top:64px;
+  right:24px;
+  padding:8px 14px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+}
 
 .top{display:flex;gap:20px;align-items:center;margin-top:10px;}
 .avatar{width:80px;height:80px;border-radius:50%;background:#ddd;object-fit:cover;cursor:pointer;}
@@ -31,23 +58,123 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 .stats{font-size:13px;color:#666;margin-top:6px;}
 .stats span{cursor:pointer;}
 
-.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;align-items:start;}
+.layout{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:24px;
+  margin-top:24px;
+  align-items:start;
+}
 
-.photos{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-.photo{width:100%;height:140px;background:#eee;border-radius:12px;object-fit:cover;cursor:pointer;}
+.photos{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+.photo{
+  width:100%;
+  height:140px;
+  background:#eee;
+  border-radius:12px;
+  object-fit:cover;
+  cursor:pointer;
+}
 
 .right{display:flex;flex-direction:column;gap:20px;}
 
-.spotify{margin-top:40px;width:100%;}
-.spotify iframe{width:100%;border:none;border-radius:12px;display:block;}
-.spotify input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #ddd;margin-top:14px;box-sizing:border-box;}
+.spotify{
+  margin-top:40px;
+  width:100%;
+}
+.spotify iframe{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  display:block;
+}
+.spotify input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  margin-top:14px;
+  box-sizing:border-box;
+}
 
-.save-btn{margin-top:8px;padding:6px 12px;border:none;border-radius:8px;background:#111;color:white;cursor:pointer;font-size:12px;}
+.save-btn{
+  margin-top:8px;
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:12px;
+}
 
-.bottom{margin-top:24px;display:flex;gap:12px;}
-.gear,.icon-btn{padding:10px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:14px;}
+.bottom{
+  margin-top:24px;
+  display:flex;
+  gap:12px;
+}
+.gear,.icon-btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
+}
 
 .hidden{display:none;}
+
+/* ================= MOBILE ================= */
+@media (max-width:700px){
+
+.container{
+  margin:0;
+  border-radius:0;
+  padding:20px 18px 90px;
+}
+
+.search{
+  position:absolute;
+  top:14px;
+  right:16px;
+}
+.search input{width:130px;padding:6px 8px;font-size:12px;}
+.search button{padding:6px 10px;font-size:12px;}
+
+.logout{
+  top:54px;
+  right:16px;
+  font-size:12px;
+  padding:6px 10px;
+}
+
+.top{margin-top:80px;gap:12px;}
+
+.avatar{width:64px;height:64px;}
+.alias{font-size:18px;}
+.stats{font-size:12px;margin-top:4px;}
+
+.layout{display:block;margin-top:20px;}
+
+.photos{
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.photo{height:100px;}
+
+.bottom{
+  position:fixed;
+  bottom:18px;
+  left:0;
+  width:100%;
+  justify-content:center;
+}
+}
 </style>
 </head>
 
@@ -110,7 +237,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
-const firebaseConfig = {
+const firebaseConfig={
 apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
 authDomain:"becomingsoft-84e72.firebaseapp.com",
 projectId:"becomingsoft-84e72",
@@ -124,7 +251,6 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 const storage=getStorage(app);
 
-/* DOM */
 const avatar=document.getElementById("avatar");
 const avatarInput=document.getElementById("avatarInput");
 const alias=document.getElementById("alias");
@@ -142,7 +268,6 @@ const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(i
 let uid=null;
 let photoIndex=0;
 
-/* AUTH */
 onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
 uid=user.uid;
@@ -152,7 +277,7 @@ const d=snap.data();
 
 alias.textContent=d.alias||"sin alias";
 
-/* 🔎 FILTRAR FOLLOWERS */
+/* FILTRAR FOLLOWERS */
 let validFollowers=[];
 if(d.followers){
 for(const f of d.followers){
@@ -161,7 +286,7 @@ if(s.exists()) validFollowers.push(f);
 }
 }
 
-/* 🔎 FILTRAR FOLLOWING */
+/* FILTRAR FOLLOWING */
 let validFollowing=[];
 if(d.following){
 for(const f of d.following){
@@ -180,7 +305,6 @@ if(d.photoURL) avatar.src=d.photoURL;
 (d.photos||[]).forEach((url,i)=>{if(url) photoEls[i].src=url;});
 if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
 
-/* THEME */
 if(d.theme){
 document.body.style.backgroundColor=d.theme.pageBg||"#f5f5f5";
 document.querySelector(".container").style.backgroundColor=d.theme.cardBg||"#ffffff";
@@ -195,22 +319,19 @@ document.body.style.backgroundImage="none";
 }
 });
 
-/* AVATAR */
+/* Avatar */
 avatar.addEventListener("click",()=>avatarInput.click());
-
 avatarInput.addEventListener("change",async()=>{
 const file=avatarInput.files[0];
 if(!file)return;
-
 const storageRef=ref(storage,`avatars/${uid}`);
 await uploadBytes(storageRef,file);
 const url=await getDownloadURL(storageRef);
-
 await updateDoc(doc(db,"users",uid),{photoURL:url});
 avatar.src=url;
 });
 
-/* GRID */
+/* Grid */
 photoEls.forEach((el,i)=>{
 el.addEventListener("click",()=>{
 photoIndex=i;
@@ -221,21 +342,18 @@ photoInput.click();
 photoInput.addEventListener("change",async()=>{
 const file=photoInput.files[0];
 if(!file)return;
-
 const storageRef=ref(storage,`spaces/${uid}/${photoIndex}`);
 await uploadBytes(storageRef,file);
 const url=await getDownloadURL(storageRef);
-
 const snap=await getDoc(doc(db,"users",uid));
 const data=snap.data();
 const photos=data.photos||["","","","","",""];
 photos[photoIndex]=url;
-
 await updateDoc(doc(db,"users",uid),{photos});
 photoEls[photoIndex].src=url;
 });
 
-/* SPOTIFY */
+/* Spotify */
 saveSpotifyBtn.addEventListener("click",async()=>{
 const embed=spotifyInput.value.trim();
 if(!embed)return;
@@ -244,13 +362,13 @@ spotifyEmbed.innerHTML=embed;
 spotifyInput.value="";
 });
 
-/* LOGOUT */
+/* Logout */
 logoutBtn.addEventListener("click",async()=>{
 await signOut(auth);
 location.href="login.html";
 });
 
-/* SEARCH */
+/* Search */
 searchBtn.addEventListener("click",()=>{
 const value=searchInput.value.trim();
 if(!value)return;
