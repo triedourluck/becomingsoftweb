@@ -8,109 +8,15 @@
 <style>
 body{
   margin:0;
-  font-family:Arial, Helvetica, sans-serif;
+  font-family:Arial,Helvetica,sans-serif;
   background:#f5f5f5;
+  color:#111;
 }
 
 .container{
-  max-width:600px;
+  max-width:700px;
   margin:40px auto;
   padding:20px;
-}
-
-.header{
-  background:white;
-  border-radius:20px;
-  padding:20px;
-  display:flex;
-  align-items:center;
-  gap:15px;
-  box-shadow:0 5px 20px rgba(0,0,0,0.05);
-}
-
-.avatar{
-  width:60px;
-  height:60px;
-  border-radius:50%;
-  object-fit:cover;
-  background:#ddd;
-}
-
-.alias-block{
-  display:flex;
-  flex-direction:column;
-}
-
-.alias{
-  font-weight:600;
-  font-size:18px;
-}
-
-.stats{
-  font-size:13px;
-  color:#666;
-  margin-top:4px;
-}
-
-.stats span{
-  cursor:pointer;
-}
-
-.msg{
-  background:white;
-  border-radius:16px;
-  padding:15px;
-  margin-top:15px;
-  box-shadow:0 5px 15px rgba(0,0,0,0.05);
-  position:relative;
-}
-
-.msg-header{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:6px;
-}
-
-.msg-avatar{
-  width:28px;
-  height:28px;
-  border-radius:50%;
-  object-fit:cover;
-}
-
-.msg-alias{
-  font-size:13px;
-  cursor:pointer;
-}
-
-.msg-anon{
-  font-size:12px;
-  color:#777;
-}
-
-.text{
-  font-size:14px;
-  line-height:1.4;
-}
-
-.unpublish{
-  position:absolute;
-  top:10px;
-  right:12px;
-  font-size:11px;
-  color:#999;
-  cursor:pointer;
-}
-
-.unpublish:hover{
-  color:#000;
-}
-
-.empty{
-  text-align:center;
-  margin-top:30px;
-  color:#888;
 }
 
 .top-nav{
@@ -128,6 +34,97 @@ body{
   cursor:pointer;
   font-size:12px;
 }
+
+.header{
+  background:white;
+  border-radius:20px;
+  padding:20px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  box-shadow:0 5px 20px rgba(0,0,0,0.05);
+}
+
+.avatar{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#ddd;
+}
+
+.alias{
+  font-weight:600;
+  font-size:18px;
+}
+
+.stats{
+  font-size:13px;
+  color:#666;
+  margin-top:4px;
+}
+
+.msg{
+  background:white;
+  border-radius:15px;
+  padding:15px;
+  margin-top:15px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
+
+.msg-top{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+}
+
+.msg-avatar{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#ddd;
+}
+
+.msg-alias{
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+.msg-anon{
+  font-size:12px;
+  color:#777;
+  text-transform:lowercase;
+}
+
+.msg-text{
+  margin-top:6px;
+}
+
+.msg-img{
+  margin-top:10px;
+  max-width:100%;
+  border-radius:12px;
+}
+
+.unpublish{
+  margin-top:10px;
+  padding:6px 12px;
+  border:none;
+  border-radius:8px;
+  background:#ff4d4d;
+  color:white;
+  cursor:pointer;
+  font-size:11px;
+}
+
+.empty{
+  text-align:center;
+  margin-top:30px;
+  color:#888;
+}
 </style>
 </head>
 
@@ -135,24 +132,22 @@ body{
 <div class="container">
 
 <div class="top-nav">
-  <button onclick="goFeed()">Feed</button>
-  <button onclick="goProfile()">Mi perfil</button>
+<button onclick="goFeed()">Feed</button>
+<button onclick="goProfile()">Mi perfil</button>
 </div>
 
 <div class="header">
-  <img id="avatar" class="avatar"/>
-  <div class="alias-block">
-    <div id="alias" class="alias">...</div>
-    <div class="stats">
-      <span id="followers"></span> ·
-      <span id="following"></span>
-    </div>
-  </div>
+<img id="avatar" class="avatar"/>
+<div>
+<div id="alias" class="alias">...</div>
+<div id="stats" class="stats"></div>
+</div>
 </div>
 
 <div id="wall"></div>
+
 <div id="empty" class="empty" style="display:none;">
-  Aún no hay mensajes publicados 🌙
+Aún no hay mensajes publicados 🌙
 </div>
 
 </div>
@@ -172,112 +167,123 @@ import {
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig={...}; // deja tu config igual
-
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
-
-const wallEl=document.getElementById("wall");
-const emptyEl=document.getElementById("empty");
-const avatarEl=document.getElementById("avatar");
-const aliasEl=document.getElementById("alias");
-const followersEl=document.getElementById("followers");
-const followingEl=document.getElementById("following");
-
-const DEFAULT_ANON="anon.png";
-
-onAuthStateChanged(auth,async(user)=>{
-if(!user){ location.href="login.html"; return; }
-
-const params=new URLSearchParams(window.location.search);
-const uid=params.get("uid")||user.uid;
-const isOwner = uid===user.uid;
-
-/* USER DATA */
-const userSnap=await getDoc(doc(db,"users",uid));
-const userData=userSnap.data();
-
-aliasEl.textContent=userData?.alias||"sin alias";
-followersEl.textContent=`${userData?.followers?.length||0} followers`;
-followingEl.textContent=`${userData?.following?.length||0} following`;
-
-if(userData?.photoURL) avatarEl.src=userData.photoURL;
-
-/* QUERY */
-const q=query(
-collection(db,"messages"),
-where("to","==",uid),
-where("published","==",true),
-orderBy("createdAt","desc")
-);
-
-const snap=await getDocs(q);
-
-if(snap.empty){ emptyEl.style.display="block"; return; }
-
-for(const docSnap of snap.docs){
-
-const data=docSnap.data();
-const div=document.createElement("div");
-div.className="msg";
-
-/* DESPUBLICAR */
-if(isOwner){
-const unpublish=document.createElement("div");
-unpublish.className="unpublish";
-unpublish.textContent="despublicar";
-
-unpublish.onclick=async()=>{
-await updateDoc(doc(db,"messages",docSnap.id),{
-published:false
-});
-location.reload();
+const firebaseConfig = {
+  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  authDomain:"becomingsoft-84e72.firebaseapp.com",
+  projectId:"becomingsoft-84e72",
+  storageBucket:"becomingsoft-84e72.firebasestorage.app",
+  messagingSenderId:"605759003962",
+  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 };
 
-div.appendChild(unpublish);
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-const header=document.createElement("div");
-header.className="msg-header";
+const wallEl = document.getElementById("wall");
+const emptyEl = document.getElementById("empty");
+const avatarEl = document.getElementById("avatar");
+const aliasEl = document.getElementById("alias");
+const statsEl = document.getElementById("stats");
 
-if(data.fromAlias){
-const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
-const fromData=fromSnap.data();
+onAuthStateChanged(auth, async (user) => {
+  if(!user){
+    location.href="login.html";
+    return;
+  }
 
-const img=document.createElement("img");
-img.className="msg-avatar";
-img.src=fromData?.photoURL||DEFAULT_ANON;
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get("uid") || user.uid;
+  const isOwnWall = uid === user.uid;
 
-const name=document.createElement("div");
-name.className="msg-alias";
-name.textContent=fromData?.alias||"usuario";
-name.onclick=()=>location.href=`user.html?alias=${fromData.alias}`;
+  const userSnap = await getDoc(doc(db,"users",uid));
+  const userData = userSnap.data();
 
-header.appendChild(img);
-header.appendChild(name);
-}else{
-const img=document.createElement("img");
-img.className="msg-avatar";
-img.src=DEFAULT_ANON;
+  aliasEl.textContent = userData?.alias || "sin alias";
+  avatarEl.src = userData?.photoURL || "anon.png";
 
-const anon=document.createElement("div");
-anon.className="msg-anon";
-anon.textContent="anónimo";
+  statsEl.textContent =
+    `${userData?.followers?.length||0} followers · ${userData?.following?.length||0} following`;
 
-header.appendChild(img);
-header.appendChild(anon);
-}
+  const q = query(
+    collection(db,"messages"),
+    where("to","==",uid),
+    where("published","==",true),
+    orderBy("createdAt","desc")
+  );
 
-const text=document.createElement("div");
-text.className="text";
-text.textContent=data.text;
+  const snap = await getDocs(q);
 
-div.appendChild(header);
-div.appendChild(text);
-wallEl.appendChild(div);
-}
+  if(snap.empty){
+    emptyEl.style.display="block";
+    return;
+  }
 
+  for(const docSnap of snap.docs){
+    const data = docSnap.data();
+    const div = document.createElement("div");
+    div.className="msg";
+
+    const top = document.createElement("div");
+    top.className="msg-top";
+
+    if(data.fromAlias){
+      const fromSnap = await getDoc(doc(db,"users",data.fromAlias));
+      const fromData = fromSnap.data();
+
+      const img = document.createElement("img");
+      img.className="msg-avatar";
+      img.src = fromData?.photoURL || "anon.png";
+
+      const name = document.createElement("div");
+      name.className="msg-alias";
+      name.textContent = fromData?.alias || "usuario";
+      name.onclick = ()=>location.href=`user.html?alias=${fromData?.alias}`;
+
+      top.appendChild(img);
+      top.appendChild(name);
+    }else{
+      const img = document.createElement("img");
+      img.className="msg-avatar";
+      img.src = "anon.png";
+
+      const name = document.createElement("div");
+      name.className="msg-anon";
+      name.textContent="anónimo";
+
+      top.appendChild(img);
+      top.appendChild(name);
+    }
+
+    const text = document.createElement("div");
+    text.className="msg-text";
+    text.textContent=data.text;
+
+    div.appendChild(top);
+    div.appendChild(text);
+
+    if(data.replyImage){
+      const img = document.createElement("img");
+      img.src=data.replyImage;
+      img.className="msg-img";
+      div.appendChild(img);
+    }
+
+    if(isOwnWall){
+      const btn = document.createElement("button");
+      btn.className="unpublish";
+      btn.textContent="Despublicar";
+      btn.onclick = async ()=>{
+        await updateDoc(doc(db,"messages",docSnap.id),{
+          published:false
+        });
+        location.reload();
+      };
+      div.appendChild(btn);
+    }
+
+    wallEl.appendChild(div);
+  }
 });
 
 window.goFeed=()=>location.href="feed.html";
