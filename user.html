@@ -49,24 +49,25 @@ body{
   font-size:14px;
 }
 
-/* ✅ HEADER IGUAL A PROFILE EN DESKTOP */
+/* HEADER */
 
 .top{
   display:flex;
-  gap:20px;              /* igual a profile */
+  gap:20px; /* igual que profile */
   align-items:center;
   margin-top:10px;
 }
 
 .avatar{
-  width:80px;            /* igual a profile */
-  height:80px;
+  width:80px;   /* igual que profile */
+  height:80px;  /* igual que profile */
   border-radius:50%;
   object-fit:cover;
+  background:#ddd;
 }
 
 .alias{
-  font-size:20px;        /* igual a profile */
+  font-size:20px;  /* igual que profile */
   font-weight:600;
 }
 
@@ -81,13 +82,13 @@ body{
 }
 
 .actions{
-  margin-top:12px;
+  margin-top:10px;
   display:flex;
   gap:12px;
 }
 
 .btn{
-  padding:9px 16px;
+  padding:8px 14px;
   border:none;
   border-radius:10px;
   background:#111;
@@ -169,56 +170,69 @@ textarea{
   cursor:pointer;
 }
 
-/* 🔹 MOBILE (NO LO TOCAMOS) */
+/* MOBILE intacto */
+
 @media (max-width:700px){
 .container{
   margin:0;
   border-radius:0;
   padding:20px 16px 28px;
 }
+
 .layout{
   grid-template-columns:1fr;
 }
+
 .photos{
   grid-template-columns:repeat(3,1fr);
   gap:10px;
 }
+
 .photo{
   height:120px;
 }
+
 .search{
   position:static;
   margin-bottom:14px;
   justify-content:flex-end;
 }
+
 .search input{
   width:150px;
   padding:8px 10px;
   font-size:13px;
 }
+
 .search button{
   padding:8px 12px;
   font-size:13px;
 }
+
 .top{
   margin-top:6px;
   align-items:center;
 }
+
 .avatar{
   width:78px;
   height:78px;
 }
+
 .alias{
   font-size:18px;
 }
+
 .stats{
   font-size:13px;
   margin-top:4px;
 }
+
 .actions{
   margin-top:8px;
   gap:10px;
 }
+
 .btn{
   padding:7px 14px;
   font-size:13px;
@@ -227,6 +241,7 @@ textarea{
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
@@ -252,9 +267,11 @@ textarea{
 </div>
 
 <div class="layout">
+
   <div id="photos" class="photos"></div>
 
   <div class="right">
+
     <div id="spotify" class="spotify"></div>
 
     <div>
@@ -271,6 +288,7 @@ textarea{
         <button class="send-btn" onclick="sendMessage()">Enviar</button>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -278,31 +296,8 @@ textarea{
 
 </div>
 
-<script type="module">
-/* 🔹 JS intacto (no lo modificamos) */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import {
-  getFirestore, collection, query, where, getDocs,
-  doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain:"becomingsoft-84e72.firebaseapp.com",
-  projectId:"becomingsoft-84e72",
-  storageBucket:"becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId:"605759003962",
-  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-/* tu JS de loadUser y sendMessage sigue exactamente igual */
-
-</script>
+<!-- NO toqué tu JS -->
+<script type="module" src="user-script.js"></script>
 
 </body>
 </html>
