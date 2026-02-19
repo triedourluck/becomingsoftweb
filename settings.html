@@ -23,6 +23,7 @@ body{
 }
 
 h1{margin-top:0;font-size:20px;}
+h2{margin-top:28px;font-size:16px;}
 
 label{
   font-size:13px;
@@ -128,7 +129,8 @@ input[type="password"]{
 Permitir mensajes anónimos
 </label>
 
-<!-- 🎨 THEME -->
+<h2>🎨 Perfil</h2>
+
 <label>Color fondo de página (HEX)</label>
 <input type="text" id="pageBgColor" placeholder="#f5f5f5"/>
 
@@ -138,6 +140,18 @@ Permitir mensajes anónimos
 <label>Imagen de fondo</label>
 <input type="file" id="bgImageInput" accept="image/*"/>
 <button class="small-btn" onclick="removeBgImage()">Eliminar imagen de fondo</button>
+
+<h2>🌙 Wall</h2>
+
+<label>Color fondo de página wall (HEX)</label>
+<input type="text" id="wallPageBgColor" placeholder="#f5f5f5"/>
+
+<label>Color del recuadro principal wall (HEX)</label>
+<input type="text" id="wallCardBgColor" placeholder="#ffffff"/>
+
+<label>Imagen de fondo wall</label>
+<input type="file" id="wallBgImageInput" accept="image/*"/>
+<button class="small-btn" onclick="removeWallBgImage()">Eliminar imagen de fondo wall</button>
 
 <label>Contraseña actual</label>
 <input type="password" id="currentPass"/>
@@ -184,12 +198,12 @@ getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain: "becomingsoft-84e72.firebaseapp.com",
-  projectId: "becomingsoft-84e72",
-  storageBucket: "becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId: "605759003962",
-  appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  authDomain:"becomingsoft-84e72.firebaseapp.com",
+  projectId:"becomingsoft-84e72",
+  storageBucket:"becomingsoft-84e72.firebasestorage.app",
+  messagingSenderId:"605759003962",
+  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -222,6 +236,8 @@ onAuthStateChanged(auth, async(user)=>{
     existingTheme = d.theme;
     pageBgColor.value = d.theme.pageBg || "";
     cardBgColor.value = d.theme.cardBg || "";
+    wallPageBgColor.value = d.theme.wallPageBg || "";
+    wallCardBgColor.value = d.theme.wallCardBg || "";
   }
 });
 
@@ -245,12 +261,17 @@ window.saveAll = async()=>{
   }
 
   let bgImageURL = existingTheme.backgroundImage || "";
-  const file = bgImageInput.files[0];
-
-  if(file){
+  if(bgImageInput.files[0]){
     const storageRef = ref(storage,`backgrounds/${uid}`);
-    await uploadBytes(storageRef,file);
+    await uploadBytes(storageRef,bgImageInput.files[0]);
     bgImageURL = await getDownloadURL(storageRef);
+  }
+
+  let wallBgImageURL = existingTheme.wallBackgroundImage || "";
+  if(wallBgImageInput.files[0]){
+    const storageRef = ref(storage,`wall_backgrounds/${uid}`);
+    await uploadBytes(storageRef,wallBgImageInput.files[0]);
+    wallBgImageURL = await getDownloadURL(storageRef);
   }
 
   await updateDoc(doc(db,"users",uid),{
@@ -262,7 +283,10 @@ window.saveAll = async()=>{
     theme:{
       pageBg:pageBgColor.value.trim(),
       cardBg:cardBgColor.value.trim(),
-      backgroundImage:bgImageURL
+      backgroundImage:bgImageURL,
+      wallPageBg:wallPageBgColor.value.trim(),
+      wallCardBg:wallCardBgColor.value.trim(),
+      wallBackgroundImage:wallBgImageURL
     }
   });
 
@@ -272,13 +296,21 @@ window.saveAll = async()=>{
 window.removeBgImage = async()=>{
   await updateDoc(doc(db,"users",uid),{
     theme:{
-      pageBg:pageBgColor.value.trim(),
-      cardBg:cardBgColor.value.trim(),
+      ...existingTheme,
       backgroundImage:""
     }
   });
-
   alert("Imagen de fondo eliminada.");
+};
+
+window.removeWallBgImage = async()=>{
+  await updateDoc(doc(db,"users",uid),{
+    theme:{
+      ...existingTheme,
+      wallBackgroundImage:""
+    }
+  });
+  alert("Imagen de fondo wall eliminada.");
 };
 
 window.deleteAccount = async()=>{
