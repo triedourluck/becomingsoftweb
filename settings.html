@@ -33,7 +33,8 @@ label{
   margin-bottom:6px;
 }
 
-input[type="text"]{
+input[type="text"],
+input[type="password"]{
   width:100%;
   padding:10px;
   border-radius:10px;
@@ -103,6 +104,18 @@ input[type="file"]{
 
 <h1>Configuración</h1>
 
+<!-- FRASES -->
+<label>Frase del título</label>
+<input type="text" id="titlePhrase"/>
+
+<label>Frase del recuadro</label>
+<input type="text" id="boxPhrase"/>
+
+<label>
+<input type="checkbox" id="allowAnonToggle"/>
+Permitir mensajes anónimos
+</label>
+
 <h2>🎨 Perfil</h2>
 
 <label>Color fondo perfil (HEX)</label>
@@ -139,25 +152,25 @@ input[type="file"]{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { 
-  getAuth, 
-  onAuthStateChanged, 
+import {
+  getAuth,
+  onAuthStateChanged,
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { 
-  getFirestore, 
-  doc, 
-  getDoc, 
+import {
+  getFirestore,
+  doc,
+  getDoc,
   setDoc,
-  deleteDoc 
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { 
-  getStorage, 
-  ref, 
-  uploadBytes, 
-  getDownloadURL 
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -183,6 +196,13 @@ onAuthStateChanged(auth, async(user)=>{
   const snap = await getDoc(doc(db,"users",uid));
   const d = snap.data();
 
+  if(d?.wallText){
+    titlePhrase.value = d.wallText.title || "";
+    boxPhrase.value = d.wallText.box || "";
+  }
+
+  allowAnonToggle.checked = d.allowAnonymous ?? true;
+
   if(d?.theme?.profile){
     profilePageBg.value = d.theme.profile.pageBg || "";
     profileCardBg.value = d.theme.profile.cardBg || "";
@@ -197,7 +217,8 @@ onAuthStateChanged(auth, async(user)=>{
 window.saveAll = async()=>{
 
   const snap = await getDoc(doc(db,"users",uid));
-  const existingTheme = snap.data()?.theme || {};
+  const existing = snap.data() || {};
+  const existingTheme = existing.theme || {};
 
   let profileBgURL = existingTheme.profile?.backgroundImage || "";
   let wallBgURL = existingTheme.wall?.backgroundImage || "";
@@ -214,7 +235,7 @@ window.saveAll = async()=>{
     wallBgURL = await getDownloadURL(refW);
   }
 
-  const theme = {
+  const newTheme = {
     profile:{
       pageBg: profilePageBg.value.trim(),
       cardBg: profileCardBg.value.trim(),
@@ -227,9 +248,16 @@ window.saveAll = async()=>{
     }
   };
 
-  await setDoc(doc(db,"users",uid), { theme }, { merge:true });
+  await setDoc(doc(db,"users",uid),{
+    wallText:{
+      title:titlePhrase.value.trim(),
+      box:boxPhrase.value.trim()
+    },
+    allowAnonymous:allowAnonToggle.checked,
+    theme:newTheme
+  },{merge:true});
 
-  alert("Theme guardado 🌷");
+  alert("Cambios guardados 🌷");
 };
 
 window.removeProfileBg = async()=>{
@@ -259,7 +287,7 @@ window.deleteAccount = async()=>{
     const credential = EmailAuthProvider.credential(user.email,password);
     await reauthenticateWithCredential(user,credential);
   }catch{
-    alert("Contraseña incorrecta. No se eliminó la cuenta.");
+    alert("Contraseña incorrecta.");
     return;
   }
 
@@ -268,11 +296,11 @@ window.deleteAccount = async()=>{
   await deleteUser(user);
   await deleteDoc(doc(db,"users",uid));
 
-  alert("Cuenta eliminada correctamente.");
+  alert("Cuenta eliminada.");
   location.href="index.html";
 };
 
 window.goBack = ()=>location.href="profile.html";
 </script>
 </body>
-</html> 
+</html>
