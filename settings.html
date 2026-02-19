@@ -54,6 +54,16 @@ input[type="password"]{
   color:#666;
 }
 
+.small-btn{
+  margin-top:6px;
+  padding:6px 10px;
+  font-size:12px;
+  border:none;
+  border-radius:8px;
+  background:#eee;
+  cursor:pointer;
+}
+
 .btn{
   margin-top:22px;
   padding:12px 16px;
@@ -107,10 +117,10 @@ input[type="password"]{
 
 <h1>Configuración</h1>
 
-<label>Frase del título</label>
+<label>Frase de recuadro de mensajes</label>
 <input type="text" id="titlePhrase"/>
 
-<label>Frase del recuadro</label>
+<label>Frase dentro del recuadro de mensajes</label>
 <input type="text" id="boxPhrase"/>
 
 <label>
@@ -127,6 +137,7 @@ Permitir mensajes anónimos
 
 <label>Imagen de fondo</label>
 <input type="file" id="bgImageInput" accept="image/*"/>
+<button class="small-btn" onclick="removeBgImage()">Eliminar imagen de fondo</button>
 
 <label>Contraseña actual</label>
 <input type="password" id="currentPass"/>
@@ -256,6 +267,18 @@ window.saveAll = async()=>{
   });
 
   alert("Cambios guardados 🌿");
+};
+
+window.removeBgImage = async()=>{
+  await updateDoc(doc(db,"users",uid),{
+    theme:{
+      pageBg:pageBgColor.value.trim(),
+      cardBg:cardBgColor.value.trim(),
+      backgroundImage:""
+    }
+  });
+
+  alert("Imagen de fondo eliminada.");
 };
 
 window.deleteAccount = async()=>{
