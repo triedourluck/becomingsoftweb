@@ -164,9 +164,30 @@ uid=user.uid;
 const snap=await getDoc(doc(db,"users",uid));
 const d=snap.data();
 
+/* LIMPIEZA FOLLOWERS FANTASMAS */
+let validFollowers=[];
+for(const fid of (d.followers||[])){
+  const exists=await getDoc(doc(db,"users",fid));
+  if(exists.exists()) validFollowers.push(fid);
+}
+
+let validFollowing=[];
+for(const fid of (d.following||[])){
+  const exists=await getDoc(doc(db,"users",fid));
+  if(exists.exists()) validFollowing.push(fid);
+}
+
+if(validFollowers.length!== (d.followers||[]).length ||
+   validFollowing.length!== (d.following||[]).length){
+  await updateDoc(doc(db,"users",uid),{
+    followers:validFollowers,
+    following:validFollowing
+  });
+}
+
 alias.textContent=d.alias||"sin alias";
-followersBtn.textContent=`${d.followers?.length||0} followers`;
-followingBtn.textContent=`${d.following?.length||0} following`;
+followersBtn.textContent=`${validFollowers.length} followers`;
+followingBtn.textContent=`${validFollowing.length} following`;
 
 followersBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
 followingBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
@@ -200,56 +221,9 @@ document.body.style.backgroundImage="none";
 }
 }
 
-/* DRAG MOBILE SWAP */
-if(isMobile){
-
-let startIndex=null;
-
-photoEls.forEach((el,i)=>{
-
-el.addEventListener("touchstart",()=>{startIndex=i;});
-
-el.addEventListener("touchend",async(e)=>{
-
-const touch=e.changedTouches[0];
-const target=document.elementFromPoint(touch.clientX,touch.clientY);
-const endIndex=photoEls.findIndex(img=>img===target);
-
-if(startIndex===null||endIndex===-1||startIndex===endIndex)return;
-
-let arrayToUpdate=d.photosMobile||d.photos||[];
-
-[arrayToUpdate[startIndex],arrayToUpdate[endIndex]]=
-[arrayToUpdate[endIndex],arrayToUpdate[startIndex]];
-
-await updateDoc(doc(db,"users",uid),{photosMobile:arrayToUpdate});
-
-arrayToUpdate.forEach((url,i)=>{photoEls[i].src=url;});
-
-startIndex=null;
-
 });
 
-});
-
-}
-
-});
-
-/* AVATAR */
-avatar.addEventListener("click",()=>avatarInput.click());
-
-avatarInput.addEventListener("change",async()=>{
-const file=avatarInput.files[0];
-if(!file)return;
-const storageRef=ref(storage,`avatars/${uid}`);
-await uploadBytes(storageRef,file);
-const url=await getDownloadURL(storageRef);
-await updateDoc(doc(db,"users",uid),{photoURL:url});
-avatar.src=url;
-});
-
-/* GRID UPLOAD */
+/* UPLOAD SEGÚN DISPOSITIVO */
 photoEls.forEach((el,i)=>{
 el.addEventListener("click",()=>{
 photoIndex=i;
@@ -260,17 +234,41 @@ photoInput.click();
 photoInput.addEventListener("change",async()=>{
 const file=photoInput.files[0];
 if(!file)return;
+
 const storageRef=ref(storage,`spaces/${uid}/${photoIndex}`);
 await uploadBytes(storageRef,file);
 const url=await getDownloadURL(storageRef);
 
 const snap=await getDoc(doc(db,"users",uid));
 const data=snap.data();
-let arrayToUpdate=data.photosDesktop||data.photos||["","","","","",""];
+
+const isMobile=window.innerWidth<=700;
+
+let arrayToUpdate=isMobile
+  ? (data.photosMobile||data.photos||["","","","","",""])
+  : (data.photosDesktop||data.photos||["","","","","",""]);
+
 arrayToUpdate[photoIndex]=url;
 
-await updateDoc(doc(db,"users",uid),{photosDesktop:arrayToUpdate});
+await updateDoc(doc(db,"users",uid),
+  isMobile
+    ? {photosMobile:arrayToUpdate}
+    : {photosDesktop:arrayToUpdate}
+);
+
 photoEls[photoIndex].src=url;
+});
+
+/* AVATAR */
+avatar.addEventListener("click",()=>avatarInput.click());
+avatarInput.addEventListener("change",async()=>{
+const file=avatarInput.files[0];
+if(!file)return;
+const storageRef=ref(storage,`avatars/${uid}`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
+await updateDoc(doc(db,"users",uid),{photoURL:url});
+avatar.src=url;
 });
 
 /* SPOTIFY */
