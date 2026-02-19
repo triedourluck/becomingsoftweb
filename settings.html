@@ -198,12 +198,12 @@ getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain:"becomingsoft-84e72.firebaseapp.com",
-  projectId:"becomingsoft-84e72",
-  storageBucket:"becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId:"605759003962",
-  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
+apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+authDomain:"becomingsoft-84e72.firebaseapp.com",
+projectId:"becomingsoft-84e72",
+storageBucket:"becomingsoft-84e72.firebasestorage.app",
+messagingSenderId:"605759003962",
+appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -211,132 +211,110 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-let uid = null;
-let existingTheme = {};
+let uid=null;
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href="login.html";
-    return;
-  }
+if(!user){location.href="login.html";return;}
 
-  uid = user.uid;
+uid=user.uid;
 
-  const snap = await getDoc(doc(db,"users",uid));
-  const d = snap.data();
+const snap=await getDoc(doc(db,"users",uid));
+const d=snap.data();
 
-  if(d?.wallText){
-    titlePhrase.value = d.wallText.title || "";
-    boxPhrase.value = d.wallText.box || "";
-  }
+if(d?.wallText){
+titlePhrase.value=d.wallText.title||"";
+boxPhrase.value=d.wallText.box||"";
+}
 
-  allowAnonToggle.checked = d.allowAnonymous ?? true;
+allowAnonToggle.checked=d.allowAnonymous??true;
 
-  if(d?.theme){
-    existingTheme = d.theme;
-    pageBgColor.value = d.theme.pageBg || "";
-    cardBgColor.value = d.theme.cardBg || "";
-    wallPageBgColor.value = d.theme.wallPageBg || "";
-    wallCardBgColor.value = d.theme.wallCardBg || "";
-  }
-  
-  if(d.theme.backgroundImage){
-  const info = document.createElement("div");
-  info.style.fontSize = "12px";
-  info.style.color = "#666";
-  info.textContent = "Imagen actual guardada ✔";
-  bgImageInput.parentNode.insertBefore(info, bgImageInput.nextSibling);
+if(d?.theme){
+pageBgColor.value=d.theme.pageBg||"";
+cardBgColor.value=d.theme.cardBg||"";
+wallPageBgColor.value=d.theme.wallPageBg||"";
+wallCardBgColor.value=d.theme.wallCardBg||"";
 }
 });
 
-window.togglePass = ()=>{
-  newPass.type = newPass.type==="password" ? "text" : "password";
+window.togglePass=()=>{
+newPass.type=newPass.type==="password"?"text":"password";
 };
 
-window.saveAll = async()=>{
-  const user = auth.currentUser;
+window.saveAll=async()=>{
+const user=auth.currentUser;
 
-  if(newPass.value.trim()){
-    try{
-      const cred = EmailAuthProvider.credential(user.email,currentPass.value);
-      await reauthenticateWithCredential(user,cred);
-      await updatePassword(user,newPass.value.trim());
-      alert("Contraseña actualizada 🌙");
-    }catch{
-      alert("Contraseña incorrecta.");
-      return;
-    }
-  }
+if(newPass.value.trim()){
+try{
+const cred=EmailAuthProvider.credential(user.email,currentPass.value);
+await reauthenticateWithCredential(user,cred);
+await updatePassword(user,newPass.value.trim());
+alert("Contraseña actualizada 🌙");
+}catch{
+alert("Contraseña incorrecta.");
+return;
+}
+}
 
-  let bgImageURL = existingTheme.backgroundImage || "";
-  if(bgImageInput.files[0]){
-    const storageRef = ref(storage,`backgrounds/${uid}`);
-    await uploadBytes(storageRef,bgImageInput.files[0]);
-    bgImageURL = await getDownloadURL(storageRef);
-  }
+const snap=await getDoc(doc(db,"users",uid));
+const currentData=snap.data();
+const currentTheme=currentData.theme||{};
 
-  let wallBgImageURL = existingTheme.wallBackgroundImage || "";
-  if(wallBgImageInput.files[0]){
-    const storageRef = ref(storage,`wall_backgrounds/${uid}`);
-    await uploadBytes(storageRef,wallBgImageInput.files[0]);
-    wallBgImageURL = await getDownloadURL(storageRef);
-  }
+let bgImageURL=currentTheme.backgroundImage||"";
+if(bgImageInput.files[0]){
+const storageRef=ref(storage,`backgrounds/${uid}`);
+await uploadBytes(storageRef,bgImageInput.files[0]);
+bgImageURL=await getDownloadURL(storageRef);
+}
 
-  await updateDoc(doc(db,"users",uid),{
-    allowAnonymous:allowAnonToggle.checked,
-    wallText:{
-      title:titlePhrase.value.trim(),
-      box:boxPhrase.value.trim()
-    },
-    theme:{
-      pageBg:pageBgColor.value.trim(),
-      cardBg:cardBgColor.value.trim(),
-      backgroundImage:bgImageURL,
-      wallPageBg:wallPageBgColor.value.trim(),
-      wallCardBg:wallCardBgColor.value.trim(),
-      wallBackgroundImage:wallBgImageURL
-    }
-  });
+let wallBgImageURL=currentTheme.wallBackgroundImage||"";
+if(wallBgImageInput.files[0]){
+const storageRef=ref(storage,`wall_backgrounds/${uid}`);
+await uploadBytes(storageRef,wallBgImageInput.files[0]);
+wallBgImageURL=await getDownloadURL(storageRef);
+}
 
-  alert("Cambios guardados 🌿");
+await updateDoc(doc(db,"users",uid),{
+allowAnonymous:allowAnonToggle.checked,
+wallText:{
+title:titlePhrase.value.trim(),
+box:boxPhrase.value.trim()
+},
+theme:{
+pageBg:pageBgColor.value.trim(),
+cardBg:cardBgColor.value.trim(),
+backgroundImage:bgImageURL,
+wallPageBg:wallPageBgColor.value.trim(),
+wallCardBg:wallCardBgColor.value.trim(),
+wallBackgroundImage:wallBgImageURL
+}
+});
+
+alert("Cambios guardados 🌿");
 };
 
-window.removeBgImage = async () => {
-  try {
-    await updateDoc(doc(db, "users", uid), {
-      "theme.backgroundImage": ""
-    });
-
-    alert("Imagen de fondo eliminada.");
-  } catch (error) {
-    console.error(error);
-    alert("Error eliminando imagen.");
-  }
+window.removeBgImage=async()=>{
+await updateDoc(doc(db,"users",uid),{
+"theme.backgroundImage":""
+});
+alert("Imagen de fondo eliminada.");
 };
 
-window.removeWallBgImage = async () => {
-  try {
-    await updateDoc(doc(db, "users", uid), {
-      "theme.wallBackgroundImage": ""
-    });
-
-    alert("Imagen de fondo wall eliminada.");
-  } catch (error) {
-    console.error(error);
-    alert("Error eliminando imagen wall.");
-  }
+window.removeWallBgImage=async()=>{
+await updateDoc(doc(db,"users",uid),{
+"theme.wallBackgroundImage":""
+});
+alert("Imagen de fondo wall eliminada.");
 };
 
-window.deleteAccount = async()=>{
-  const user = auth.currentUser;
-  if(!confirm("¿Eliminar cuenta permanentemente?"))return;
-
-  await deleteDoc(doc(db,"users",user.uid));
-  await deleteUser(user);
-  location.href="index.html";
+window.deleteAccount=async()=>{
+const user=auth.currentUser;
+if(!confirm("¿Eliminar cuenta permanentemente?"))return;
+await deleteDoc(doc(db,"users",user.uid));
+await deleteUser(user);
+location.href="index.html";
 };
 
-window.goBack = ()=>location.href="profile.html";
+window.goBack=()=>location.href="profile.html";
 </script>
 
 </body>
