@@ -1,182 +1,297 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>becomingsoft — feed</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>becomingsoft — feed</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f5f5f5;
-      color: #111;
-    }
+<style>
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f5f5f5;
+  color:#111;
+}
 
-    .container {
-      max-width: 700px;
-      margin: 40px auto;
-      background: white;
-      border-radius: 20px;
-      padding: 28px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    }
+.container{
+  max-width:700px;
+  margin:40px auto;
+  background:white;
+  border-radius:20px;
+  padding:28px;
+  box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
 
-    h1 {
-      margin-top: 0;
-      font-size: 20px;
-    }
+h1{
+  margin-top:0;
+  font-size:20px;
+}
 
-    .post {
-      border: 1px solid #eee;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 14px;
-      background: #fafafa;
-    }
+.post{
+  border:1px solid #eee;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+  background:#fafafa;
+}
 
-    .user-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      margin-bottom: 10px;
-    }
+.user-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+  margin-bottom:10px;
+}
 
-    .avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: #ddd;
-    }
+.user-row:hover{
+  opacity:0.8;
+}
 
-    .alias {
-      font-weight: 600;
-      font-size: 14px;
-    }
+.avatar{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#ddd;
+}
 
-    .question {
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
+.alias{
+  font-weight:600;
+  font-size:14px;
+}
 
-    .reply {
-      font-size: 14px;
-      color: #444;
-      background: white;
-      border-radius: 12px;
-      padding: 10px;
-      border: 1px solid #eee;
-    }
+.question{
+  font-size:14px;
+  margin-bottom:6px;
+  line-height:1.4;
+}
 
-    .back {
-      margin-top: 18px;
-      font-size: 13px;
-      text-decoration: underline;
-      cursor: pointer;
-      color: #666;
-      text-align: center;
-    }
-  </style>
+.creator-tag{
+  font-weight:600;
+  cursor:pointer;
+}
+
+.creator-tag:hover{
+  opacity:0.7;
+}
+
+.reply{
+  font-size:14px;
+  color:#111;
+  background:white;
+  border-radius:12px;
+  padding:10px;
+  border:1px solid #eee;
+  margin-top:8px;
+}
+
+.reply-img{
+  max-width:100%;
+  max-height:300px;
+  border-radius:12px;
+  margin-top:8px;
+  object-fit:cover;
+}
+
+.actions{
+  margin-top:10px;
+  display:flex;
+  justify-content:flex-end;
+}
+
+.like{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+  font-size:14px;
+  user-select:none;
+}
+
+.back{
+  margin-top:18px;
+  font-size:13px;
+  text-decoration:underline;
+  cursor:pointer;
+  color:#666;
+  text-align:center;
+}
+</style>
 </head>
 <body>
 
-  <div class="container">
-    <h1>Feed</h1>
+<div class="container">
+<h1>Feed</h1>
 
-    <div id="feed"></div>
+<div id="feed"></div>
 
-    <div class="back" onclick="goBack()">← Volver</div>
-  </div>
+<div class="back" onclick="goBack()">← Volver</div>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      query,
-      where,
-      orderBy,
-      getDocs,
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  query,
+  where,
+  orderBy,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-      authDomain: "becomingsoft-84e72.firebaseapp.com",
-      projectId: "becomingsoft-84e72",
-      storageBucket: "becomingsoft-84e72.firebasestorage.app",
-      messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
-    };
+const firebaseConfig={
+  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  authDomain:"becomingsoft-84e72.firebaseapp.com",
+  projectId:"becomingsoft-84e72",
+  storageBucket:"becomingsoft-84e72.firebasestorage.app",
+  messagingSenderId:"605759003962",
+  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-    const feedEl = document.getElementById("feed");
+const feedEl=document.getElementById("feed");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
+onAuthStateChanged(auth,async(user)=>{
+if(!user){
+window.location.href="login.html";
+return;
+}
 
-      // 🔎 obtener mis seguidos
-      const mySnap = await getDoc(doc(db, "users", user.uid));
-      const following = mySnap.data()?.following || [];
+/* Obtener a quién sigo */
+const mySnap=await getDoc(doc(db,"users",user.uid));
+const following=mySnap.data()?.following||[];
 
-      if (following.length === 0) {
-        feedEl.innerHTML = "<p>No sigues a nadie todavía 🌱</p>";
-        return;
-      }
+if(following.length===0){
+feedEl.innerHTML="<p>No sigues a nadie todavía 🌱</p>";
+return;
+}
 
-      // 🔎 buscar mensajes publicados de mis seguidos
-      const q = query(
-        collection(db, "messages"),
-        where("published", "==", true),
-        where("to", "in", following.slice(0, 10)),
-        orderBy("createdAt", "desc")
-      );
+/* Query feed */
+const q=query(
+collection(db,"messages"),
+where("published","==",true),
+where("to","in",following.slice(0,10)),
+orderBy("createdAt","desc")
+);
 
-      const snap = await getDocs(q);
+const snap=await getDocs(q);
 
-      if (snap.empty) {
-        feedEl.innerHTML = "<p>Aún no hay respuestas en tu feed ✨</p>";
-        return;
-      }
+if(snap.empty){
+feedEl.innerHTML="<p>Aún no hay respuestas en tu feed ✨</p>";
+return;
+}
 
-      for (const msgDoc of snap.docs) {
-        const data = msgDoc.data();
+for(const msgDoc of snap.docs){
 
-        // 🔎 obtener datos del dueño del wall
-        const userSnap = await getDoc(doc(db, "users", data.to));
-        const u = userSnap.data();
+const data=msgDoc.data();
 
-        const post = document.createElement("div");
-        post.className = "post";
+/* Obtener dueño del wall */
+const ownerSnap=await getDoc(doc(db,"users",data.to));
+const owner=ownerSnap.data();
 
-        post.innerHTML = `
-          <div class="user-row" onclick="location.href='user.html?alias=${u.alias}'">
-            <img class="avatar" src="${u.photoURL || ""}" />
-            <div class="alias">@${u.alias}</div>
-          </div>
+const post=document.createElement("div");
+post.className="post";
 
-          <div class="question">${data.text}</div>
+/* HEADER OWNER */
+const userRow=document.createElement("div");
+userRow.className="user-row";
+userRow.onclick=()=>{
+location.href=`user.html?alias=${owner.alias}`;
+};
 
-          ${data.reply ? `<div class="reply">${data.reply}</div>` : ""}
-        `;
+const avatar=document.createElement("img");
+avatar.className="avatar";
+avatar.src=owner.photoURL||"";
 
-        feedEl.appendChild(post);
-      }
-    });
+const alias=document.createElement("div");
+alias.className="alias";
+alias.textContent="@"+owner.alias;
 
-    window.goBack = () => {
-      window.location.href = "profile.html";
-    };
-  </script>
+userRow.appendChild(avatar);
+userRow.appendChild(alias);
+post.appendChild(userRow);
+
+/* MENSAJE ORIGINAL + CREATOR TAG */
+if(data.text){
+const question=document.createElement("div");
+question.className="question";
+
+question.innerHTML=`
+${data.text}
+<span class="creator-tag" onclick="event.stopPropagation(); location.href='user.html?alias=${owner.alias}'">
+&nbsp;${owner.alias}
+</span>
+`;
+
+post.appendChild(question);
+}
+
+/* RESPUESTA */
+if(data.reply){
+const reply=document.createElement("div");
+reply.className="reply";
+reply.textContent=data.reply;
+post.appendChild(reply);
+}
+
+/* IMAGEN */
+if(data.replyImage){
+const img=document.createElement("img");
+img.src=data.replyImage;
+img.className="reply-img";
+post.appendChild(img);
+}
+
+/* LIKES */
+const actions=document.createElement("div");
+actions.className="actions";
+
+const likeContainer=document.createElement("div");
+likeContainer.className="like";
+
+const likesArray=data.likes||[];
+const hasLiked=likesArray.includes(user.uid);
+
+const heart=document.createElement("span");
+heart.textContent=hasLiked?"♥︎":"♡";
+
+const likeCount=document.createElement("span");
+likeCount.textContent=likesArray.length;
+
+likeContainer.appendChild(heart);
+likeContainer.appendChild(likeCount);
+
+likeContainer.onclick=async()=>{
+if(hasLiked){
+await updateDoc(doc(db,"messages",msgDoc.id),{
+likes:likesArray.filter(id=>id!==user.uid)
+});
+}else{
+await updateDoc(doc(db,"messages",msgDoc.id),{
+likes:[...likesArray,user.uid]
+});
+}
+location.reload();
+};
+
+actions.appendChild(likeContainer);
+post.appendChild(actions);
+
+feedEl.appendChild(post);
+}
+});
+
+window.goBack=()=>{
+window.location.href="profile.html";
+};
+</script>
+
 </body>
 </html>
