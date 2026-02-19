@@ -49,8 +49,7 @@ body{
   font-size:14px;
 }
 
-/* 🔥 EXACTAMENTE IGUAL A PROFILE DESKTOP */
-
+/* EXACTO PROFILE DESKTOP */
 .top{
   display:flex;
   gap:20px;
@@ -205,7 +204,7 @@ textarea{
     <div id="spotify" class="spotify"></div>
 
     <div>
-      <h3 id="titleText">Envíame un mensaje</h3>
+      <h3>Envíame un mensaje</h3>
 
       <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
@@ -251,6 +250,8 @@ const params = new URLSearchParams(location.search);
 const aliasParam = params.get("alias");
 const uidParam = params.get("uid");
 
+let viewedUid = null;
+
 const avatar = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const photos = document.getElementById("photos");
@@ -261,8 +262,6 @@ const shhhBtn = document.getElementById("shhhBtn");
 const followersLink = document.getElementById("followersLink");
 const followingLink = document.getElementById("followingLink");
 
-let viewedUid = null;
-
 async function loadUser(){
 
   let userData;
@@ -272,14 +271,12 @@ async function loadUser(){
     if(!snap.exists()) return;
     viewedUid = snap.id;
     userData = snap.data();
-  } else if(aliasParam){
+  } else {
     const q = query(collection(db,"users"), where("alias","==",aliasParam));
     const snap = await getDocs(q);
     if(snap.empty) return;
     viewedUid = snap.docs[0].id;
     userData = snap.docs[0].data();
-  } else {
-    return;
   }
 
   aliasEl.textContent = userData.alias;
@@ -291,10 +288,25 @@ async function loadUser(){
   followersLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=followers`;
   followingLink.onclick = () => location.href = `list.html?uid=${viewedUid}&type=following`;
 
+  /* CARGAR FOTOS */
+  photos.innerHTML="";
+  (userData.photosDesktop || userData.photos || []).forEach(url=>{
+    if(!url) return;
+    const img=document.createElement("img");
+    img.src=url;
+    img.className="photo";
+    photos.appendChild(img);
+  });
+
+  /* CARGAR SPOTIFY */
+  if(userData.spotifyEmbed){
+    spotify.innerHTML=userData.spotifyEmbed;
+  }
+
   setupFollow();
 
-  shhhBtn.onclick = () => {
-    window.location.href = `wall.html?uid=${viewedUid}`;
+  shhhBtn.onclick=()=>{
+    window.location.href=`wall.html?uid=${viewedUid}`;
   };
 }
 
@@ -303,7 +315,7 @@ async function setupFollow(){
   if(!user) return;
 
   if(user.uid === viewedUid){
-    followBtn.style.display = "none";
+    followBtn.style.display="none";
     return;
   }
 
@@ -314,42 +326,41 @@ async function setupFollow(){
 
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
-  followBtn.onclick = async () => {
+  followBtn.onclick = async ()=>{
     if(isFollowing){
       await updateDoc(doc(db,"users",user.uid),{
-        following: arrayRemove(viewedUid)
+        following:arrayRemove(viewedUid)
       });
       await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayRemove(user.uid)
+        followers:arrayRemove(user.uid)
       });
     }else{
       await updateDoc(doc(db,"users",user.uid),{
-        following: arrayUnion(viewedUid)
+        following:arrayUnion(viewedUid)
       });
       await updateDoc(doc(db,"users",viewedUid),{
-        followers: arrayUnion(user.uid)
+        followers:arrayUnion(user.uid)
       });
     }
     location.reload();
   };
 }
 
-window.sendMessage = async () => {
-
-  const text = msgInput.value.trim();
+window.sendMessage = async ()=>{
+  const text=msgInput.value.trim();
   if(!text) return;
 
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const currentUser = auth.currentUser;
+  const mode=document.querySelector('input[name="mode"]:checked').value;
+  const currentUser=auth.currentUser;
 
-  let senderUid = null;
+  let senderUid=null;
 
-  if(mode === "alias"){
+  if(mode==="alias"){
     if(!currentUser){
-      alert("Debes iniciar sesión para enviar con tu alias");
+      alert("Debes iniciar sesión");
       return;
     }
-    senderUid = currentUser.uid;
+    senderUid=currentUser.uid;
   }
 
   await addDoc(collection(db,"messages"),{
@@ -365,10 +376,10 @@ window.sendMessage = async () => {
   alert("enviado 🌷");
 };
 
-window.searchUser = () => {
-  const alias = document.getElementById("searchInput").value.trim();
+window.searchUser=()=>{
+  const alias=document.getElementById("searchInput").value.trim();
   if(!alias) return;
-  window.location.href = `user.html?alias=${alias}`;
+  window.location.href=`user.html?alias=${alias}`;
 };
 
 loadUser();
