@@ -18,7 +18,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
   position:relative;
 }
 
-/* SEARCH DESKTOP */
 .search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
 .search input{width:190px;padding:10px 12px;border-radius:12px;border:1px solid #ddd;font-size:14px;}
 .search button{padding:10px 16px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;font-size:14px;}
@@ -50,7 +49,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
 .hidden{display:none;}
 
-/* MOBILE */
 @media (max-width:700px){
 .container{margin:0;border-radius:0;padding:20px 18px 90px;}
 .search{position:absolute;top:14px;right:16px;}
@@ -128,7 +126,7 @@ import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/fi
 import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
-const firebaseConfig={
+const firebaseConfig = {
 apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
 authDomain:"becomingsoft-84e72.firebaseapp.com",
 projectId:"becomingsoft-84e72",
@@ -167,54 +165,32 @@ const snap=await getDoc(doc(db,"users",uid));
 const d=snap.data();
 
 alias.textContent=d.alias||"sin alias";
-
-/* FILTRAR FOLLOWERS */
-let validFollowers=[];
-if(d.followers){
-for(const f of d.followers){
-const s=await getDoc(doc(db,"users",f));
-if(s.exists()) validFollowers.push(f);
-}
-}
-
-/* FILTRAR FOLLOWING */
-let validFollowing=[];
-if(d.following){
-for(const f of d.following){
-const s=await getDoc(doc(db,"users",f));
-if(s.exists()) validFollowing.push(f);
-}
-}
-
-followersBtn.textContent=`${validFollowers.length} followers`;
-followingBtn.textContent=`${validFollowing.length} following`;
+followersBtn.textContent=`${d.followers?.length||0} followers`;
+followingBtn.textContent=`${d.following?.length||0} following`;
 
 followersBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
 followingBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
 
-/* DEVICE DETECTION */
+if(d.photoURL) avatar.src=d.photoURL;
+
 const isMobile=window.innerWidth<=700;
 
-let photosDesktop=d.photosDesktop||d.photos||["","","","","",""];
-let photosMobile=d.photosMobile||d.photos||["","","","","",""];
+let desktopArray=d.photosDesktop||d.photos||["","","","","",""];
+let mobileArray=d.photosMobile||d.photos||["","","","","",""];
 
-if(!d.photosDesktop||!d.photosMobile){
-await updateDoc(doc(db,"users",uid),{
-photosDesktop:photosDesktop,
-photosMobile:photosMobile
-});
-}
-
-let currentPhotos=isMobile?photosMobile:photosDesktop;
+let currentPhotos=isMobile?mobileArray:desktopArray;
 
 currentPhotos.forEach((url,i)=>{
 if(url) photoEls[i].src=url;
 });
 
+if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
+
 /* THEME */
 if(d.theme){
 document.body.style.backgroundColor=d.theme.pageBg||"#f5f5f5";
 document.querySelector(".container").style.backgroundColor=d.theme.cardBg||"#ffffff";
+
 if(d.theme.backgroundImage){
 document.body.style.backgroundImage=`url(${d.theme.backgroundImage})`;
 document.body.style.backgroundSize="cover";
@@ -224,40 +200,45 @@ document.body.style.backgroundImage="none";
 }
 }
 
-/* MOBILE DRAG SWAP */
+/* DRAG MOBILE SWAP */
 if(isMobile){
+
 let startIndex=null;
 
 photoEls.forEach((el,i)=>{
+
 el.addEventListener("touchstart",()=>{startIndex=i;});
 
 el.addEventListener("touchend",async(e)=>{
+
 const touch=e.changedTouches[0];
 const target=document.elementFromPoint(touch.clientX,touch.clientY);
 const endIndex=photoEls.findIndex(img=>img===target);
 
 if(startIndex===null||endIndex===-1||startIndex===endIndex)return;
 
-const snap2=await getDoc(doc(db,"users",uid));
-let data2=snap2.data();
-let mobileArray=data2.photosMobile||data2.photos||[];
+let arrayToUpdate=d.photosMobile||d.photos||[];
 
-[mobileArray[startIndex],mobileArray[endIndex]]=
-[mobileArray[endIndex],mobileArray[startIndex]];
+[arrayToUpdate[startIndex],arrayToUpdate[endIndex]]=
+[arrayToUpdate[endIndex],arrayToUpdate[startIndex]];
 
-await updateDoc(doc(db,"users",uid),{photosMobile:mobileArray});
+await updateDoc(doc(db,"users",uid),{photosMobile:arrayToUpdate});
 
-mobileArray.forEach((url,i)=>{photoEls[i].src=url;});
+arrayToUpdate.forEach((url,i)=>{photoEls[i].src=url;});
 
 startIndex=null;
+
 });
+
 });
+
 }
 
 });
 
 /* AVATAR */
 avatar.addEventListener("click",()=>avatarInput.click());
+
 avatarInput.addEventListener("change",async()=>{
 const file=avatarInput.files[0];
 if(!file)return;
@@ -268,10 +249,9 @@ await updateDoc(doc(db,"users",uid),{photoURL:url});
 avatar.src=url;
 });
 
-/* GRID UPLOAD (DESKTOP ONLY) */
+/* GRID UPLOAD */
 photoEls.forEach((el,i)=>{
 el.addEventListener("click",()=>{
-if(window.innerWidth<=700)return;
 photoIndex=i;
 photoInput.click();
 });
@@ -286,10 +266,10 @@ const url=await getDownloadURL(storageRef);
 
 const snap=await getDoc(doc(db,"users",uid));
 const data=snap.data();
-let desktopArray=data.photosDesktop||data.photos||["","","","","",""];
-desktopArray[photoIndex]=url;
+let arrayToUpdate=data.photosDesktop||data.photos||["","","","","",""];
+arrayToUpdate[photoIndex]=url;
 
-await updateDoc(doc(db,"users",uid),{photosDesktop:desktopArray});
+await updateDoc(doc(db,"users",uid),{photosDesktop:arrayToUpdate});
 photoEls[photoIndex].src=url;
 });
 
