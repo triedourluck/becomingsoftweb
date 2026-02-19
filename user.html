@@ -247,8 +247,8 @@ window.sendMessage = async () => {
   await addDoc(collection(db,"messages"),{
     text,
     to:viewedUid,
-    fromAlias: mode==="alias" && user ? user.uid : null,
-    createdAt: serverTimestamp(),
+    fromUid: mode==="alias" && user ? user.uid : null,
+    createdAt: Date.now(),
     published:false
   });
 
