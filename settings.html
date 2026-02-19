@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-  max-width:650px;
+  max-width:600px;
   margin:40px auto;
   background:white;
   border-radius:20px;
@@ -23,7 +23,6 @@ body{
 }
 
 h1{margin-top:0;font-size:20px;}
-h2{margin-top:26px;font-size:16px;}
 
 label{
   font-size:13px;
@@ -43,22 +42,20 @@ input[type="password"]{
   box-sizing:border-box;
 }
 
-input[type="file"]{
-  margin-top:6px;
-}
+.password-wrap{position:relative;}
 
-.small-btn{
-  margin-top:6px;
-  padding:6px 10px;
-  font-size:12px;
-  border:none;
-  border-radius:8px;
-  background:#eee;
+.eye{
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
   cursor:pointer;
+  font-size:14px;
+  color:#666;
 }
 
 .btn{
-  margin-top:26px;
+  margin-top:22px;
   padding:12px 16px;
   border:none;
   border-radius:12px;
@@ -72,18 +69,23 @@ input[type="file"]{
 .back{
   margin-top:18px;
   font-size:13px;
-  text-decoration:underline;
-  text-align:center;
-  cursor:pointer;
   color:#666;
+  cursor:pointer;
+  text-align:center;
 }
 
 .danger-zone{
   margin-top:30px;
-  padding:18px;
+  padding:20px;
   border-radius:12px;
   background:#fff5f5;
   border:1px solid #ffd6d6;
+}
+
+.danger-zone h3{
+  margin:0 0 10px 0;
+  color:#b00020;
+  font-size:16px;
 }
 
 .delete-btn{
@@ -99,18 +101,16 @@ input[type="file"]{
 }
 </style>
 </head>
-<body>
 
+<body>
 <div class="container">
 
 <h1>Configuración</h1>
 
-<!-- FRASES -->
-
-<label>Frase de recuadro de mensajes</label>
+<label>Frase del título</label>
 <input type="text" id="titlePhrase"/>
 
-<label>Frase dentro del recuadro de mensajes</label>
+<label>Frase del recuadro</label>
 <input type="text" id="boxPhrase"/>
 
 <label>
@@ -118,182 +118,141 @@ input[type="file"]{
 Permitir mensajes anónimos
 </label>
 
-<!-- THEME PROFILE -->
+<!-- 🎨 NUEVO THEME -->
+<label>Color fondo de página (HEX)</label>
+<input type="text" id="pageBgColor" placeholder="#f5f5f5"/>
 
-<h2>🎨 Personalización del perfil</h2>
+<label>Color del recuadro principal (HEX)</label>
+<input type="text" id="cardBgColor" placeholder="#ffffff"/>
 
-<label>Color fondo perfil (HEX)</label>
-<input type="text" id="profileBgColor"/>
-
-<label>Color recuadro perfil (HEX)</label>
-<input type="text" id="profileCardColor"/>
-
-<label>Imagen de fondo perfil</label>
-<input type="file" id="profileBgInput" accept="image/*"/>
-<button class="small-btn" id="removeProfileBg">Eliminar imagen de fondo</button>
-
-<!-- PASSWORD -->
-
-<h2>🔐 Cambiar contraseña</h2>
+<label>Imagen de fondo</label>
+<input type="file" id="bgImageInput" accept="image/*"/>
 
 <label>Contraseña actual</label>
 <input type="password" id="currentPass"/>
 
 <label>Nueva contraseña</label>
+<div class="password-wrap">
 <input type="password" id="newPass"/>
-
-<button class="btn" id="saveBtn">Guardar cambios</button>
-
-<!-- DELETE -->
-
-<div class="danger-zone">
-<button class="delete-btn" id="deleteBtn">Eliminar mi cuenta</button>
+<span class="eye" onclick="togglePass()">👁</span>
 </div>
 
-<div class="back" onclick="location.href='profile.html'">Volver al perfil</div>
+<button class="btn" onclick="saveAll()">Guardar cambios</button>
+
+<div class="danger-zone">
+<h3>Eliminar cuenta</h3>
+<button class="delete-btn" onclick="deleteAccount()">Eliminar mi cuenta</button>
+</div>
+
+<div class="back" onclick="goBack()">Volver al perfil</div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import {
-  getAuth,
-  onAuthStateChanged,
-  updatePassword,
-  deleteUser,
-  EmailAuthProvider,
-  reauthenticateWithCredential
+getAuth,onAuthStateChanged,deleteUser,
+updatePassword,EmailAuthProvider,
+reauthenticateWithCredential
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
-  getFirestore,
-  doc,
-  getDoc,
-  updateDoc,
-  deleteDoc
+getFirestore,doc,getDoc,updateDoc,deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import {
-  getStorage,
-  ref,
-  uploadBytes,
-  getDownloadURL
+getStorage,ref,uploadBytes,getDownloadURL
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain:"becomingsoft-84e72.firebaseapp.com",
-  projectId:"becomingsoft-84e72",
-  storageBucket:"becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId:"605759003962",
-  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
+apiKey:"AIzaSy...",
+authDomain:"becomingsoft-84e72.firebaseapp.com",
+projectId:"becomingsoft-84e72",
+storageBucket:"becomingsoft-84e72.firebasestorage.app",
+messagingSenderId:"605759003962",
+appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+const storage=getStorage(app);
 
-let uid = null;
+let uid=null;
+let existingTheme={};
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){
-    location.href="login.html";
-    return;
-  }
+if(!user){location.href="login.html";return;}
+uid=user.uid;
 
-  uid = user.uid;
+const snap=await getDoc(doc(db,"users",uid));
+const d=snap.data();
 
-  const snap = await getDoc(doc(db,"users",uid));
-  const d = snap.data();
+if(d?.wallText){
+titlePhrase.value=d.wallText.title||"";
+boxPhrase.value=d.wallText.box||"";
+}
 
-  if(d?.wallText){
-    titlePhrase.value = d.wallText.title || "";
-    boxPhrase.value = d.wallText.box || "";
-  }
+allowAnonToggle.checked=d.allowAnonymous??true;
 
-  allowAnonToggle.checked = d.allowAnonymous ?? true;
-
-  if(d?.theme){
-    profileBgColor.value = d.theme.profileBgColor || "";
-    profileCardColor.value = d.theme.profileCardColor || "";
-  }
+if(d?.theme){
+existingTheme=d.theme;
+pageBgColor.value=d.theme.pageBg||"";
+cardBgColor.value=d.theme.cardBg||"";
+}
 });
 
-saveBtn.addEventListener("click", async()=>{
+window.togglePass=()=>{
+newPass.type=newPass.type==="password"?"text":"password";
+};
 
-  const user = auth.currentUser;
-  if(!user) return;
+window.saveAll=async()=>{
+const user=auth.currentUser;
 
-  const snap = await getDoc(doc(db,"users",uid));
-  const existingTheme = snap.data()?.theme || {};
+if(newPass.value.trim()){
+try{
+const cred=EmailAuthProvider.credential(user.email,currentPass.value);
+await reauthenticateWithCredential(user,cred);
+await updatePassword(user,newPass.value.trim());
+alert("Contraseña actualizada 🌙");
+}catch{
+alert("Contraseña incorrecta.");
+return;
+}
+}
 
-  let profileBgImage = existingTheme.profileBgImage || "";
+let bgImageURL=existingTheme.backgroundImage||"";
+const file=bgImageInput.files[0];
 
-  if(profileBgInput.files[0]){
-    const refP = ref(storage,`backgrounds/${uid}_profile`);
-    await uploadBytes(refP,profileBgInput.files[0]);
-    profileBgImage = await getDownloadURL(refP);
-  }
+if(file){
+const storageRef=ref(storage,`backgrounds/${uid}`);
+await uploadBytes(storageRef,file);
+bgImageURL=await getDownloadURL(storageRef);
+}
 
-  // 🔐 Cambio contraseña
-  if(newPass.value.trim()){
-    try{
-      const cred = EmailAuthProvider.credential(user.email,currentPass.value);
-      await reauthenticateWithCredential(user,cred);
-      await updatePassword(user,newPass.value.trim());
-      alert("Contraseña actualizada 🌙");
-    }catch{
-      alert("Contraseña incorrecta.");
-      return;
-    }
-  }
-
-  await updateDoc(doc(db,"users",uid),{
-    allowAnonymous:allowAnonToggle.checked,
-    wallText:{
-      title:titlePhrase.value.trim(),
-      box:boxPhrase.value.trim()
-    },
-    theme:{
-      profileBgColor: profileBgColor.value.trim(),
-      profileCardColor: profileCardColor.value.trim(),
-      profileBgImage
-    }
-  });
-
-  alert("Cambios guardados 🌷");
+await updateDoc(doc(db,"users",uid),{
+allowAnonymous:allowAnonToggle.checked,
+wallText:{
+title:titlePhrase.value.trim(),
+box:boxPhrase.value.trim()
+},
+theme:{
+pageBg:pageBgColor.value.trim(),
+cardBg:cardBgColor.value.trim(),
+backgroundImage:bgImageURL
+}
 });
 
-removeProfileBg.addEventListener("click", async()=>{
-  await updateDoc(doc(db,"users",uid),{
-    theme:{ profileBgImage:"" }
-  });
-  alert("Imagen eliminada.");
-});
+alert("Cambios guardados 🌿");
+};
 
-deleteBtn.addEventListener("click", async()=>{
-  const user = auth.currentUser;
-  if(!user) return;
+window.deleteAccount=async()=>{
+const user=auth.currentUser;
+if(!confirm("¿Eliminar cuenta permanentemente?"))return;
+await deleteDoc(doc(db,"users",user.uid));
+await deleteUser(user);
+location.href="index.html";
+};
 
-  if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.")) return;
-
-  const password = prompt("Ingresa tu contraseña:");
-  if(!password) return;
-
-  try{
-    const credential = EmailAuthProvider.credential(user.email,password);
-    await reauthenticateWithCredential(user,credential);
-  }catch{
-    alert("Contraseña incorrecta.");
-    return;
-  }
-
-  if(!confirm("¿Eliminar definitivamente?")) return;
-
-  await deleteDoc(doc(db,"users",uid));
-  await deleteUser(user);
-  location.href="index.html";
-});
+window.goBack=()=>location.href="profile.html";
 </script>
-
 </body>
 </html>
