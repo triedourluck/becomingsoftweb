@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>becomingsoft — Feed ॐ </title>
+<title>becomingsoft — Feed ॐ</title>
 
 <style>
 body{
@@ -33,72 +33,75 @@ h1{
 .post{
   border:1px solid #eee;
   border-radius:16px;
-  padding:20px;
+  padding:22px;
   margin-bottom:22px;
   background:#fafafa;
 }
 
-/* HEADER USUARIO */
+/* USER ROW */
 
 .user-row{
   display:flex;
   align-items:center;
-  gap:10px;
-  cursor:pointer;
-  margin-bottom:14px;
+  gap:12px;
+  margin-bottom:12px;
 }
 
 .avatar{
-  width:26px;
-  height:26px;
+  width:42px;   /* MÁS GRANDE */
+  height:42px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
 }
 
-.alias{
+.username{
   font-weight:600;
-  font-size:15px;
-}
-
-/* MENSAJE ORIGINAL */
-
-.question{
   font-size:16px;
-  margin-bottom:14px;
-  line-height:1.5;
-}
-
-.creator{
-  font-weight:600;
-  margin-left:8px;
   cursor:pointer;
 }
 
-.creator:hover{
+.username:hover{
   opacity:0.7;
+}
+
+/* MENSAJE */
+
+.question{
+  font-size:16px;
+  margin-bottom:16px;
+  line-height:1.5;
 }
 
 /* RESPUESTA */
 
-.reply-box{
-  background:white;
-  border-radius:12px;
-  padding:14px;
-  border:1px solid #eee;
-  font-size:16px; /* mismo tamaño que pregunta */
+.owner-name{
+  font-weight:600;
+  font-size:15px;
+  margin-bottom:6px;
+  cursor:pointer;
+}
+
+.owner-name:hover{
+  opacity:0.7;
+}
+
+.reply{
+  font-size:16px;
+  color:#666;   /* gris para diferenciar */
+  margin-bottom:12px;
   line-height:1.5;
 }
 
 /* IMAGEN */
 
 .reply-img{
-  margin-top:14px;
   width:100%;
-  max-width:420px;   /* límite elegante */
+  max-width:420px;
   max-height:320px;
   object-fit:cover;
   border-radius:12px;
+  margin-top:10px;
 }
 
 /* LIKE */
@@ -129,7 +132,7 @@ h1{
 
 <div class="container">
 
-<h1>The Haven</h1>
+<h1>Feed ॐ</h1>
 
 <div id="feed"></div>
 
@@ -190,7 +193,7 @@ const q=query(
 const snap=await getDocs(q);
 
 if(snap.empty){
-  feedEl.innerHTML="<p>Aún no hay respuestas en The Haven ✨</p>";
+  feedEl.innerHTML="<p>Aún no hay respuestas en Feed ॐ ✨</p>";
   return;
 }
 
@@ -198,40 +201,47 @@ for(const msgDoc of snap.docs){
 
 const data=msgDoc.data();
 
+/* USUARIO QUE RECIBE */
 const ownerSnap=await getDoc(doc(db,"users",data.to));
 const owner=ownerSnap.data();
 
+/* USUARIO QUE ENVÍA */
+let senderName="anónimo";
+let senderPhoto="anon.png";
 let senderAlias=null;
-let senderAliasForLink=null;
 
 if(data.fromAlias){
   const senderSnap=await getDoc(doc(db,"users",data.fromAlias));
   const sender=senderSnap.data();
+  senderName=sender.alias;
+  senderPhoto=sender.photoURL || "anon.png";
   senderAlias=sender.alias;
-  senderAliasForLink=sender.alias;
 }
 
 const post=document.createElement("div");
 post.className="post";
 
 post.innerHTML=`
-  <div class="user-row" onclick="location.href='user.html?alias=${owner.alias}'">
-    <img class="avatar" src="${owner.photoURL || ''}">
-    <div class="alias">${owner.alias}</div>
+  <div class="user-row">
+    <img class="avatar" src="${senderPhoto}">
+    ${
+      senderAlias
+      ? `<div class="username" onclick="location.href='user.html?alias=${senderAlias}'">${senderName}</div>`
+      : `<div class="username" style="cursor:default;">anónimo</div>`
+    }
   </div>
 
   <div class="question">
     ${data.text || ""}
-    ${
-      senderAlias
-      ? `<span class="creator" onclick="event.stopPropagation(); location.href='user.html?alias=${senderAliasForLink}'">${senderAlias}</span>`
-      : ""
-    }
+  </div>
+
+  <div class="owner-name" onclick="location.href='user.html?alias=${owner.alias}'">
+    ${owner.alias}
   </div>
 
   ${
     data.reply
-    ? `<div class="reply-box">${data.reply}</div>`
+    ? `<div class="reply">${data.reply}</div>`
     : ""
   }
 
