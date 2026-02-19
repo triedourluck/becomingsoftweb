@@ -151,8 +151,27 @@ const snap=await getDoc(doc(db,"users",uid));
 const d=snap.data();
 
 alias.textContent=d.alias||"sin alias";
-followersBtn.textContent=`${d.followers?.length||0} followers`;
-followingBtn.textContent=`${d.following?.length||0} following`;
+
+/* 🔎 FILTRAR FOLLOWERS */
+let validFollowers=[];
+if(d.followers){
+for(const f of d.followers){
+const s=await getDoc(doc(db,"users",f));
+if(s.exists()) validFollowers.push(f);
+}
+}
+
+/* 🔎 FILTRAR FOLLOWING */
+let validFollowing=[];
+if(d.following){
+for(const f of d.following){
+const s=await getDoc(doc(db,"users",f));
+if(s.exists()) validFollowing.push(f);
+}
+}
+
+followersBtn.textContent=`${validFollowers.length} followers`;
+followingBtn.textContent=`${validFollowing.length} following`;
 
 followersBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
 followingBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
@@ -176,7 +195,7 @@ document.body.style.backgroundImage="none";
 }
 });
 
-/* AVATAR CLICK */
+/* AVATAR */
 avatar.addEventListener("click",()=>avatarInput.click());
 
 avatarInput.addEventListener("change",async()=>{
@@ -191,7 +210,7 @@ await updateDoc(doc(db,"users",uid),{photoURL:url});
 avatar.src=url;
 });
 
-/* GRID CLICK */
+/* GRID */
 photoEls.forEach((el,i)=>{
 el.addEventListener("click",()=>{
 photoIndex=i;
