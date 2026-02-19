@@ -301,34 +301,21 @@ window.saveAll = async()=>{
   alert("Cambios guardados 🌿");
 };
 
-window.removeBgImage = async()=>{
-  const snap = await getDoc(doc(db,"users",uid));
-  const data = snap.data();
-
-  const currentTheme = data.theme || {};
-
-  await updateDoc(doc(db,"users",uid),{
-    theme:{
-      ...currentTheme,
-      backgroundImage:""
-    }
+window.removeBgImage = async () => {
+  await updateDoc(doc(db, "users", uid), {
+    "theme.backgroundImage": ""
   });
 
   alert("Imagen de fondo eliminada.");
 };
 
-window.removeWallBgImage = async()=>{
-  const snap = await getDoc(doc(db,"users",uid));
-  const data = snap.data();
-
-  const currentTheme = data.theme || {};
-
-  await updateDoc(doc(db,"users",uid),{
-    theme:{
-      ...currentTheme,
-      wallBackgroundImage:""
-    }
+window.removeWallBgImage = async () => {
+  await updateDoc(doc(db, "users", uid), {
+    "theme.wallBackgroundImage": ""
   });
+
+  alert("Imagen de fondo wall eliminada.");
+};
 
   alert("Imagen de fondo wall eliminada.");
 }; 
