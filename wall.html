@@ -18,7 +18,6 @@ body{
   padding:20px;
 }
 
-/* HEADER */
 .header{
   background:white;
   border-radius:20px;
@@ -57,13 +56,13 @@ body{
   cursor:pointer;
 }
 
-/* MESSAGE */
 .msg{
   background:white;
   border-radius:16px;
   padding:15px;
   margin-top:15px;
   box-shadow:0 5px 15px rgba(0,0,0,0.05);
+  position:relative;
 }
 
 .msg-header{
@@ -95,13 +94,25 @@ body{
   line-height:1.4;
 }
 
+.unpublish{
+  position:absolute;
+  top:10px;
+  right:12px;
+  font-size:11px;
+  color:#999;
+  cursor:pointer;
+}
+
+.unpublish:hover{
+  color:#000;
+}
+
 .empty{
   text-align:center;
   margin-top:30px;
   color:#888;
 }
 
-/* NAV */
 .top-nav{
   display:flex;
   gap:8px;
@@ -140,7 +151,6 @@ body{
 </div>
 
 <div id="wall"></div>
-
 <div id="empty" class="empty" style="display:none;">
   Aún no hay mensajes publicados 🌙
 </div>
@@ -158,17 +168,11 @@ import {
   orderBy,
   getDocs,
   doc,
-  getDoc
+  getDoc,
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-const firebaseConfig={
-apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-authDomain:"becomingsoft-84e72.firebaseapp.com",
-projectId:"becomingsoft-84e72",
-storageBucket:"becomingsoft-84e72.firebasestorage.app",
-messagingSenderId:"605759003962",
-appId:"1:605759003962:web:ea8603a8e97e42d2278403"
-};
+const firebaseConfig={...}; // deja tu config igual
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
@@ -181,47 +185,26 @@ const aliasEl=document.getElementById("alias");
 const followersEl=document.getElementById("followers");
 const followingEl=document.getElementById("following");
 
-/* 👇 Imagen default anónimo */
-const DEFAULT_ANON="anon.png"; // <-- sube esta imagen a tu proyecto
+const DEFAULT_ANON="anon.png";
 
 onAuthStateChanged(auth,async(user)=>{
-if(!user){
-  location.href="login.html";
-  return;
-}
+if(!user){ location.href="login.html"; return; }
 
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid")||user.uid;
+const isOwner = uid===user.uid;
 
-/* LOAD USER */
+/* USER DATA */
 const userSnap=await getDoc(doc(db,"users",uid));
 const userData=userSnap.data();
 
 aliasEl.textContent=userData?.alias||"sin alias";
-
 followersEl.textContent=`${userData?.followers?.length||0} followers`;
 followingEl.textContent=`${userData?.following?.length||0} following`;
 
-followersEl.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
-followingEl.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
-
 if(userData?.photoURL) avatarEl.src=userData.photoURL;
 
-/* APPLY THEME */
-if(userData?.theme){
-
-if(userData.theme.pageBg)
-document.body.style.background=userData.theme.pageBg;
-
-if(userData.theme.backgroundImage){
-document.body.style.backgroundImage=`url(${userData.theme.backgroundImage})`;
-document.body.style.backgroundSize="cover";
-document.body.style.backgroundPosition="center";
-}
-
-}
-
-/* LOAD WALL */
+/* QUERY */
 const q=query(
 collection(db,"messages"),
 where("to","==",uid),
@@ -231,22 +214,34 @@ orderBy("createdAt","desc")
 
 const snap=await getDocs(q);
 
-if(snap.empty){
-emptyEl.style.display="block";
-return;
-}
+if(snap.empty){ emptyEl.style.display="block"; return; }
 
 for(const docSnap of snap.docs){
-const data=docSnap.data();
 
+const data=docSnap.data();
 const div=document.createElement("div");
 div.className="msg";
+
+/* DESPUBLICAR */
+if(isOwner){
+const unpublish=document.createElement("div");
+unpublish.className="unpublish";
+unpublish.textContent="despublicar";
+
+unpublish.onclick=async()=>{
+await updateDoc(doc(db,"messages",docSnap.id),{
+published:false
+});
+location.reload();
+};
+
+div.appendChild(unpublish);
+}
 
 const header=document.createElement("div");
 header.className="msg-header";
 
 if(data.fromAlias){
-
 const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
 const fromData=fromSnap.data();
 
@@ -261,9 +256,7 @@ name.onclick=()=>location.href=`user.html?alias=${fromData.alias}`;
 
 header.appendChild(img);
 header.appendChild(name);
-
 }else{
-
 const img=document.createElement("img");
 img.className="msg-avatar";
 img.src=DEFAULT_ANON;
