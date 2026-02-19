@@ -94,6 +94,24 @@ body{
   font-size:13px;
 }
 
+/* BOTTOM NAV */
+.bottom{
+  margin-top:24px;
+  display:flex;
+  gap:12px;
+}
+
+.gear,
+.icon-btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
+}
+
 /* LAYOUT */
 .layout{
   display:grid;
@@ -232,6 +250,14 @@ textarea{
   font-size:12px;
   border-radius:10px;
 }
+
+.bottom{
+  position:fixed;
+  bottom:18px;
+  left:0;
+  width:100%;
+  justify-content:center;
+}
 }
 </style>
 </head>
@@ -284,6 +310,13 @@ textarea{
 </div>
 
 <div class="back" onclick="history.back()">← Volver</div>
+
+<div class="bottom">
+  <button class="gear" onclick="location.href='settings.html'">⚙️</button>
+  <button class="icon-btn" onclick="location.href='feed.html'">Feed</button>
+  <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
+  <button class="icon-btn" onclick="location.href='profile.html'">Profile</button>
+</div>
 
 </div>
 
