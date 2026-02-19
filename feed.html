@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>becomingsoft — Feed ॐ</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Feed ॐ</title>
 
 <style>
 body{
@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-  max-width:650px;
+  max-width:700px;
   margin:40px auto;
   background:white;
   border-radius:20px;
@@ -24,111 +24,90 @@ body{
 
 h1{
   margin-top:0;
-  font-size:20px;
-  font-weight:600;
+  font-size:22px;
 }
 
 .post{
-  margin-bottom:28px;
-}
-
-/* RECUADRO MENSAJE */
-.message-box{
   border:1px solid #eee;
-  border-radius:16px;
-  padding:16px;
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:18px;
   background:#fafafa;
-  margin-bottom:10px;
 }
 
 .sender{
   font-weight:600;
-  margin-bottom:6px;
   cursor:pointer;
-}
-
-.sender.anon{
-  font-weight:500;
-  color:#666;
-  cursor:default;
+  margin-bottom:8px;
 }
 
 .sender:hover{
   opacity:0.7;
 }
 
-.message-text{
+.message-box{
+  background:white;
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:10px;
   font-size:15px;
 }
 
-/* RECUADRO RESPUESTA */
 .reply-box{
-  border:1px solid #eee;
-  border-radius:16px;
-  padding:16px;
   background:white;
-}
-
-.reply-text{
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
   font-size:15px;
   color:#555;
-  margin-bottom:12px;
 }
 
-.reply-img{
-  max-width:220px;
-  max-height:220px;
+.reply-image{
+  max-width:260px;
   border-radius:12px;
-  object-fit:cover;
-  margin-bottom:12px;
+  margin-top:10px;
   display:block;
 }
 
-.receiver-row{
+.responder-row{
   display:flex;
   align-items:center;
   gap:10px;
+  margin-top:8px;
   cursor:pointer;
 }
 
-.receiver-row:hover{
+.responder-row:hover{
   opacity:0.8;
 }
 
 .avatar{
-  width:42px;
-  height:42px;
+  width:44px;
+  height:44px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
 }
 
-.receiver-name{
+.responder-name{
   font-weight:600;
 }
 
-/* LIKE FUERA */
 .like{
   margin-top:10px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  cursor:pointer;
   font-size:15px;
+  cursor:pointer;
   user-select:none;
 }
 
-.like:hover{
-  opacity:0.7;
-}
-
 .back{
-  margin-top:18px;
-  font-size:13px;
+  margin-top:20px;
+  text-align:center;
   text-decoration:underline;
   cursor:pointer;
-  color:#666;
-  text-align:center;
+  font-size:14px;
 }
 </style>
 </head>
@@ -137,7 +116,9 @@ h1{
 
 <div class="container">
 <h1>Feed ॐ</h1>
+
 <div id="feed"></div>
+
 <div class="back" onclick="goBack()">← Volver</div>
 </div>
 
@@ -168,10 +149,9 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
-
 const feedEl=document.getElementById("feed");
 
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth,async(user)=>{
 if(!user){
   location.href="login.html";
   return;
@@ -179,146 +159,143 @@ if(!user){
 
 const mySnap=await getDoc(doc(db,"users",user.uid));
 const following=mySnap.data()?.following||[];
-const sources=[...following,user.uid];
 
-if(sources.length===0){
-  feedEl.innerHTML="<p>No hay actividad todavía 🌱</p>";
+/* incluir también mis propias respuestas */
+const ids=[...following,user.uid];
+
+if(ids.length===0){
+  feedEl.innerHTML="<p>No hay nada por aquí todavía 🌱</p>";
   return;
 }
 
 const q=query(
   collection(db,"messages"),
   where("published","==",true),
-  where("to","in",sources.slice(0,10)),
+  where("to","in",ids.slice(0,10)),
   orderBy("createdAt","desc")
 );
 
 const snap=await getDocs(q);
 
 if(snap.empty){
-  feedEl.innerHTML="<p>Aún no hay respuestas en tu feed ✨</p>";
+  feedEl.innerHTML="<p>Aún no hay respuestas ✨</p>";
   return;
 }
 
 for(const msgDoc of snap.docs){
 
   const data=msgDoc.data();
-  const post=document.createElement("div");
-  post.className="post";
 
-  /* 🔹 USUARIO QUE ENVÍA */
+  const receiverSnap=await getDoc(doc(db,"users",data.to));
+  const receiver=receiverSnap.data();
+
   let senderAlias="anónimo";
-  let senderClickable=false;
+  let senderUid=null;
 
   if(data.fromAlias){
     const senderSnap=await getDoc(doc(db,"users",data.fromAlias));
-    if(senderSnap.exists()){
-      senderAlias=senderSnap.data().alias;
-      senderClickable=true;
-    }
+    const senderData=senderSnap.data();
+    senderAlias=senderData.alias;
+    senderUid=data.fromAlias;
   }
 
-  const messageBox=document.createElement("div");
-  messageBox.className="message-box";
+  const post=document.createElement("div");
+  post.className="post";
 
-  const sender=document.createElement("div");
-  sender.className=senderClickable?"sender":"sender anon";
-  sender.textContent=senderAlias;
+  /* usuario que envía mensaje */
+  const senderDiv=document.createElement("div");
+  senderDiv.className="sender";
+  senderDiv.textContent=senderAlias;
 
-  if(senderClickable){
-    sender.onclick=()=>{
-      location.href=`user.html?alias=${senderAlias}`;
+  if(senderUid){
+    senderDiv.onclick=()=>{
+      if(senderUid===user.uid){
+        location.href="profile.html";
+      }else{
+        location.href=`user.html?alias=${senderAlias}`;
+      }
     };
   }
 
-  const messageText=document.createElement("div");
-  messageText.className="message-text";
-  messageText.textContent=data.text||"";
+  post.appendChild(senderDiv);
 
-  messageBox.appendChild(sender);
-  messageBox.appendChild(messageText);
-
+  /* mensaje */
+  const messageBox=document.createElement("div");
+  messageBox.className="message-box";
+  messageBox.textContent=data.text||"";
   post.appendChild(messageBox);
 
-  /* 🔹 RESPUESTA */
-  if(data.reply || data.imageURL){
+  /* respuesta */
+  const replyBox=document.createElement("div");
+  replyBox.className="reply-box";
+  replyBox.textContent=data.reply||"";
 
-    const replyBox=document.createElement("div");
-    replyBox.className="reply-box";
-
-    if(data.reply){
-      const replyText=document.createElement("div");
-      replyText.className="reply-text";
-      replyText.textContent=data.reply;
-      replyBox.appendChild(replyText);
-    }
-
-    if(data.imageURL){
-      const img=document.createElement("img");
-      img.src=data.imageURL;
-      img.className="reply-img";
-      replyBox.appendChild(img);
-    }
-
-    const wallSnap=await getDoc(doc(db,"users",data.to));
-    if(wallSnap.exists()){
-      const wallUser=wallSnap.data();
-
-      const receiverRow=document.createElement("div");
-      receiverRow.className="receiver-row";
-
-      const avatar=document.createElement("img");
-      avatar.className="avatar";
-      avatar.src=wallUser.photoURL||"anon.png";
-
-      const receiverName=document.createElement("div");
-      receiverName.className="receiver-name";
-      receiverName.textContent=wallUser.alias;
-
-      receiverRow.appendChild(avatar);
-      receiverRow.appendChild(receiverName);
-
-      receiverRow.onclick=()=>{
-        location.href=`user.html?alias=${wallUser.alias}`;
-      };
-
-      replyBox.appendChild(receiverRow);
-    }
-
-    post.appendChild(replyBox);
+  if(data.replyImage){
+    const img=document.createElement("img");
+    img.src=data.replyImage;
+    img.className="reply-image";
+    replyBox.appendChild(img);
   }
 
-  /* 🔹 LIKE FUERA */
-  const like=document.createElement("div");
-  like.className="like";
+  post.appendChild(replyBox);
 
-  const likes=data.likes||[];
-  const hasLiked=likes.includes(user.uid);
+  /* usuario que responde */
+  const responderRow=document.createElement("div");
+  responderRow.className="responder-row";
 
-  like.innerHTML=`${hasLiked?"♥︎":"♡"} ${likes.length}`;
+  const avatar=document.createElement("img");
+  avatar.className="avatar";
+  avatar.src=receiver.photoURL||"";
 
-  like.onclick=async()=>{
-    if(hasLiked){
-      await updateDoc(doc(db,"messages",msgDoc.id),{
-        likes:likes.filter(id=>id!==user.uid)
-      });
+  const responderName=document.createElement("div");
+  responderName.className="responder-name";
+  responderName.textContent=receiver.alias;
+
+  responderRow.appendChild(avatar);
+  responderRow.appendChild(responderName);
+
+  responderRow.onclick=()=>{
+    if(receiverSnap.id===user.uid){
+      location.href="profile.html";
     }else{
-      await updateDoc(doc(db,"messages",msgDoc.id),{
-        likes:[...likes,user.uid]
-      });
+      location.href=`user.html?alias=${receiver.alias}`;
     }
+  };
+
+  post.appendChild(responderRow);
+
+  /* like */
+  const likesArray=data.likes||[];
+  const hasLiked=likesArray.includes(user.uid);
+
+  const likeDiv=document.createElement("div");
+  likeDiv.className="like";
+  likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
+
+  likeDiv.onclick=async()=>{
+    let updatedLikes;
+
+    if(hasLiked){
+      updatedLikes=likesArray.filter(id=>id!==user.uid);
+    }else{
+      updatedLikes=[...likesArray,user.uid];
+    }
+
+    await updateDoc(doc(db,"messages",msgDoc.id),{
+      likes:updatedLikes
+    });
+
     location.reload();
   };
 
-  post.appendChild(like);
+  post.appendChild(likeDiv);
+
   feedEl.appendChild(post);
 }
 
 });
 
-window.goBack=()=>{
-  location.href="profile.html";
-};
+window.goBack=()=>location.href="profile.html";
 </script>
 
 </body>
