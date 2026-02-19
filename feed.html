@@ -36,50 +36,40 @@ h1{
   background:#fafafa;
 }
 
-/* HEADER USER */
-.user-row{
+/* HEADER */
+.top-row{
   display:flex;
   align-items:center;
   gap:12px;
-  margin-bottom:14px;
+  margin-bottom:12px;
 }
 
 .avatar{
-  width:48px;
-  height:48px;
+  width:50px;
+  height:50px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
 }
 
-.wall-alias{
+.sender-name{
   font-weight:600;
   cursor:pointer;
 }
 
-.wall-alias:hover{
+.sender-name:hover{
   opacity:0.7;
 }
 
-/* MENSAJE */
-.sender{
-  font-weight:600;
-  margin-bottom:6px;
-  cursor:pointer;
-}
-
-.sender:hover{
-  opacity:0.7;
-}
-
+/* MESSAGE */
 .message{
   font-size:15px;
-  margin-bottom:10px;
+  margin-bottom:8px;
 }
 
 .receiver{
   font-weight:600;
-  margin-top:8px;
+  margin-top:6px;
 }
 
 .reply{
@@ -88,7 +78,6 @@ h1{
   margin-top:4px;
 }
 
-/* IMAGEN */
 .reply-img{
   max-width:220px;
   max-height:220px;
@@ -98,7 +87,6 @@ h1{
   display:block;
 }
 
-/* LIKE */
 .like{
   margin-top:12px;
   display:flex;
@@ -128,9 +116,7 @@ h1{
 
 <div class="container">
 <h1>Feed ॐ</h1>
-
 <div id="feed"></div>
-
 <div class="back" onclick="goBack()">← Volver</div>
 </div>
 
@@ -170,7 +156,6 @@ if(!user){
   return;
 }
 
-/* usuarios que sigo + yo */
 const mySnap=await getDoc(doc(db,"users",user.uid));
 const following=mySnap.data()?.following||[];
 const sources=[...following,user.uid];
@@ -205,24 +190,13 @@ for(const msgDoc of snap.docs){
   const post=document.createElement("div");
   post.className="post";
 
-  /* HEADER WALL OWNER */
-  const userRow=document.createElement("div");
-  userRow.className="user-row";
+  /* TOP ROW */
+  const topRow=document.createElement("div");
+  topRow.className="top-row";
 
   const avatar=document.createElement("img");
   avatar.className="avatar";
   avatar.src=wallUser.photoURL||"anon.png";
-
-  const wallAlias=document.createElement("div");
-  wallAlias.className="wall-alias";
-  wallAlias.textContent=wallUser.alias;
-  wallAlias.onclick=()=>{
-    location.href=`user.html?alias=${wallUser.alias}`;
-  };
-
-  userRow.appendChild(avatar);
-  userRow.appendChild(wallAlias);
-  post.appendChild(userRow);
 
   /* QUIÉN ENVÍA */
   let senderAlias="anónimo";
@@ -236,17 +210,19 @@ for(const msgDoc of snap.docs){
     }
   }
 
-  const sender=document.createElement("div");
-  sender.className="sender";
-  sender.textContent=senderAlias;
+  const senderName=document.createElement("div");
+  senderName.className="sender-name";
+  senderName.textContent=senderAlias;
 
   if(senderClickable){
-    sender.onclick=()=>{
+    senderName.onclick=()=>{
       location.href=`user.html?alias=${senderAlias}`;
     };
   }
 
-  post.appendChild(sender);
+  topRow.appendChild(avatar);
+  topRow.appendChild(senderName);
+  post.appendChild(topRow);
 
   /* MENSAJE */
   const message=document.createElement("div");
@@ -254,13 +230,12 @@ for(const msgDoc of snap.docs){
   message.textContent=data.text||"";
   post.appendChild(message);
 
-  /* QUIÉN RECIBE */
+  /* QUIÉN RESPONDE */
   const receiver=document.createElement("div");
   receiver.className="receiver";
   receiver.textContent=wallUser.alias;
   post.appendChild(receiver);
 
-  /* RESPUESTA */
   if(data.reply){
     const reply=document.createElement("div");
     reply.className="reply";
@@ -268,7 +243,6 @@ for(const msgDoc of snap.docs){
     post.appendChild(reply);
   }
 
-  /* IMAGEN RESPUESTA */
   if(data.imageURL){
     const img=document.createElement("img");
     img.src=data.imageURL;
@@ -299,7 +273,6 @@ for(const msgDoc of snap.docs){
   };
 
   post.appendChild(like);
-
   feedEl.appendChild(post);
 }
 
