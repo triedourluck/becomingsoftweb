@@ -104,10 +104,10 @@ input[type="file"]{
 
 <h1>Configuración</h1>
 
-<label>Frase del título</label>
+<label>Frase de recuadro de mensajes</label>
 <input type="text" id="titlePhrase"/>
 
-<label>Frase del recuadro</label>
+<label>Frase dentro del recuadro de mensajes</label>
 <input type="text" id="boxPhrase"/>
 
 <label>
@@ -153,6 +153,7 @@ Permitir mensajes anónimos
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import {
   getAuth,
+  onAuthStateChanged,
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential
@@ -187,37 +188,39 @@ const storage = getStorage(app);
 
 let uid = null;
 
-/* 🔥 Esperar a que Firebase restaure sesión correctamente */
-await auth.authStateReady();
+onAuthStateChanged(auth, async(user)=>{
 
-const user = auth.currentUser;
+  if(!user){
+    location.href = "login.html";
+    return;
+  }
 
-if(!user){
-  location.href = "login.html";
-}
+  uid = user.uid;
 
-uid = user.uid;
+  const snap = await getDoc(doc(db,"users",uid));
+  const d = snap.data();
 
-/* Cargar datos */
-const snap = await getDoc(doc(db,"users",uid));
-const d = snap.data();
+  if(d?.wallText){
+    titlePhrase.value = d.wallText.title || "";
+    boxPhrase.value = d.wallText.box || "";
+  }
 
-if(d?.wallText){
-  titlePhrase.value = d.wallText.title || "";
-  boxPhrase.value = d.wallText.box || "";
-}
+  allowAnonToggle.checked = d.allowAnonymous ?? true;
 
-allowAnonToggle.checked = d.allowAnonymous ?? true;
+  if(d?.theme){
+    profilePageBg.value = d.theme.profileBgColor || "";
+    profileCardBg.value = d.theme.profileCardColor || "";
+    wallPageBg.value = d.theme.wallBgColor || "";
+    wallCardBg.value = d.theme.wallCardColor || "";
+  }
+});
 
-if(d?.theme){
-  profilePageBg.value = d.theme.profileBgColor || "";
-  profileCardBg.value = d.theme.profileCardColor || "";
-  wallPageBg.value = d.theme.wallBgColor || "";
-  wallCardBg.value = d.theme.wallCardColor || "";
-}
-
-/* Guardar */
 window.saveAll = async()=>{
+
+  if(!uid){
+    alert("Sesión no lista.");
+    return;
+  }
 
   const snap = await getDoc(doc(db,"users",uid));
   const existingTheme = snap.data()?.theme || {};
@@ -272,6 +275,9 @@ window.removeWallBg = async()=>{
 };
 
 window.deleteAccount = async()=>{
+  const user = auth.currentUser;
+  if(!user) return;
+
   if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.")) return;
 
   const password = prompt("Ingresa tu contraseña:");
