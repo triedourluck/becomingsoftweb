@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-  max-width:700px;
+  max-width:600px;
   margin:40px auto;
   padding:20px;
 }
@@ -43,23 +43,29 @@ body{
   align-items:center;
   gap:15px;
   box-shadow:0 5px 20px rgba(0,0,0,0.05);
+  cursor:pointer;
+  transition:0.2s ease;
+}
+
+.header:hover{
+  transform:scale(1.01);
 }
 
 .avatar{
-  width:70px;
-  height:70px;
+  width:60px;
+  height:60px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
 }
 
 .alias{
-  font-weight:600;
+  font-weight:bold;
   font-size:18px;
 }
 
 .stats{
-  font-size:13px;
+  font-size:12px;
   color:#666;
   margin-top:4px;
 }
@@ -72,52 +78,63 @@ body{
   box-shadow:0 5px 15px rgba(0,0,0,0.05);
 }
 
-.msg-top{
+.from{
   display:flex;
   align-items:center;
   gap:8px;
-  margin-bottom:8px;
+  margin-bottom:6px;
 }
 
-.msg-avatar{
-  width:28px;
-  height:28px;
+.from img{
+  width:26px;
+  height:26px;
   border-radius:50%;
   object-fit:cover;
-  background:#ddd;
 }
 
-.msg-alias{
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-}
-
-.msg-anon{
+.from span{
   font-size:12px;
+}
+
+.from .anon{
+  font-size:11px;
   color:#777;
   text-transform:lowercase;
 }
 
-.msg-text{
-  margin-top:6px;
+.text{
+  margin-top:4px;
 }
 
-.msg-img{
-  margin-top:10px;
-  max-width:100%;
-  border-radius:12px;
-}
-
-.unpublish{
+.action-btn{
   margin-top:10px;
   padding:6px 12px;
   border:none;
   border-radius:8px;
-  background:#ff4d4d;
+  background:#111;
   color:white;
   cursor:pointer;
   font-size:11px;
+  transition:0.2s ease;
+}
+
+.action-btn:hover{
+  opacity:0.85;
+}
+
+.action-secondary{
+  background:#888;
+  margin-left:6px;
+}
+
+textarea{
+  width:100%;
+  margin-top:10px;
+  border-radius:8px;
+  border:1px solid #ddd;
+  padding:8px;
+  font-size:12px;
+  resize:vertical;
 }
 
 .empty{
@@ -129,25 +146,26 @@ body{
 </head>
 
 <body>
+
 <div class="container">
 
 <div class="top-nav">
-<button onclick="goFeed()">Feed</button>
-<button onclick="goProfile()">Mi perfil</button>
+  <button onclick="goFeed()">Feed</button>
+  <button onclick="goProfile()">Mi perfil</button>
 </div>
 
-<div class="header">
-<img id="avatar" class="avatar"/>
-<div>
-<div id="alias" class="alias">...</div>
-<div id="stats" class="stats"></div>
-</div>
+<div id="header" class="header">
+  <img id="avatar" class="avatar" />
+  <div>
+    <div id="alias" class="alias">...</div>
+    <div id="stats" class="stats"></div>
+  </div>
 </div>
 
 <div id="wall"></div>
 
 <div id="empty" class="empty" style="display:none;">
-Aún no hay mensajes publicados 🌙
+  Aún no hay mensajes publicados 🌙
 </div>
 
 </div>
@@ -185,8 +203,9 @@ const emptyEl = document.getElementById("empty");
 const avatarEl = document.getElementById("avatar");
 const aliasEl = document.getElementById("alias");
 const statsEl = document.getElementById("stats");
+const headerEl = document.getElementById("header");
 
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, async(user)=>{
   if(!user){
     location.href="login.html";
     return;
@@ -194,16 +213,19 @@ onAuthStateChanged(auth, async (user) => {
 
   const params = new URLSearchParams(window.location.search);
   const uid = params.get("uid") || user.uid;
-  const isOwnWall = uid === user.uid;
+  const isOwner = uid === user.uid;
 
   const userSnap = await getDoc(doc(db,"users",uid));
   const userData = userSnap.data();
 
   aliasEl.textContent = userData?.alias || "sin alias";
-  avatarEl.src = userData?.photoURL || "anon.png";
+  statsEl.textContent = `${userData?.followers?.length||0} followers · ${userData?.following?.length||0} following`;
 
-  statsEl.textContent =
-    `${userData?.followers?.length||0} followers · ${userData?.following?.length||0} following`;
+  if(userData?.photoURL) avatarEl.src = userData.photoURL;
+
+  headerEl.onclick = () => {
+    window.location.href = `user.html?alias=${userData?.alias}`;
+  };
 
   const q = query(
     collection(db,"messages"),
@@ -224,70 +246,93 @@ onAuthStateChanged(auth, async (user) => {
     const div = document.createElement("div");
     div.className="msg";
 
-    const top = document.createElement("div");
-    top.className="msg-top";
+    const fromDiv = document.createElement("div");
+    fromDiv.className="from";
 
-    if(data.fromAlias){
-      const fromSnap = await getDoc(doc(db,"users",data.fromAlias));
-      const fromData = fromSnap.data();
-
+    if(!data.fromAlias){
       const img = document.createElement("img");
-      img.className="msg-avatar";
-      img.src = fromData?.photoURL || "anon.png";
+      img.src="anon.png";
 
-      const name = document.createElement("div");
-      name.className="msg-alias";
-      name.textContent = fromData?.alias || "usuario";
-      name.onclick = ()=>location.href=`user.html?alias=${fromData?.alias}`;
+      const span = document.createElement("span");
+      span.className="anon";
+      span.textContent="anónimo";
 
-      top.appendChild(img);
-      top.appendChild(name);
+      fromDiv.appendChild(img);
+      fromDiv.appendChild(span);
     }else{
+      const fromUserSnap = await getDoc(doc(db,"users",data.fromAlias));
+      const fromUser = fromUserSnap.data();
+
       const img = document.createElement("img");
-      img.className="msg-avatar";
-      img.src = "anon.png";
+      img.src = fromUser?.photoURL || "anon.png";
 
-      const name = document.createElement("div");
-      name.className="msg-anon";
-      name.textContent="anónimo";
-
-      top.appendChild(img);
-      top.appendChild(name);
-    }
-
-    const text = document.createElement("div");
-    text.className="msg-text";
-    text.textContent=data.text;
-
-    div.appendChild(top);
-    div.appendChild(text);
-
-    if(data.replyImage){
-      const img = document.createElement("img");
-      img.src=data.replyImage;
-      img.className="msg-img";
-      div.appendChild(img);
-    }
-
-    if(isOwnWall){
-      const btn = document.createElement("button");
-      btn.className="unpublish";
-      btn.textContent="Despublicar";
-      btn.onclick = async ()=>{
-        await updateDoc(doc(db,"messages",docSnap.id),{
-          published:false
-        });
-        location.reload();
+      const span = document.createElement("span");
+      span.textContent = fromUser?.alias;
+      span.style.cursor="pointer";
+      span.onclick = () => {
+        window.location.href=`user.html?alias=${fromUser?.alias}`;
       };
-      div.appendChild(btn);
+
+      fromDiv.appendChild(img);
+      fromDiv.appendChild(span);
+    }
+
+    const textDiv = document.createElement("div");
+    textDiv.className="text";
+    textDiv.textContent=data.text;
+
+    div.appendChild(fromDiv);
+    div.appendChild(textDiv);
+
+    if(isOwner){
+      const editBtn = document.createElement("button");
+      editBtn.className="action-btn";
+      editBtn.textContent="Editar";
+
+      editBtn.onclick = () => {
+
+        const textarea = document.createElement("textarea");
+        textarea.value = data.text;
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className="action-btn";
+        saveBtn.textContent="Guardar";
+
+        const cancelBtn = document.createElement("button");
+        cancelBtn.className="action-btn action-secondary";
+        cancelBtn.textContent="Cancelar";
+
+        div.appendChild(textarea);
+        div.appendChild(saveBtn);
+        div.appendChild(cancelBtn);
+
+        editBtn.style.display="none";
+
+        saveBtn.onclick = async()=>{
+          const newText = textarea.value.trim();
+          if(!newText) return;
+
+          await updateDoc(doc(db,"messages",docSnap.id),{
+            text:newText
+          });
+
+          location.reload();
+        };
+
+        cancelBtn.onclick = ()=>{
+          location.reload();
+        };
+      };
+
+      div.appendChild(editBtn);
     }
 
     wallEl.appendChild(div);
   }
 });
 
-window.goFeed=()=>location.href="feed.html";
-window.goProfile=()=>location.href="profile.html";
+window.goFeed = ()=>location.href="feed.html";
+window.goProfile = ()=>location.href="profile.html";
 </script>
 
 </body>
