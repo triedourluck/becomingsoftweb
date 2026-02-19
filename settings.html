@@ -303,38 +303,29 @@ window.saveAll = async()=>{
 
 window.removeBgImage = async () => {
   try {
-    console.log("UID:", uid);
-
-    const refDoc = doc(db, "users", uid);
-    console.log("Ref creado:", refDoc);
-
-    await updateDoc(refDoc, {
-      theme: {
-        pageBg: pageBgColor.value.trim(),
-        cardBg: cardBgColor.value.trim(),
-        backgroundImage: ""
-      }
+    await updateDoc(doc(db, "users", uid), {
+      "theme.backgroundImage": ""
     });
 
-    console.log("Actualización completada");
-    alert("Imagen eliminada (intentado).");
-
+    alert("Imagen de fondo eliminada.");
   } catch (error) {
-    console.error("Error eliminando:", error);
-    alert("Error al eliminar. Mira consola.");
+    console.error(error);
+    alert("Error eliminando imagen.");
   }
 };
 
 window.removeWallBgImage = async () => {
-  await updateDoc(doc(db, "users", uid), {
-    "theme.wallBackgroundImage": ""
-  });
+  try {
+    await updateDoc(doc(db, "users", uid), {
+      "theme.wallBackgroundImage": ""
+    });
 
-  alert("Imagen de fondo wall eliminada.");
+    alert("Imagen de fondo wall eliminada.");
+  } catch (error) {
+    console.error(error);
+    alert("Error eliminando imagen wall.");
+  }
 };
-
-  alert("Imagen de fondo wall eliminada.");
-}; 
 
 window.deleteAccount = async()=>{
   const user = auth.currentUser;
