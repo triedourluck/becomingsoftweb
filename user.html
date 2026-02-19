@@ -327,6 +327,10 @@ async function loadUser(){
 
   const userDoc = snap.docs[0];
   viewedUid = userDoc.id;
+  shhhBtn.onclick = () => {
+  if (!viewedUid) return;
+  window.location.href = `wall.html?uid=${viewedUid}`;
+};
   const d = userDoc.data();
 
   aliasEl.textContent = d.alias;
