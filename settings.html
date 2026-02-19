@@ -239,6 +239,14 @@ onAuthStateChanged(auth, async(user)=>{
     wallPageBgColor.value = d.theme.wallPageBg || "";
     wallCardBgColor.value = d.theme.wallCardBg || "";
   }
+  
+  if(d.theme.backgroundImage){
+  const info = document.createElement("div");
+  info.style.fontSize = "12px";
+  info.style.color = "#666";
+  info.textContent = "Imagen actual guardada ✔";
+  bgImageInput.parentNode.insertBefore(info, bgImageInput.nextSibling);
+}
 });
 
 window.togglePass = ()=>{
