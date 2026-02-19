@@ -18,6 +18,24 @@ body{
   padding:20px;
 }
 
+/* TOP NAV */
+.top-nav{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.top-nav button{
+  padding:6px 12px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:12px;
+}
+
+/* HEADER */
 .header{
   background:white;
   border-radius:20px;
@@ -26,11 +44,18 @@ body{
   align-items:center;
   gap:15px;
   box-shadow:0 5px 20px rgba(0,0,0,0.05);
-  cursor:pointer;
-  transition:0.2s ease;
 }
 
-.header:hover{opacity:0.85;}
+.profile-click{
+  display:flex;
+  align-items:center;
+  gap:15px;
+  cursor:pointer;
+}
+
+.profile-click:hover{
+  opacity:0.85;
+}
 
 .avatar{
   width:60px;
@@ -51,6 +76,7 @@ body{
   margin-top:4px;
 }
 
+/* MESSAGE */
 .msg{
   background:white;
   border-radius:15px;
@@ -91,14 +117,16 @@ body{
   color:#777;
 }
 
+/* REPLY IMAGE */
 .reply-img{
   max-width:100%;
-  max-height:350px;
+  max-height:300px;
   border-radius:12px;
   margin-top:10px;
   object-fit:cover;
 }
 
+/* ACTIONS */
 .actions{
   margin-top:12px;
   display:flex;
@@ -130,22 +158,6 @@ body{
   margin-top:30px;
   color:#888;
 }
-
-.top-nav{
-  display:flex;
-  gap:8px;
-  margin-bottom:14px;
-}
-
-.top-nav button{
-  padding:6px 12px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:12px;
-}
 </style>
 </head>
 
@@ -156,14 +168,17 @@ body{
 <div class="top-nav">
 <button onclick="goFeed()">Feed</button>
 <button onclick="goProfile()">Mi perfil</button>
+<button onclick="goInbox()">Inbox</button>
 </div>
 
-<div id="header" class="header">
-<img id="avatar" class="avatar"/>
-<div>
-<div id="alias" class="alias">...</div>
-<div id="stats" class="stats"></div>
-</div>
+<div class="header">
+  <div id="profileClick" class="profile-click">
+    <img id="avatar" class="avatar"/>
+    <div>
+      <div id="alias" class="alias">...</div>
+      <div id="stats" class="stats"></div>
+    </div>
+  </div>
 </div>
 
 <div id="wall"></div>
@@ -207,10 +222,7 @@ const emptyEl=document.getElementById("empty");
 const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
-const headerEl=document.getElementById("header");
-
-/* ✅ CORREGIDO: anon.png */
-const ANON_IMAGE="anon.png";
+const profileClick=document.getElementById("profileClick");
 
 onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
@@ -218,19 +230,20 @@ if(!user){location.href="login.html";return;}
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid")||user.uid;
 
-/* PERFIL */
+/* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
 const userData=userSnap.data();
 
 aliasEl.textContent=userData.alias||"sin alias";
 statsEl.textContent=`${userData.followers?.length||0} followers · ${userData.following?.length||0} following`;
+
 if(userData.photoURL) avatarEl.src=userData.photoURL;
 
-headerEl.onclick=()=>{
+profileClick.onclick=()=>{
 window.location.href=`user.html?alias=${userData.alias}`;
 };
 
-/* MENSAJES */
+/* LOAD MESSAGES */
 const q=query(
 collection(db,"messages"),
 where("to","==",uid),
@@ -251,26 +264,19 @@ const data=docSnap.data();
 const div=document.createElement("div");
 div.className="msg";
 
-/* USER */
+/* USER INFO */
 let fromAlias="anónimo";
-let fromPhoto=ANON_IMAGE;
+let fromPhoto="anon.png";
 
 if(data.fromAlias){
 const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
 const fromData=fromSnap.data();
 fromAlias=fromData.alias;
-fromPhoto=fromData.photoURL||ANON_IMAGE;
+fromPhoto=fromData.photoURL||"anon.png";
 }
 
 const userRow=document.createElement("div");
-userRow.className="user-row";
-
-if(data.fromAlias){
-userRow.classList.add("clickable");
-userRow.onclick=()=>{
-window.location.href=`user.html?alias=${fromAlias}`;
-};
-}
+userRow.className=data.fromAlias?"user-row clickable":"user-row";
 
 const userAvatar=document.createElement("img");
 userAvatar.className="user-avatar";
@@ -280,28 +286,42 @@ const username=document.createElement("div");
 username.className=data.fromAlias?"username":"username anon";
 username.textContent=fromAlias;
 
+if(data.fromAlias){
+userRow.onclick=()=>{
+window.location.href=`user.html?alias=${fromAlias}`;
+};
+}
+
 userRow.appendChild(userAvatar);
 userRow.appendChild(username);
 div.appendChild(userRow);
 
-/* TEXTO */
+/* ORIGINAL MESSAGE */
 if(data.text){
-const textEl=document.createElement("div");
-textEl.textContent=data.text;
-div.appendChild(textEl);
+const original=document.createElement("div");
+original.style.opacity="0.6";
+original.style.fontSize="13px";
+original.textContent=data.text;
+div.appendChild(original);
 }
 
-/* IMAGEN (soporta image y imageURL) */
-const imageField=data.imageURL||data.image;
+/* REPLY TEXT */
+if(data.reply){
+const reply=document.createElement("div");
+reply.style.marginTop="8px";
+reply.textContent=data.reply;
+div.appendChild(reply);
+}
 
-if(imageField){
+/* REPLY IMAGE */
+if(data.replyImage){
 const img=document.createElement("img");
-img.src=imageField;
+img.src=data.replyImage;
 img.className="reply-img";
 div.appendChild(img);
 }
 
-/* ACCIONES */
+/* ACTIONS */
 const actions=document.createElement("div");
 actions.className="actions";
 
@@ -334,29 +354,32 @@ likes:[...likesArray,user.uid]
 location.reload();
 };
 
-/* EDITAR */
+actions.appendChild(likeContainer);
+
+/* EDITAR (DESPUBLICAR) */
 if(uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
 editBtn.textContent="Editar";
+
 editBtn.onclick=async()=>{
 await updateDoc(doc(db,"messages",docSnap.id),{
 published:false
 });
 location.reload();
 };
+
 actions.appendChild(editBtn);
 }
 
-actions.appendChild(likeContainer);
 div.appendChild(actions);
-
 wallEl.appendChild(div);
 }
 });
 
 window.goFeed=()=>location.href="feed.html";
 window.goProfile=()=>location.href="profile.html";
+window.goInbox=()=>location.href="inbox.html";
 </script>
 
 </body>
