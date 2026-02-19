@@ -339,13 +339,22 @@ async function loadUser(){
   if(d.photoURL) avatar.src = d.photoURL;
 
   photos.innerHTML = "";
-  (d.photos||[]).forEach(url=>{
-    if(!url) return;
-    const img = document.createElement("img");
-    img.src = url;
-    img.className = "photo";
-    photos.appendChild(img);
-  });
+
+const isMobile = window.innerWidth <= 700;
+
+let desktopArray = d.photosDesktop || d.photos || ["","","","","",""];
+let mobileArray  = d.photosMobile  || d.photos || ["","","","","",""];
+
+let currentPhotos = isMobile ? mobileArray : desktopArray;
+
+currentPhotos.forEach(url=>{
+  if(!url) return;
+
+  const img = document.createElement("img");
+  img.src = url;
+  img.className = "photo";
+  photos.appendChild(img);
+});
 
   setupFollow();
 }
