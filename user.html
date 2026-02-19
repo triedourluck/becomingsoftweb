@@ -289,7 +289,7 @@ textarea{
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
   getFirestore, collection, query, where, getDocs,
   doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc
@@ -317,8 +317,12 @@ const photos = document.getElementById("photos");
 const followBtn = document.getElementById("followBtn");
 const followersLink = document.getElementById("followersLink");
 const followingLink = document.getElementById("followingLink");
+const shhhBtn = document.getElementById("shhhBtn");
+const searchInput = document.getElementById("searchInput");
 
 let viewedUid = null;
+
+/* ---------------- LOAD USER ---------------- */
 
 async function loadUser(){
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
@@ -327,11 +331,13 @@ async function loadUser(){
 
   const userDoc = snap.docs[0];
   viewedUid = userDoc.id;
-  shhhBtn.onclick = () => {
-  if (!viewedUid) return;
-  window.location.href = `wall.html?uid=${viewedUid}`;
-};
   const d = userDoc.data();
+
+  /* SHHH BUTTON */
+  shhhBtn.onclick = () => {
+    if (!viewedUid) return;
+    window.location.href = `wall.html?uid=${viewedUid}`;
+  };
 
   aliasEl.textContent = d.alias;
   followersLink.textContent = `${d.followers?.length||0} followers`;
@@ -344,24 +350,26 @@ async function loadUser(){
 
   photos.innerHTML = "";
 
-const isMobile = window.innerWidth <= 700;
+  const isMobile = window.innerWidth <= 700;
 
-let desktopArray = d.photosDesktop || d.photos || ["","","","","",""];
-let mobileArray  = d.photosMobile  || d.photos || ["","","","","",""];
+  let desktopArray = d.photosDesktop || d.photos || ["","","","","",""];
+  let mobileArray  = d.photosMobile  || d.photos || ["","","","","",""];
 
-let currentPhotos = isMobile ? mobileArray : desktopArray;
+  let currentPhotos = isMobile ? mobileArray : desktopArray;
 
-currentPhotos.forEach(url=>{
-  if(!url) return;
+  currentPhotos.forEach(url=>{
+    if(!url) return;
 
-  const img = document.createElement("img");
-  img.src = url;
-  img.className = "photo";
-  photos.appendChild(img);
-});
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "photo";
+    photos.appendChild(img);
+  });
 
   setupFollow();
 }
+
+/* ---------------- FOLLOW ---------------- */
 
 async function setupFollow(){
   const user = auth.currentUser;
@@ -399,6 +407,8 @@ async function setupFollow(){
   };
 }
 
+/* ---------------- SEND MESSAGE ---------------- */
+
 window.sendMessage = async ()=>{
   const text = document.getElementById("msgInput").value.trim();
   if(!text) return;
@@ -424,13 +434,45 @@ window.sendMessage = async ()=>{
   alert("enviado 🌷");
 };
 
-window.searchUser = ()=>{
-  const alias = document.getElementById("searchInput").value.trim();
-  if(!alias) return;
-  location.href=`user.html?alias=${alias}`;
-};
+/* ---------------- SEARCH (SMART) ---------------- */
 
-loadUser();
+async function handleSearch(){
+  const value = searchInput.value.trim();
+  if(!value) return;
+
+  const currentUser = auth.currentUser;
+  if(!currentUser){
+    location.href=`user.html?alias=${value}`;
+    return;
+  }
+
+  const mySnap = await getDoc(doc(db,"users",currentUser.uid));
+  const myData = mySnap.data();
+
+  if(myData?.alias?.toLowerCase() === value.toLowerCase()){
+    location.href="profile.html";
+  }else{
+    location.href=`user.html?alias=${value}`;
+  }
+}
+
+window.searchUser = handleSearch;
+
+searchInput.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    handleSearch();
+  }
+});
+
+/* ---------------- INIT ---------------- */
+
+onAuthStateChanged(auth,(user)=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+  loadUser();
+});
 </script>
 
 </body>
