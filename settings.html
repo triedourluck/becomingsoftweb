@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-  max-width:700px;
+  max-width:650px;
   margin:40px auto;
   background:white;
   border-radius:20px;
@@ -23,7 +23,7 @@ body{
 }
 
 h1{margin-top:0;font-size:20px;}
-h2{margin-top:28px;font-size:16px;}
+h2{margin-top:26px;font-size:16px;}
 
 label{
   font-size:13px;
@@ -58,7 +58,7 @@ input[type="file"]{
 }
 
 .btn{
-  margin-top:28px;
+  margin-top:26px;
   padding:12px 16px;
   border:none;
   border-radius:12px;
@@ -72,15 +72,15 @@ input[type="file"]{
 .back{
   margin-top:18px;
   font-size:13px;
-  color:#666;
-  cursor:pointer;
-  text-align:center;
   text-decoration:underline;
+  text-align:center;
+  cursor:pointer;
+  color:#666;
 }
 
 .danger-zone{
   margin-top:30px;
-  padding:20px;
+  padding:18px;
   border-radius:12px;
   background:#fff5f5;
   border:1px solid #ffd6d6;
@@ -118,35 +118,33 @@ input[type="file"]{
 Permitir mensajes anónimos
 </label>
 
-<!-- PROFILE -->
+<!-- THEME PROFILE -->
 
-<h2>🎨 Perfil</h2>
+<h2>🎨 Personalización del perfil</h2>
 
 <label>Color fondo perfil (HEX)</label>
-<input type="text" id="profilePageBg"/>
+<input type="text" id="profileBgColor"/>
 
 <label>Color recuadro perfil (HEX)</label>
-<input type="text" id="profileCardBg"/>
+<input type="text" id="profileCardColor"/>
 
 <label>Imagen de fondo perfil</label>
 <input type="file" id="profileBgInput" accept="image/*"/>
 <button class="small-btn" id="removeProfileBg">Eliminar imagen de fondo</button>
 
-<!-- WALL -->
+<!-- PASSWORD -->
 
-<h2>🌙 Wall</h2>
+<h2>🔐 Cambiar contraseña</h2>
 
-<label>Color fondo wall (HEX)</label>
-<input type="text" id="wallPageBg"/>
+<label>Contraseña actual</label>
+<input type="password" id="currentPass"/>
 
-<label>Color recuadro wall (HEX)</label>
-<input type="text" id="wallCardBg"/>
-
-<label>Imagen de fondo wall</label>
-<input type="file" id="wallBgInput" accept="image/*"/>
-<button class="small-btn" id="removeWallBg">Eliminar imagen de fondo</button>
+<label>Nueva contraseña</label>
+<input type="password" id="newPass"/>
 
 <button class="btn" id="saveBtn">Guardar cambios</button>
+
+<!-- DELETE -->
 
 <div class="danger-zone">
 <button class="delete-btn" id="deleteBtn">Eliminar mi cuenta</button>
@@ -161,6 +159,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebas
 import {
   getAuth,
   onAuthStateChanged,
+  updatePassword,
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential
@@ -169,7 +168,7 @@ import {
   getFirestore,
   doc,
   getDoc,
-  setDoc,
+  updateDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import {
@@ -195,11 +194,6 @@ const storage = getStorage(app);
 
 let uid = null;
 
-const saveBtn = document.getElementById("saveBtn");
-const deleteBtn = document.getElementById("deleteBtn");
-const removeProfileBtn = document.getElementById("removeProfileBg");
-const removeWallBtn = document.getElementById("removeWallBg");
-
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
     location.href="login.html";
@@ -219,22 +213,20 @@ onAuthStateChanged(auth, async(user)=>{
   allowAnonToggle.checked = d.allowAnonymous ?? true;
 
   if(d?.theme){
-    profilePageBg.value = d.theme.profileBgColor || "";
-    profileCardBg.value = d.theme.profileCardColor || "";
-    wallPageBg.value = d.theme.wallBgColor || "";
-    wallCardBg.value = d.theme.wallCardColor || "";
+    profileBgColor.value = d.theme.profileBgColor || "";
+    profileCardColor.value = d.theme.profileCardColor || "";
   }
 });
 
 saveBtn.addEventListener("click", async()=>{
 
-  if(!uid) return;
+  const user = auth.currentUser;
+  if(!user) return;
 
   const snap = await getDoc(doc(db,"users",uid));
   const existingTheme = snap.data()?.theme || {};
 
   let profileBgImage = existingTheme.profileBgImage || "";
-  let wallBgImage = existingTheme.wallBgImage || "";
 
   if(profileBgInput.files[0]){
     const refP = ref(storage,`backgrounds/${uid}_profile`);
@@ -242,42 +234,39 @@ saveBtn.addEventListener("click", async()=>{
     profileBgImage = await getDownloadURL(refP);
   }
 
-  if(wallBgInput.files[0]){
-    const refW = ref(storage,`backgrounds/${uid}_wall`);
-    await uploadBytes(refW,wallBgInput.files[0]);
-    wallBgImage = await getDownloadURL(refW);
+  // 🔐 Cambio contraseña
+  if(newPass.value.trim()){
+    try{
+      const cred = EmailAuthProvider.credential(user.email,currentPass.value);
+      await reauthenticateWithCredential(user,cred);
+      await updatePassword(user,newPass.value.trim());
+      alert("Contraseña actualizada 🌙");
+    }catch{
+      alert("Contraseña incorrecta.");
+      return;
+    }
   }
 
-  await setDoc(doc(db,"users",uid),{
+  await updateDoc(doc(db,"users",uid),{
+    allowAnonymous:allowAnonToggle.checked,
     wallText:{
       title:titlePhrase.value.trim(),
       box:boxPhrase.value.trim()
     },
-    allowAnonymous:allowAnonToggle.checked,
     theme:{
-      profileBgColor: profilePageBg.value.trim(),
-      profileCardColor: profileCardBg.value.trim(),
-      profileBgImage,
-      wallBgColor: wallPageBg.value.trim(),
-      wallCardColor: wallCardBg.value.trim(),
-      wallBgImage
+      profileBgColor: profileBgColor.value.trim(),
+      profileCardColor: profileCardColor.value.trim(),
+      profileBgImage
     }
-  },{merge:true});
+  });
 
   alert("Cambios guardados 🌷");
 });
 
-removeProfileBtn.addEventListener("click", async()=>{
-  await setDoc(doc(db,"users",uid),{
+removeProfileBg.addEventListener("click", async()=>{
+  await updateDoc(doc(db,"users",uid),{
     theme:{ profileBgImage:"" }
-  },{merge:true});
-  alert("Imagen eliminada.");
-});
-
-removeWallBtn.addEventListener("click", async()=>{
-  await setDoc(doc(db,"users",uid),{
-    theme:{ wallBgImage:"" }
-  },{merge:true});
+  });
   alert("Imagen eliminada.");
 });
 
@@ -300,8 +289,8 @@ deleteBtn.addEventListener("click", async()=>{
 
   if(!confirm("¿Eliminar definitivamente?")) return;
 
-  await deleteUser(user);
   await deleteDoc(doc(db,"users",uid));
+  await deleteUser(user);
   location.href="index.html";
 });
 </script>
