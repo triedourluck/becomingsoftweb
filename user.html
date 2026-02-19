@@ -165,55 +165,73 @@ textarea{
 
 /* MOBILE intacto */
 @media (max-width:700px){
-  .container{
-    margin:0;
-    border-radius:0;
-    padding:20px 18px 28px;
-  }
 
-  .layout{
-    grid-template-columns:1fr;
-  }
+.container{
+  margin:0;
+  border-radius:0;
+  padding:20px 18px 28px;
+}
 
-  .photos{
-    grid-template-columns:repeat(3,1fr);
-    gap:10px;
-  }
+.layout{
+  grid-template-columns:1fr;
+}
 
-  .photo{
-    height:120px;
-  }
+.photos{
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
 
-  .search{
-    position:static;
-    margin-bottom:14px;
-    justify-content:flex-end;
-  }
+.photo{
+  height:120px;
+}
 
-  .search input{
-    width:150px;
-    padding:8px 10px;
-    font-size:13px;
-  }
+.search{
+  position:static;
+  margin-bottom:14px;
+  justify-content:flex-end;
+}
 
-  .search button{
-    padding:8px 12px;
-    font-size:13px;
-  }
+.search input{
+  width:130px;
+  padding:6px 8px;
+  font-size:12px;
+}
 
-  .avatar{
-    width:64px;
-    height:64px;
-  }
+.search button{
+  padding:6px 10px;
+  font-size:12px;
+}
 
-  .alias{
-    font-size:18px;
-  }
+.top{
+  margin-top:6px;
+  gap:12px;
+  align-items:center;
+}
 
-  .stats{
-    font-size:12px;
-    margin-top:4px;
-  }
+.avatar{
+  width:64px;
+  height:64px;
+}
+
+.alias{
+  font-size:18px;
+}
+
+.stats{
+  font-size:12px;
+  margin-top:4px;
+}
+
+.actions{
+  margin-top:8px;
+  gap:8px;
+}
+
+.btn{
+  padding:6px 12px;
+  font-size:12px;
+  border-radius:10px;
+}
 }
 </style>
 </head>
