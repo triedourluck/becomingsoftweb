@@ -36,48 +36,62 @@ h1{
   background:#fafafa;
 }
 
-/* HEADER */
-.top-row{
+/* USER QUE ENVÍA */
+.sender{
+  font-weight:600;
+  margin-bottom:6px;
+  cursor:pointer;
+}
+
+.sender.anon{
+  cursor:default;
+  font-weight:500;
+  color:#666;
+}
+
+.sender:hover{
+  opacity:0.7;
+}
+
+/* MENSAJE */
+.message{
+  font-size:15px;
+  margin-bottom:10px;
+}
+
+/* RESPUESTA */
+.reply{
+  font-size:15px;
+  color:#555;
+  margin-bottom:10px;
+}
+
+/* BLOQUE QUIEN RESPONDE */
+.receiver-row{
   display:flex;
   align-items:center;
-  gap:12px;
-  margin-bottom:12px;
+  gap:10px;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+.receiver-row:hover{
+  opacity:0.8;
 }
 
 .avatar{
-  width:50px;
-  height:50px;
+  width:42px;
+  height:42px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
 }
 
-.sender-name{
+.receiver-name{
   font-weight:600;
-  cursor:pointer;
 }
 
-.sender-name:hover{
-  opacity:0.7;
-}
-
-/* MESSAGE */
-.message{
-  font-size:15px;
-  margin-bottom:8px;
-}
-
-.receiver{
-  font-weight:600;
-  margin-top:6px;
-}
-
-.reply{
-  font-size:15px;
-  color:#555;
-  margin-top:4px;
-}
-
+/* IMAGEN RESPUESTA */
 .reply-img{
   max-width:220px;
   max-height:220px;
@@ -87,8 +101,9 @@ h1{
   display:block;
 }
 
+/* LIKE */
 .like{
-  margin-top:12px;
+  margin-top:14px;
   display:flex;
   align-items:center;
   gap:6px;
@@ -182,23 +197,10 @@ if(snap.empty){
 for(const msgDoc of snap.docs){
 
   const data=msgDoc.data();
-
-  const wallSnap=await getDoc(doc(db,"users",data.to));
-  if(!wallSnap.exists()) continue;
-  const wallUser=wallSnap.data();
-
   const post=document.createElement("div");
   post.className="post";
 
-  /* TOP ROW */
-  const topRow=document.createElement("div");
-  topRow.className="top-row";
-
-  const avatar=document.createElement("img");
-  avatar.className="avatar";
-  avatar.src=wallUser.photoURL||"anon.png";
-
-  /* QUIÉN ENVÍA */
+  /* 🔹 USUARIO QUE ENVÍA */
   let senderAlias="anónimo";
   let senderClickable=false;
 
@@ -210,32 +212,25 @@ for(const msgDoc of snap.docs){
     }
   }
 
-  const senderName=document.createElement("div");
-  senderName.className="sender-name";
-  senderName.textContent=senderAlias;
+  const sender=document.createElement("div");
+  sender.className=senderClickable?"sender":"sender anon";
+  sender.textContent=senderAlias;
 
   if(senderClickable){
-    senderName.onclick=()=>{
+    sender.onclick=()=>{
       location.href=`user.html?alias=${senderAlias}`;
     };
   }
 
-  topRow.appendChild(avatar);
-  topRow.appendChild(senderName);
-  post.appendChild(topRow);
+  post.appendChild(sender);
 
-  /* MENSAJE */
+  /* 🔹 MENSAJE */
   const message=document.createElement("div");
   message.className="message";
   message.textContent=data.text||"";
   post.appendChild(message);
 
-  /* QUIÉN RESPONDE */
-  const receiver=document.createElement("div");
-  receiver.className="receiver";
-  receiver.textContent=wallUser.alias;
-  post.appendChild(receiver);
-
+  /* 🔹 RESPUESTA */
   if(data.reply){
     const reply=document.createElement("div");
     reply.className="reply";
@@ -250,7 +245,32 @@ for(const msgDoc of snap.docs){
     post.appendChild(img);
   }
 
-  /* LIKE */
+  /* 🔹 QUIEN RESPONDE */
+  const wallSnap=await getDoc(doc(db,"users",data.to));
+  if(!wallSnap.exists()) continue;
+  const wallUser=wallSnap.data();
+
+  const receiverRow=document.createElement("div");
+  receiverRow.className="receiver-row";
+
+  const avatar=document.createElement("img");
+  avatar.className="avatar";
+  avatar.src=wallUser.photoURL||"anon.png";
+
+  const receiverName=document.createElement("div");
+  receiverName.className="receiver-name";
+  receiverName.textContent=wallUser.alias;
+
+  receiverRow.appendChild(avatar);
+  receiverRow.appendChild(receiverName);
+
+  receiverRow.onclick=()=>{
+    location.href=`user.html?alias=${wallUser.alias}`;
+  };
+
+  post.appendChild(receiverRow);
+
+  /* 🔹 LIKE */
   const like=document.createElement("div");
   like.className="like";
 
