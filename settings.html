@@ -302,11 +302,27 @@ window.saveAll = async()=>{
 };
 
 window.removeBgImage = async () => {
-  await updateDoc(doc(db, "users", uid), {
-    "theme.backgroundImage": ""
-  });
+  try {
+    console.log("UID:", uid);
 
-  alert("Imagen de fondo eliminada.");
+    const refDoc = doc(db, "users", uid);
+    console.log("Ref creado:", refDoc);
+
+    await updateDoc(refDoc, {
+      theme: {
+        pageBg: pageBgColor.value.trim(),
+        cardBg: cardBgColor.value.trim(),
+        backgroundImage: ""
+      }
+    });
+
+    console.log("Actualización completada");
+    alert("Imagen eliminada (intentado).");
+
+  } catch (error) {
+    console.error("Error eliminando:", error);
+    alert("Error al eliminar. Mira consola.");
+  }
 };
 
 window.removeWallBgImage = async () => {
