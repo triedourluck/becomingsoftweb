@@ -104,7 +104,6 @@ input[type="file"]{
 
 <h1>Configuración</h1>
 
-<!-- FRASES -->
 <label>Frase del título</label>
 <input type="text" id="titlePhrase"/>
 
@@ -174,7 +173,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  apiKey: "AIzaSy...",
   authDomain: "becomingsoft-84e72.firebaseapp.com",
   projectId: "becomingsoft-84e72",
   storageBucket: "becomingsoft-84e72.firebasestorage.app",
@@ -203,58 +202,55 @@ onAuthStateChanged(auth, async(user)=>{
 
   allowAnonToggle.checked = d.allowAnonymous ?? true;
 
-  if(d?.theme?.profile){
-    profilePageBg.value = d.theme.profile.pageBg || "";
-    profileCardBg.value = d.theme.profile.cardBg || "";
-  }
-
-  if(d?.theme?.wall){
-    wallPageBg.value = d.theme.wall.pageBg || "";
-    wallCardBg.value = d.theme.wall.cardBg || "";
+  if(d?.theme){
+    profilePageBg.value = d.theme.profileBgColor || "";
+    profileCardBg.value = d.theme.profileCardColor || "";
+    wallPageBg.value = d.theme.wallBgColor || "";
+    wallCardBg.value = d.theme.wallCardColor || "";
   }
 });
 
 window.saveAll = async()=>{
 
   const snap = await getDoc(doc(db,"users",uid));
-  const existing = snap.data() || {};
-  const existingTheme = existing.theme || {};
+  const existingTheme = snap.data()?.theme || {};
 
-  let profileBgURL = existingTheme.profile?.backgroundImage || "";
-  let wallBgURL = existingTheme.wall?.backgroundImage || "";
+  let profileBgImage = existingTheme.profileBgImage || "";
+  let wallBgImage = existingTheme.wallBgImage || "";
 
   if(profileBgInput.files[0]){
     const refP = ref(storage,`backgrounds/${uid}_profile`);
     await uploadBytes(refP,profileBgInput.files[0]);
-    profileBgURL = await getDownloadURL(refP);
+    profileBgImage = await getDownloadURL(refP);
   }
 
   if(wallBgInput.files[0]){
     const refW = ref(storage,`backgrounds/${uid}_wall`);
     await uploadBytes(refW,wallBgInput.files[0]);
-    wallBgURL = await getDownloadURL(refW);
+    wallBgImage = await getDownloadURL(refW);
   }
 
-  const newTheme = {
-    profile:{
-      pageBg: profilePageBg.value.trim(),
-      cardBg: profileCardBg.value.trim(),
-      backgroundImage: profileBgURL
-    },
-    wall:{
-      pageBg: wallPageBg.value.trim(),
-      cardBg: wallCardBg.value.trim(),
-      backgroundImage: wallBgURL
-    }
-  };
-
   await setDoc(doc(db,"users",uid),{
+
     wallText:{
       title:titlePhrase.value.trim(),
       box:boxPhrase.value.trim()
     },
+
     allowAnonymous:allowAnonToggle.checked,
-    theme:newTheme
+
+    theme:{
+      ...existingTheme,
+
+      profileBgColor: profilePageBg.value.trim(),
+      profileCardColor: profileCardBg.value.trim(),
+      profileBgImage: profileBgImage,
+
+      wallBgColor: wallPageBg.value.trim(),
+      wallCardColor: wallCardBg.value.trim(),
+      wallBgImage: wallBgImage
+    }
+
   },{merge:true});
 
   alert("Cambios guardados 🌷");
@@ -262,25 +258,25 @@ window.saveAll = async()=>{
 
 window.removeProfileBg = async()=>{
   await setDoc(doc(db,"users",uid),{
-    theme:{ profile:{ backgroundImage:"" } }
+    theme:{ profileBgImage:"" }
   },{merge:true});
-  alert("Imagen de fondo eliminada.");
+  alert("Imagen eliminada.");
 };
 
 window.removeWallBg = async()=>{
   await setDoc(doc(db,"users",uid),{
-    theme:{ wall:{ backgroundImage:"" } }
+    theme:{ wallBgImage:"" }
   },{merge:true});
-  alert("Imagen de fondo eliminada.");
+  alert("Imagen eliminada.");
 };
 
 window.deleteAccount = async()=>{
   const user = auth.currentUser;
   if(!user) return;
 
-  if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.\nNo podrás recuperarla.\n¿Deseas continuar?")) return;
+  if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.\n¿Continuar?")) return;
 
-  const password = prompt("Ingresa tu contraseña para confirmar:");
+  const password = prompt("Ingresa tu contraseña:");
   if(!password) return;
 
   try{
@@ -291,7 +287,7 @@ window.deleteAccount = async()=>{
     return;
   }
 
-  if(!confirm("❗ Última confirmación.\nTu cuenta será eliminada definitivamente.\n¿Eliminar ahora?")) return;
+  if(!confirm("❗ Última confirmación.\n¿Eliminar definitivamente?")) return;
 
   await deleteUser(user);
   await deleteDoc(doc(db,"users",uid));
