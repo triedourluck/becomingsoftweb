@@ -292,6 +292,13 @@ const value=searchInput.value.trim();
 if(!value)return;
 location.href=`user.html?alias=${value}`;
 });
+  searchInput.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    const value=searchInput.value.trim();
+    if(!value)return;
+    location.href=`user.html?alias=${value}`;
+  }
+});
 </script>
 
 </body>
