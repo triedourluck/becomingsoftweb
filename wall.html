@@ -50,11 +50,17 @@ body{
   display:flex;
   align-items:center;
   gap:15px;
-  cursor:pointer;
 }
 
-.profile-click:hover{
-  opacity:0.85;
+.avatar,
+.alias{
+  cursor:pointer;
+  transition:0.15s ease;
+}
+
+.avatar:hover,
+.alias:hover{
+  opacity:0.75;
 }
 
 .avatar{
@@ -172,7 +178,7 @@ body{
 </div>
 
 <div class="header">
-  <div id="profileClick" class="profile-click">
+  <div class="profile-click">
     <img id="avatar" class="avatar"/>
     <div>
       <div id="alias" class="alias">...</div>
@@ -222,7 +228,6 @@ const emptyEl=document.getElementById("empty");
 const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
-const profileClick=document.getElementById("profileClick");
 
 onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
@@ -239,9 +244,14 @@ statsEl.textContent=`${userData.followers?.length||0} followers · ${userData.fo
 
 if(userData.photoURL) avatarEl.src=userData.photoURL;
 
-profileClick.onclick=()=>{
-window.location.href=`user.html?alias=${userData.alias}`;
-};
+/* SOLO FOTO Y ALIAS CLICKABLE */
+if(uid===user.uid){
+  avatarEl.onclick=()=>location.href="profile.html";
+  aliasEl.onclick=()=>location.href="profile.html";
+}else{
+  avatarEl.onclick=()=>location.href=`user.html?alias=${userData.alias}`;
+  aliasEl.onclick=()=>location.href=`user.html?alias=${userData.alias}`;
+}
 
 /* LOAD MESSAGES */
 const q=query(
@@ -357,7 +367,7 @@ location.reload();
 
 actions.appendChild(likeContainer);
 
-/* EDITAR (DESPUBLICAR) */
+/* EDITAR */
 if(uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
