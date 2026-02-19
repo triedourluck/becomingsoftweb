@@ -294,24 +294,36 @@ window.saveAll = async()=>{
 };
 
 window.removeBgImage = async()=>{
+  const snap = await getDoc(doc(db,"users",uid));
+  const data = snap.data();
+
+  const currentTheme = data.theme || {};
+
   await updateDoc(doc(db,"users",uid),{
     theme:{
-      ...existingTheme,
+      ...currentTheme,
       backgroundImage:""
     }
   });
+
   alert("Imagen de fondo eliminada.");
 };
 
 window.removeWallBgImage = async()=>{
+  const snap = await getDoc(doc(db,"users",uid));
+  const data = snap.data();
+
+  const currentTheme = data.theme || {};
+
   await updateDoc(doc(db,"users",uid),{
     theme:{
-      ...existingTheme,
+      ...currentTheme,
       wallBackgroundImage:""
     }
   });
+
   alert("Imagen de fondo wall eliminada.");
-};
+}; 
 
 window.deleteAccount = async()=>{
   const user = auth.currentUser;
