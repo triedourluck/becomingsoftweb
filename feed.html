@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>becomingsoft — The Haven</title>
+<title>becomingsoft — Feed ॐ </title>
 
 <style>
 body{
@@ -28,25 +28,29 @@ h1{
   font-weight:600;
 }
 
+/* POST */
+
 .post{
   border:1px solid #eee;
   border-radius:16px;
-  padding:16px;
-  margin-bottom:18px;
+  padding:20px;
+  margin-bottom:22px;
   background:#fafafa;
 }
+
+/* HEADER USUARIO */
 
 .user-row{
   display:flex;
   align-items:center;
-  gap:8px;
+  gap:10px;
   cursor:pointer;
-  margin-bottom:10px;
+  margin-bottom:14px;
 }
 
 .avatar{
-  width:28px; /* más pequeño */
-  height:28px;
+  width:26px;
+  height:26px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
@@ -54,38 +58,50 @@ h1{
 
 .alias{
   font-weight:600;
-  font-size:14px;
+  font-size:15px;
 }
+
+/* MENSAJE ORIGINAL */
 
 .question{
-  font-size:15px;
-  margin-bottom:10px;
-}
-
-.reply-box{
-  background:white;
-  border-radius:12px;
-  padding:12px;
-  border:1px solid #eee;
-}
-
-.reply-text{
-  font-size:14px;
-  margin-bottom:8px;
-}
-
-.reply-img{
-  width:100%;
-  max-height:320px;
-  object-fit:cover;
-  border-radius:10px;
-  margin-top:6px;
+  font-size:16px;
+  margin-bottom:14px;
+  line-height:1.5;
 }
 
 .creator{
   font-weight:600;
-  margin-left:6px;
+  margin-left:8px;
+  cursor:pointer;
 }
+
+.creator:hover{
+  opacity:0.7;
+}
+
+/* RESPUESTA */
+
+.reply-box{
+  background:white;
+  border-radius:12px;
+  padding:14px;
+  border:1px solid #eee;
+  font-size:16px; /* mismo tamaño que pregunta */
+  line-height:1.5;
+}
+
+/* IMAGEN */
+
+.reply-img{
+  margin-top:14px;
+  width:100%;
+  max-width:420px;   /* límite elegante */
+  max-height:320px;
+  object-fit:cover;
+  border-radius:12px;
+}
+
+/* LIKE */
 
 .like{
   display:flex;
@@ -93,9 +109,11 @@ h1{
   gap:6px;
   cursor:pointer;
   font-size:14px;
-  margin-top:10px;
+  margin-top:14px;
   user-select:none;
 }
+
+/* BACK */
 
 .back{
   margin-top:18px;
@@ -130,8 +148,7 @@ import {
   orderBy,
   getDocs,
   doc,
-  getDoc,
-  updateDoc
+  getDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
@@ -185,10 +202,13 @@ const ownerSnap=await getDoc(doc(db,"users",data.to));
 const owner=ownerSnap.data();
 
 let senderAlias=null;
+let senderAliasForLink=null;
 
 if(data.fromAlias){
   const senderSnap=await getDoc(doc(db,"users",data.fromAlias));
-  senderAlias=senderSnap.data()?.alias || null;
+  const sender=senderSnap.data();
+  senderAlias=sender.alias;
+  senderAliasForLink=sender.alias;
 }
 
 const post=document.createElement("div");
@@ -204,27 +224,20 @@ post.innerHTML=`
     ${data.text || ""}
     ${
       senderAlias
-      ? `<span class="creator">${senderAlias}</span>`
+      ? `<span class="creator" onclick="event.stopPropagation(); location.href='user.html?alias=${senderAliasForLink}'">${senderAlias}</span>`
       : ""
     }
   </div>
 
   ${
-    data.reply || data.replyImage
-    ? `
-    <div class="reply-box">
-      ${
-        data.reply
-        ? `<div class="reply-text">${data.reply}</div>`
-        : ""
-      }
-      ${
-        data.replyImage
-        ? `<img class="reply-img" src="${data.replyImage}">`
-        : ""
-      }
-    </div>
-    `
+    data.reply
+    ? `<div class="reply-box">${data.reply}</div>`
+    : ""
+  }
+
+  ${
+    data.replyImage
+    ? `<img class="reply-img" src="${data.replyImage}">`
     : ""
   }
 
