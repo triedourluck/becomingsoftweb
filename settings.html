@@ -186,10 +186,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-let uid;
+let uid = null;
 
 onAuthStateChanged(auth, async(user)=>{
-  if(!user){location.href="login.html";return;}
+  console.log("AUTH STATE:", user);
+
+  if(!user){
+    return; // NO redirigir automáticamente
+  }
+
   uid = user.uid;
 
   const snap = await getDoc(doc(db,"users",uid));
@@ -211,6 +216,11 @@ onAuthStateChanged(auth, async(user)=>{
 });
 
 window.saveAll = async()=>{
+
+  if(!uid){
+    alert("Usuario no autenticado aún.");
+    return;
+  }
 
   const snap = await getDoc(doc(db,"users",uid));
   const existingTheme = snap.data()?.theme || {};
