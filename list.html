@@ -28,8 +28,6 @@ h1{
   font-weight:600;
 }
 
-/* FILA USUARIO */
-
 .user-row{
   display:flex;
   align-items:center;
@@ -112,15 +110,19 @@ if(!user){
   return;
 }
 
+const currentUid = user.uid;
+
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid");
-const type=params.get("type"); // followers o following
+const type=params.get("type");
 
 if(!uid || !type) return;
 
 titleEl.textContent = type === "followers" ? "Seguidores" : "Siguiendo";
 
 const userSnap=await getDoc(doc(db,"users",uid));
+if(!userSnap.exists()) return;
+
 const userData=userSnap.data();
 
 const usersArray = type === "followers"
@@ -151,7 +153,11 @@ for(const userId of usersArray){
   name.className="mini-alias";
 
   row.onclick=()=>{
-    window.location.href=`user.html?alias=${data.alias}`;
+    if(userId === currentUid){
+      window.location.href="profile.html";
+    }else{
+      window.location.href=`user.html?alias=${data.alias}`;
+    }
   };
 
   row.appendChild(avatar);
