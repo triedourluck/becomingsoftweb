@@ -120,8 +120,9 @@ body{
 /* SPOTIFY */
 .spotify iframe{
   width:100%;
+  height:152px;
   border:none;
-  border-radius:12px;
+  border-radius:16px;
 }
 
 /* RIGHT */
@@ -134,10 +135,11 @@ body{
 textarea{
   width:100%;
   height:120px;
-  border-radius:12px;
+  border-radius:16px;
   border:1px solid #ddd;
-  padding:10px;
+  padding:14px;
   box-sizing:border-box;
+  resize:none;
 }
 
 .send-row{
@@ -180,22 +182,21 @@ textarea{
   font-size:14px;
 }
 
+/* MOBILE */
 @media (max-width:700px){
 
 .container{
   margin:0;
   border-radius:0;
-  padding:20px 18px 120px; /* ⬅ espacio extra abajo */
+  padding:20px 18px 120px;
 }
 
-/* Layout vertical limpio */
 .layout{
   display:flex;
   flex-direction:column;
   gap:24px;
 }
 
-/* 1️⃣ Fotos */
 #photos{
   order:1;
   width:100%;
@@ -210,7 +211,6 @@ textarea{
   height:120px;
 }
 
-/* 2️⃣ Casilla mensaje */
 .right{
   order:2;
   display:flex;
@@ -219,37 +219,20 @@ textarea{
   width:100%;
 }
 
-/* Primero mensaje */
 .right > div:last-child{
   order:1;
   width:100%;
 }
 
-/* Ajustamos bloque mensaje para que quede parejo */
-.right h3{
-  margin-bottom:10px;
-}
-
 textarea{
-  width:100%;
   height:130px;
-  border-radius:16px;
-  font-size:14px;
 }
 
-/* 3️⃣ Spotify */
 #spotify{
   order:2;
   width:100%;
 }
 
-.spotify iframe{
-  width:100%;
-  height:152px; /* tamaño proporcional */
-  border-radius:16px;
-}
-
-/* SEARCH */
 .search{
   position:static;
   margin-bottom:14px;
@@ -267,7 +250,6 @@ textarea{
   font-size:12px;
 }
 
-/* HEADER */
 .top{
   margin-top:6px;
   gap:12px;
@@ -297,7 +279,6 @@ textarea{
   font-size:12px;
 }
 
-/* NAV flotante */
 .bottom{
   position:fixed;
   bottom:18px;
@@ -404,6 +385,7 @@ const followersLink = document.getElementById("followersLink");
 const followingLink = document.getElementById("followingLink");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
+const container = document.querySelector(".container");
 
 let viewedUid = null;
 
@@ -416,6 +398,26 @@ async function loadUser(){
   const userDoc = snap.docs[0];
   viewedUid = userDoc.id;
   const d = userDoc.data();
+
+  /* 🎨 APPLY USER THEME */
+  if(d.theme){
+
+    if(d.theme.pageBg){
+      document.body.style.background = d.theme.pageBg;
+    }
+
+    if(d.theme.cardBg){
+      container.style.background = d.theme.cardBg;
+    }
+
+    if(d.theme.backgroundImage){
+      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+      document.body.style.backgroundAttachment = "fixed";
+    }
+
+  }
 
   aliasEl.textContent = d.alias;
   if(d.photoURL) avatar.src = d.photoURL;
@@ -433,24 +435,17 @@ async function loadUser(){
     location.href = `wall.html?uid=${viewedUid}`;
   };
 
-  /* WALL TEXT FROM SETTINGS */
   if(d.wallText){
-    if(d.wallText.title){
-      titleText.textContent = d.wallText.title;
-    }
-    if(d.wallText.box){
-      msgInput.placeholder = d.wallText.box;
-    }
+    if(d.wallText.title) titleText.textContent = d.wallText.title;
+    if(d.wallText.box) msgInput.placeholder = d.wallText.box;
   }
 
-  /* SPOTIFY */
   if(d.spotifyEmbed){
     spotifyContainer.innerHTML = d.spotifyEmbed;
   }else{
     spotifyContainer.innerHTML = "";
   }
 
-  /* PHOTOS */
   photos.innerHTML="";
   const isMobile = window.innerWidth <= 700;
   let desktopArray = d.photosDesktop || d.photos || [];
