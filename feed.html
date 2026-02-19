@@ -29,14 +29,18 @@ h1{
 }
 
 .post{
-  border:1px solid #eee;
-  border-radius:16px;
-  padding:18px;
-  margin-bottom:18px;
-  background:#fafafa;
+  margin-bottom:28px;
 }
 
-/* USER QUE ENVÍA */
+/* RECUADRO MENSAJE */
+.message-box{
+  border:1px solid #eee;
+  border-radius:16px;
+  padding:16px;
+  background:#fafafa;
+  margin-bottom:10px;
+}
+
 .sender{
   font-weight:600;
   margin-bottom:6px;
@@ -44,34 +48,46 @@ h1{
 }
 
 .sender.anon{
-  cursor:default;
   font-weight:500;
   color:#666;
+  cursor:default;
 }
 
 .sender:hover{
   opacity:0.7;
 }
 
-/* MENSAJE */
-.message{
+.message-text{
   font-size:15px;
-  margin-bottom:10px;
 }
 
-/* RESPUESTA */
-.reply{
+/* RECUADRO RESPUESTA */
+.reply-box{
+  border:1px solid #eee;
+  border-radius:16px;
+  padding:16px;
+  background:white;
+}
+
+.reply-text{
   font-size:15px;
   color:#555;
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
 
-/* BLOQUE QUIEN RESPONDE */
+.reply-img{
+  max-width:220px;
+  max-height:220px;
+  border-radius:12px;
+  object-fit:cover;
+  margin-bottom:12px;
+  display:block;
+}
+
 .receiver-row{
   display:flex;
   align-items:center;
   gap:10px;
-  margin-top:10px;
   cursor:pointer;
 }
 
@@ -91,19 +107,9 @@ h1{
   font-weight:600;
 }
 
-/* IMAGEN RESPUESTA */
-.reply-img{
-  max-width:220px;
-  max-height:220px;
-  border-radius:12px;
-  margin-top:10px;
-  object-fit:cover;
-  display:block;
-}
-
-/* LIKE */
+/* LIKE FUERA */
 .like{
-  margin-top:14px;
+  margin-top:10px;
   display:flex;
   align-items:center;
   gap:6px;
@@ -212,6 +218,9 @@ for(const msgDoc of snap.docs){
     }
   }
 
+  const messageBox=document.createElement("div");
+  messageBox.className="message-box";
+
   const sender=document.createElement("div");
   sender.className=senderClickable?"sender":"sender anon";
   sender.textContent=senderAlias;
@@ -222,55 +231,64 @@ for(const msgDoc of snap.docs){
     };
   }
 
-  post.appendChild(sender);
+  const messageText=document.createElement("div");
+  messageText.className="message-text";
+  messageText.textContent=data.text||"";
 
-  /* 🔹 MENSAJE */
-  const message=document.createElement("div");
-  message.className="message";
-  message.textContent=data.text||"";
-  post.appendChild(message);
+  messageBox.appendChild(sender);
+  messageBox.appendChild(messageText);
+
+  post.appendChild(messageBox);
 
   /* 🔹 RESPUESTA */
-  if(data.reply){
-    const reply=document.createElement("div");
-    reply.className="reply";
-    reply.textContent=data.reply;
-    post.appendChild(reply);
+  if(data.reply || data.imageURL){
+
+    const replyBox=document.createElement("div");
+    replyBox.className="reply-box";
+
+    if(data.reply){
+      const replyText=document.createElement("div");
+      replyText.className="reply-text";
+      replyText.textContent=data.reply;
+      replyBox.appendChild(replyText);
+    }
+
+    if(data.imageURL){
+      const img=document.createElement("img");
+      img.src=data.imageURL;
+      img.className="reply-img";
+      replyBox.appendChild(img);
+    }
+
+    const wallSnap=await getDoc(doc(db,"users",data.to));
+    if(wallSnap.exists()){
+      const wallUser=wallSnap.data();
+
+      const receiverRow=document.createElement("div");
+      receiverRow.className="receiver-row";
+
+      const avatar=document.createElement("img");
+      avatar.className="avatar";
+      avatar.src=wallUser.photoURL||"anon.png";
+
+      const receiverName=document.createElement("div");
+      receiverName.className="receiver-name";
+      receiverName.textContent=wallUser.alias;
+
+      receiverRow.appendChild(avatar);
+      receiverRow.appendChild(receiverName);
+
+      receiverRow.onclick=()=>{
+        location.href=`user.html?alias=${wallUser.alias}`;
+      };
+
+      replyBox.appendChild(receiverRow);
+    }
+
+    post.appendChild(replyBox);
   }
 
-  if(data.imageURL){
-    const img=document.createElement("img");
-    img.src=data.imageURL;
-    img.className="reply-img";
-    post.appendChild(img);
-  }
-
-  /* 🔹 QUIEN RESPONDE */
-  const wallSnap=await getDoc(doc(db,"users",data.to));
-  if(!wallSnap.exists()) continue;
-  const wallUser=wallSnap.data();
-
-  const receiverRow=document.createElement("div");
-  receiverRow.className="receiver-row";
-
-  const avatar=document.createElement("img");
-  avatar.className="avatar";
-  avatar.src=wallUser.photoURL||"anon.png";
-
-  const receiverName=document.createElement("div");
-  receiverName.className="receiver-name";
-  receiverName.textContent=wallUser.alias;
-
-  receiverRow.appendChild(avatar);
-  receiverRow.appendChild(receiverName);
-
-  receiverRow.onclick=()=>{
-    location.href=`user.html?alias=${wallUser.alias}`;
-  };
-
-  post.appendChild(receiverRow);
-
-  /* 🔹 LIKE */
+  /* 🔹 LIKE FUERA */
   const like=document.createElement("div");
   like.className="like";
 
