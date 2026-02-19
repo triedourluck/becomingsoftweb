@@ -1,210 +1,226 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wall</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Wall</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #f5f5f5;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #f5f5f5;
+}
 
-    .container {
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-    }
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+}
 
-    .header {
-      background: white;
-      border-radius: 20px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-    }
+.header {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
 
-    .avatar {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background: #ddd;
-      object-fit: cover;
-    }
+.avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ddd;
+  object-fit: cover;
+}
 
-    .alias {
-      font-weight: bold;
-      font-size: 18px;
-    }
+.alias {
+  font-weight: bold;
+  font-size: 18px;
+}
 
-    .msg {
-      background: white;
-      border-radius: 15px;
-      padding: 15px;
-      margin-top: 15px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-    }
+.msg {
+  background: white;
+  border-radius: 15px;
+  padding: 15px;
+  margin-top: 15px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
 
-    .from {
-      font-weight: bold;
-      margin-bottom: 5px;
-      cursor: pointer;
-      text-decoration: underline;
-    }
+.from {
+  font-weight: bold;
+  margin-bottom: 5px;
+  cursor: pointer;
+  text-decoration: underline;
+}
 
-    .empty {
-      text-align: center;
-      margin-top: 30px;
-      color: #888;
-    }
+.empty {
+  text-align: center;
+  margin-top: 30px;
+  color: #888;
+}
 
-    .top-nav{
-      display:flex;
-      gap:8px;
-      margin-bottom:14px;
-    }
+.top-nav{
+  display:flex;
+  gap:8px;
+  margin-bottom:14px;
+}
 
-    .top-nav button{
-      padding:6px 12px;
-      border:none;
-      border-radius:10px;
-      background:#111;
-      color:white;
-      cursor:pointer;
-      font-size:12px;
-    }
-  </style>
+.top-nav button{
+  padding:6px 12px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:12px;
+}
+</style>
 </head>
 
 <body>
-  <div class="container">
+<div class="container">
 
-    <div class="top-nav">
-      <button onclick="goFeed()">Feed</button>
-      <button onclick="goProfile()">Mi perfil</button>
-    </div>
+<div class="top-nav">
+<button onclick="goFeed()">Feed</button>
+<button onclick="goProfile()">Mi perfil</button>
+</div>
 
-    <div class="header">
-      <img id="avatar" class="avatar" />
-      <div id="alias" class="alias">...</div>
-    </div>
+<div class="header">
+<img id="avatar" class="avatar" />
+<div id="alias" class="alias">...</div>
+</div>
 
-    <div id="wall"></div>
+<div id="wall"></div>
 
-    <div id="empty" class="empty" style="display:none;">
-      Aún no hay mensajes publicados 🌙
-    </div>
+<div id="empty" class="empty" style="display:none;">
+Aún no hay mensajes publicados 🌙
+</div>
 
-  </div>
+</div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      query,
-      where,
-      orderBy,
-      getDocs,
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+getFirestore,
+collection,
+query,
+where,
+orderBy,
+getDocs,
+doc,
+getDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-      authDomain: "becomingsoft-84e72.firebaseapp.com",
-      projectId: "becomingsoft-84e72",
-      storageBucket: "becomingsoft-84e72.firebasestorage.app",
-      messagingSenderId: "605759003962",
-      appId: "1:605759003962:web:ea8603a8e97e42d2278403"
-    };
+const firebaseConfig = {
+apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+authDomain:"becomingsoft-84e72.firebaseapp.com",
+projectId:"becomingsoft-84e72",
+storageBucket:"becomingsoft-84e72.firebasestorage.app",
+messagingSenderId:"605759003962",
+appId:"1:605759003962:web:ea8603a8e97e42d2278403"
+};
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
 
-    const wallEl = document.getElementById("wall");
-    const emptyEl = document.getElementById("empty");
-    const avatarEl = document.getElementById("avatar");
-    const aliasEl = document.getElementById("alias");
+const wallEl=document.getElementById("wall");
+const emptyEl=document.getElementById("empty");
+const avatarEl=document.getElementById("avatar");
+const aliasEl=document.getElementById("alias");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        location.href = "login.html";
-        return;
-      }
+onAuthStateChanged(auth, async(user)=>{
+if(!user){
+location.href="login.html";
+return;
+}
 
-      const params = new URLSearchParams(window.location.search);
-      const uid = params.get("uid") || user.uid;
+const params=new URLSearchParams(window.location.search);
+const uid=params.get("uid")||user.uid;
 
-      // 🔹 cargar perfil
-      const userSnap = await getDoc(doc(db, "users", uid));
-      const userData = userSnap.data();
+/* 🔹 CARGAR PERFIL */
+const userSnap=await getDoc(doc(db,"users",uid));
+const userData=userSnap.data();
 
-      aliasEl.textContent = userData?.alias || "sin alias";
-      if (userData?.photoURL) avatarEl.src = userData.photoURL;
+aliasEl.textContent=userData?.alias||"sin alias";
+if(userData?.photoURL) avatarEl.src=userData.photoURL;
 
-      // 🔹 query del wall
-      const q = query(
-        collection(db, "messages"),
-        where("to", "==", uid),
-        where("published", "==", true),
-        orderBy("createdAt", "desc")
-      );
+/* 🎨 APPLY WALL THEME */
+if(userData?.theme){
 
-      const snap = await getDocs(q);
+document.body.style.backgroundColor=userData.theme.wallPageBg||"#f5f5f5";
+document.querySelector(".container").style.backgroundColor=userData.theme.wallCardBg||"transparent";
 
-      if (snap.empty) {
-        emptyEl.style.display = "block";
-        return;
-      }
+if(userData.theme.wallBackgroundImage){
+document.body.style.backgroundImage=`url(${userData.theme.wallBackgroundImage})`;
+document.body.style.backgroundSize="cover";
+document.body.style.backgroundPosition="center";
+}else{
+document.body.style.backgroundImage="none";
+}
 
-      for (const docSnap of snap.docs) {
-        const data = docSnap.data();
+}
 
-        const div = document.createElement("div");
-        div.className = "msg";
+/* 🔹 QUERY WALL */
+const q=query(
+collection(db,"messages"),
+where("to","==",uid),
+where("published","==",true),
+orderBy("createdAt","desc")
+);
 
-        let fromAlias = "Anónimo";
+const snap=await getDocs(q);
 
-        // 🔹 si NO es anónimo, buscar alias real por UID
-        if (data.fromAlias) {
-          const fromSnap = await getDoc(doc(db, "users", data.fromAlias));
-          fromAlias = fromSnap.data()?.alias || "usuario";
-        }
+if(snap.empty){
+emptyEl.style.display="block";
+return;
+}
 
-        const fromEl = document.createElement("div");
-        fromEl.className = "from";
-        fromEl.textContent = "@" + fromAlias;
+for(const docSnap of snap.docs){
+const data=docSnap.data();
 
-        // 👉 click al perfil
-        if (data.fromAlias) {
-          fromEl.onclick = () => {
-            window.location.href = `user.html?alias=${fromAlias}`;
-          };
-        }
+const div=document.createElement("div");
+div.className="msg";
 
-        const textEl = document.createElement("div");
-        textEl.textContent = data.text;
+let fromAlias="Anónimo";
 
-        div.appendChild(fromEl);
-        div.appendChild(textEl);
-        wallEl.appendChild(div);
-      }
-    });
+if(data.fromAlias){
+const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
+fromAlias=fromSnap.data()?.alias||"usuario";
+}
 
-    window.goFeed = () => {
-      window.location.href = "feed.html";
-    };
+const fromEl=document.createElement("div");
+fromEl.className="from";
+fromEl.textContent="@"+fromAlias;
 
-    window.goProfile = () => {
-      window.location.href = "profile.html";
-    };
-  </script>
+if(data.fromAlias){
+fromEl.onclick=()=>{
+window.location.href=`user.html?alias=${fromAlias}`;
+};
+}
+
+const textEl=document.createElement("div");
+textEl.textContent=data.text;
+
+div.appendChild(fromEl);
+div.appendChild(textEl);
+wallEl.appendChild(div);
+}
+
+});
+
+window.goFeed=()=>{
+window.location.href="feed.html";
+};
+
+window.goProfile=()=>{
+window.location.href="profile.html";
+};
+</script>
+
 </body>
 </html>
