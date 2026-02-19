@@ -238,18 +238,31 @@ async function setupFollow(){
 }
 
 window.sendMessage = async () => {
+
   const text = msgInput.value.trim();
   if(!text) return;
 
   const mode = document.querySelector('input[name="mode"]:checked').value;
-  const user = auth.currentUser;
+
+  const currentUser = auth.currentUser;
+
+  let senderUid = null;
+
+  if(mode === "alias"){
+    if(!currentUser){
+      alert("Debes iniciar sesión para enviar con tu alias");
+      return;
+    }
+    senderUid = currentUser.uid;
+  }
 
   await addDoc(collection(db,"messages"),{
-    text,
-    to:viewedUid,
-    fromUid: mode==="alias" && user ? user.uid : null,
+    text: text,
+    to: viewedUid,
+    fromAlias: senderUid,
     createdAt: Date.now(),
-    published:false
+    published:false,
+    likes:[]
   });
 
   msgInput.value="";
