@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>becomingsoft — feed</title>
+<title>becomingsoft — The Haven</title>
 
 <style>
 body{
@@ -24,32 +24,29 @@ body{
 
 h1{
   margin-top:0;
-  font-size:20px;
+  font-size:22px;
+  font-weight:600;
 }
 
 .post{
   border:1px solid #eee;
   border-radius:16px;
   padding:16px;
-  margin-bottom:14px;
+  margin-bottom:18px;
   background:#fafafa;
 }
 
 .user-row{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:8px;
   cursor:pointer;
   margin-bottom:10px;
 }
 
-.user-row:hover{
-  opacity:0.8;
-}
-
 .avatar{
-  width:36px;
-  height:36px;
+  width:28px; /* más pequeño */
+  height:28px;
   border-radius:50%;
   object-fit:cover;
   background:#ddd;
@@ -61,42 +58,33 @@ h1{
 }
 
 .question{
-  font-size:14px;
-  margin-bottom:6px;
-  line-height:1.4;
+  font-size:15px;
+  margin-bottom:10px;
 }
 
-.creator-tag{
-  font-weight:600;
-  cursor:pointer;
-}
-
-.creator-tag:hover{
-  opacity:0.7;
-}
-
-.reply{
-  font-size:14px;
-  color:#111;
+.reply-box{
   background:white;
   border-radius:12px;
-  padding:10px;
+  padding:12px;
   border:1px solid #eee;
-  margin-top:8px;
+}
+
+.reply-text{
+  font-size:14px;
+  margin-bottom:8px;
 }
 
 .reply-img{
-  max-width:100%;
-  max-height:300px;
-  border-radius:12px;
-  margin-top:8px;
+  width:100%;
+  max-height:320px;
   object-fit:cover;
+  border-radius:10px;
+  margin-top:6px;
 }
 
-.actions{
-  margin-top:10px;
-  display:flex;
-  justify-content:flex-end;
+.creator{
+  font-weight:600;
+  margin-left:6px;
 }
 
 .like{
@@ -105,6 +93,7 @@ h1{
   gap:6px;
   cursor:pointer;
   font-size:14px;
+  margin-top:10px;
   user-select:none;
 }
 
@@ -121,11 +110,13 @@ h1{
 <body>
 
 <div class="container">
-<h1>Feed</h1>
+
+<h1>The Haven</h1>
 
 <div id="feed"></div>
 
 <div class="back" onclick="goBack()">← Volver</div>
+
 </div>
 
 <script type="module">
@@ -158,138 +149,96 @@ const db=getFirestore(app);
 
 const feedEl=document.getElementById("feed");
 
-onAuthStateChanged(auth,async(user)=>{
+onAuthStateChanged(auth, async(user)=>{
 if(!user){
-window.location.href="login.html";
-return;
+  location.href="login.html";
+  return;
 }
 
-/* Obtener a quién sigo */
 const mySnap=await getDoc(doc(db,"users",user.uid));
 const following=mySnap.data()?.following||[];
 
 if(following.length===0){
-feedEl.innerHTML="<p>No sigues a nadie todavía 🌱</p>";
-return;
+  feedEl.innerHTML="<p>No sigues a nadie todavía 🌱</p>";
+  return;
 }
 
-/* Query feed */
 const q=query(
-collection(db,"messages"),
-where("published","==",true),
-where("to","in",following.slice(0,10)),
-orderBy("createdAt","desc")
+  collection(db,"messages"),
+  where("published","==",true),
+  where("to","in",following.slice(0,10)),
+  orderBy("createdAt","desc")
 );
 
 const snap=await getDocs(q);
 
 if(snap.empty){
-feedEl.innerHTML="<p>Aún no hay respuestas en tu feed ✨</p>";
-return;
+  feedEl.innerHTML="<p>Aún no hay respuestas en The Haven ✨</p>";
+  return;
 }
 
 for(const msgDoc of snap.docs){
 
 const data=msgDoc.data();
 
-/* Obtener dueño del wall */
 const ownerSnap=await getDoc(doc(db,"users",data.to));
 const owner=ownerSnap.data();
+
+let senderAlias=null;
+
+if(data.fromAlias){
+  const senderSnap=await getDoc(doc(db,"users",data.fromAlias));
+  senderAlias=senderSnap.data()?.alias || null;
+}
 
 const post=document.createElement("div");
 post.className="post";
 
-/* HEADER OWNER */
-const userRow=document.createElement("div");
-userRow.className="user-row";
-userRow.onclick=()=>{
-location.href=`user.html?alias=${owner.alias}`;
-};
+post.innerHTML=`
+  <div class="user-row" onclick="location.href='user.html?alias=${owner.alias}'">
+    <img class="avatar" src="${owner.photoURL || ''}">
+    <div class="alias">${owner.alias}</div>
+  </div>
 
-const avatar=document.createElement("img");
-avatar.className="avatar";
-avatar.src=owner.photoURL||"";
+  <div class="question">
+    ${data.text || ""}
+    ${
+      senderAlias
+      ? `<span class="creator">${senderAlias}</span>`
+      : ""
+    }
+  </div>
 
-const alias=document.createElement("div");
-alias.className="alias";
-alias.textContent="@"+owner.alias;
+  ${
+    data.reply || data.replyImage
+    ? `
+    <div class="reply-box">
+      ${
+        data.reply
+        ? `<div class="reply-text">${data.reply}</div>`
+        : ""
+      }
+      ${
+        data.replyImage
+        ? `<img class="reply-img" src="${data.replyImage}">`
+        : ""
+      }
+    </div>
+    `
+    : ""
+  }
 
-userRow.appendChild(avatar);
-userRow.appendChild(alias);
-post.appendChild(userRow);
-
-/* MENSAJE ORIGINAL + CREATOR TAG */
-if(data.text){
-const question=document.createElement("div");
-question.className="question";
-
-question.innerHTML=`
-${data.text}
-<span class="creator-tag" onclick="event.stopPropagation(); location.href='user.html?alias=${owner.alias}'">
-&nbsp;${owner.alias}
-</span>
+  <div class="like">
+    ♡ ${data.likes?.length || 0}
+  </div>
 `;
-
-post.appendChild(question);
-}
-
-/* RESPUESTA */
-if(data.reply){
-const reply=document.createElement("div");
-reply.className="reply";
-reply.textContent=data.reply;
-post.appendChild(reply);
-}
-
-/* IMAGEN */
-if(data.replyImage){
-const img=document.createElement("img");
-img.src=data.replyImage;
-img.className="reply-img";
-post.appendChild(img);
-}
-
-/* LIKES */
-const actions=document.createElement("div");
-actions.className="actions";
-
-const likeContainer=document.createElement("div");
-likeContainer.className="like";
-
-const likesArray=data.likes||[];
-const hasLiked=likesArray.includes(user.uid);
-
-const heart=document.createElement("span");
-heart.textContent=hasLiked?"♥︎":"♡";
-
-const likeCount=document.createElement("span");
-likeCount.textContent=likesArray.length;
-
-likeContainer.appendChild(heart);
-likeContainer.appendChild(likeCount);
-
-likeContainer.onclick=async()=>{
-if(hasLiked){
-await updateDoc(doc(db,"messages",msgDoc.id),{
-likes:likesArray.filter(id=>id!==user.uid)
-});
-}else{
-await updateDoc(doc(db,"messages",msgDoc.id),{
-likes:[...likesArray,user.uid]
-});
-}
-location.reload();
-};
-
-actions.appendChild(likeContainer);
-post.appendChild(actions);
 
 feedEl.appendChild(post);
 }
 });
 
 window.goBack=()=>{
-window.location.href="profile.html";
+  location.href="profile.html";
 };
 </script>
 
