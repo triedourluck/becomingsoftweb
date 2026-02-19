@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>becomingsoft — inbox privado</title>
 
 <style>
@@ -24,26 +24,56 @@ body{
 
 h1{
   margin-top:0;
+  font-size:20px;
   font-weight:600;
 }
 
 .msg{
   border:1px solid #eee;
   border-radius:16px;
-  padding:18px;
-  margin-bottom:18px;
+  padding:16px;
+  margin-bottom:14px;
   background:#fafafa;
 }
 
-.meta{
-  font-size:13px;
-  font-weight:600;
-  margin-bottom:4px;
+/* USER ROW */
+.user-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:8px;
 }
 
-.text{
+.user-row.clickable{
+  cursor:pointer;
+}
+
+.user-row.clickable:hover{
+  opacity:0.7;
+}
+
+.mini-avatar{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#ddd;
+}
+
+.mini-alias{
   font-size:14px;
+  font-weight:500;
+}
+
+/* TEXTO */
+.text{
+  font-size:15px;
   margin-bottom:12px;
+}
+
+/* RESPUESTA */
+.reply-box{
+  position:relative;
 }
 
 textarea{
@@ -56,24 +86,31 @@ textarea{
   box-sizing:border-box;
 }
 
-.image-input{
-  margin-top:8px;
-  font-size:12px;
+.image-icon{
+  position:absolute;
+  right:10px;
+  bottom:10px;
+  cursor:pointer;
+  font-size:16px;
+  opacity:0.6;
 }
 
-.preview{
-  margin-top:10px;
-  max-width:100%;
-  max-height:250px;
-  border-radius:12px;
-  object-fit:cover;
+.image-icon:hover{
+  opacity:1;
+}
+
+.preview-img{
+  max-width:150px;
+  margin-top:8px;
+  border-radius:10px;
   display:none;
 }
 
+/* ACTIONS */
 .actions{
-  margin-top:12px;
+  margin-top:10px;
   display:flex;
-  gap:10px;
+  gap:8px;
 }
 
 button{
@@ -90,28 +127,34 @@ button{
 }
 
 .delete{
-  background:#ddd;
+  background:#eee;
+}
+
+.empty{
+  color:#777;
+  font-size:14px;
 }
 
 .back{
-  margin-top:20px;
-  text-align:center;
+  margin-top:18px;
   font-size:13px;
   text-decoration:underline;
   cursor:pointer;
   color:#666;
+  text-align:center;
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <h1>Inbox privado</h1>
 
 <div id="list"></div>
 
-<div class="back" onclick="goBack()">Volver a mi perfil</div>
+<div class="back" onclick="goBack()">← Volver</div>
 
 </div>
 
@@ -159,7 +202,7 @@ if(!user){
   return;
 }
 
-/* 🔥 SOLO MENSAJES NO PUBLICADOS */
+/* SOLO MENSAJES NO PUBLICADOS */
 const q=query(
   collection(db,"messages"),
   where("to","==",user.uid),
@@ -170,90 +213,146 @@ const q=query(
 const snap=await getDocs(q);
 
 if(snap.empty){
-  listEl.innerHTML="<p>No tienes mensajes nuevos 🌙</p>";
+  listEl.innerHTML="<div class='empty'>No tienes mensajes nuevos 🌿</div>";
   return;
 }
 
 for(const docSnap of snap.docs){
 
-const data=docSnap.data();
-const div=document.createElement("div");
-div.className="msg";
+  const data=docSnap.data();
+  const div=document.createElement("div");
+  div.className="msg";
 
-/* META */
-let fromLabel="Anónimo";
+  /* USER INFO */
+  let alias="anónimo";
+  let photo="anon.png";
+  let clickable=false;
 
-if(data.fromAlias){
-  const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
-  const fromData=fromSnap.data();
-  fromLabel=fromData?.alias || "Usuario";
-}
-
-div.innerHTML=`
-  <div class="meta">${fromLabel}</div>
-  <div class="text">${data.text || ""}</div>
-  <textarea placeholder="Escribe tu respuesta..."></textarea>
-  <input type="file" accept="image/*" class="image-input">
-  <img class="preview">
-  <div class="actions">
-    <button class="publish">Publicar</button>
-    <button class="delete">Eliminar</button>
-  </div>
-`;
-
-const textarea=div.querySelector("textarea");
-const imageInput=div.querySelector(".image-input");
-const preview=div.querySelector(".preview");
-const publishBtn=div.querySelector(".publish");
-const deleteBtn=div.querySelector(".delete");
-
-let imageFile=null;
-
-/* PREVIEW IMAGEN */
-imageInput.onchange=()=>{
-  imageFile=imageInput.files[0];
-  if(imageFile){
-    preview.src=URL.createObjectURL(imageFile);
-    preview.style.display="block";
-  }
-};
-
-/* PUBLICAR */
-publishBtn.onclick=async()=>{
-
-  let imageURL=null;
-
-  if(imageFile){
-    const storageRef=ref(storage,`replies/${docSnap.id}`);
-    await uploadBytes(storageRef,imageFile);
-    imageURL=await getDownloadURL(storageRef);
+  if(data.fromAlias){
+    const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
+    if(fromSnap.exists()){
+      const fromData=fromSnap.data();
+      alias=fromData.alias;
+      photo=fromData.photoURL||"anon.png";
+      clickable=true;
+    }
   }
 
-  await updateDoc(doc(db,"messages",docSnap.id),{
-    reply:textarea.value.trim() || null,
-    replyImage:imageURL,
-    published:true
-  });
+  const userRow=document.createElement("div");
+  userRow.className="user-row"+(clickable?" clickable":"");
 
-  location.reload();
-};
+  const avatar=document.createElement("img");
+  avatar.src=photo;
+  avatar.className="mini-avatar";
 
-/* ELIMINAR */
-deleteBtn.onclick=async()=>{
-  const ok=confirm("¿Eliminar este mensaje?");
-  if(!ok) return;
+  const name=document.createElement("div");
+  name.textContent=alias;
+  name.className="mini-alias";
 
-  await deleteDoc(doc(db,"messages",docSnap.id));
-  location.reload();
-};
+  if(clickable){
+    userRow.onclick=()=>{
+      window.location.href=`user.html?alias=${alias}`;
+    };
+  }
 
-listEl.appendChild(div);
+  userRow.appendChild(avatar);
+  userRow.appendChild(name);
+
+  /* TEXTO MENSAJE */
+  const text=document.createElement("div");
+  text.className="text";
+  text.textContent=data.text;
+
+  /* RESPUESTA */
+  const replyBox=document.createElement("div");
+  replyBox.className="reply-box";
+
+  const textarea=document.createElement("textarea");
+  textarea.placeholder="Escribe tu respuesta...";
+
+  const fileInput=document.createElement("input");
+  fileInput.type="file";
+  fileInput.accept="image/*";
+  fileInput.style.display="none";
+
+  const imageIcon=document.createElement("span");
+  imageIcon.textContent="🖼";
+  imageIcon.className="image-icon";
+
+  const preview=document.createElement("img");
+  preview.className="preview-img";
+
+  let selectedFile=null;
+
+  imageIcon.onclick=()=>fileInput.click();
+
+  fileInput.onchange=(e)=>{
+    selectedFile=e.target.files[0];
+    if(selectedFile){
+      preview.src=URL.createObjectURL(selectedFile);
+      preview.style.display="block";
+    }
+  };
+
+  replyBox.appendChild(textarea);
+  replyBox.appendChild(imageIcon);
+  replyBox.appendChild(fileInput);
+  replyBox.appendChild(preview);
+
+  /* ACTIONS */
+  const actions=document.createElement("div");
+  actions.className="actions";
+
+  const publishBtn=document.createElement("button");
+  publishBtn.className="publish";
+  publishBtn.textContent="Publicar";
+
+  publishBtn.onclick=async()=>{
+    let imageURL=null;
+
+    if(selectedFile){
+      const storageRef=ref(storage,`replies/${docSnap.id}`);
+      await uploadBytes(storageRef,selectedFile);
+      imageURL=await getDownloadURL(storageRef);
+    }
+
+    await updateDoc(doc(db,"messages",docSnap.id),{
+      reply:textarea.value.trim()||"",
+      imageURL:imageURL||null,
+      published:true
+    });
+
+    location.reload();
+  };
+
+  const deleteBtn=document.createElement("button");
+  deleteBtn.className="delete";
+  deleteBtn.textContent="Eliminar";
+
+  deleteBtn.onclick=async()=>{
+    const ok=confirm("¿Eliminar este mensaje?");
+    if(!ok) return;
+    await deleteDoc(doc(db,"messages",docSnap.id));
+    location.reload();
+  };
+
+  actions.appendChild(publishBtn);
+  actions.appendChild(deleteBtn);
+
+  div.appendChild(userRow);
+  div.appendChild(text);
+  div.appendChild(replyBox);
+  div.appendChild(actions);
+
+  listEl.appendChild(div);
 }
+
 });
 
 window.goBack=()=>{
   location.href="profile.html";
 };
 </script>
+
 </body>
 </html>
