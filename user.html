@@ -94,24 +94,6 @@ body{
   font-size:13px;
 }
 
-/* BOTTOM NAV */
-.bottom{
-  margin-top:24px;
-  display:flex;
-  gap:12px;
-}
-
-.gear,
-.icon-btn{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-}
-
 /* LAYOUT */
 .layout{
   display:grid;
@@ -136,9 +118,6 @@ body{
 }
 
 /* SPOTIFY */
-.spotify{
-  width:100%;
-}
 .spotify iframe{
   width:100%;
   border:none;
@@ -184,14 +163,24 @@ textarea{
   cursor:pointer;
 }
 
-.back{
-  margin-top:20px;
-  font-size:13px;
-  text-decoration:underline;
-  cursor:pointer;
+/* BOTTOM NAV */
+.bottom{
+  margin-top:24px;
+  display:flex;
+  gap:12px;
 }
 
-/* MOBILE intacto */
+.gear,.icon-btn{
+  padding:10px 14px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
+}
+
+/* MOBILE */
 @media (max-width:700px){
 
 .container{
@@ -301,11 +290,10 @@ textarea{
 
   <div class="right">
 
-    <!-- SPOTIFY -->
     <div id="spotify" class="spotify"></div>
 
     <div>
-      <h3>Envíame un mensaje</h3>
+      <h3 id="titleText">Envíame un mensaje</h3>
       <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
       <div class="send-row">
@@ -321,8 +309,6 @@ textarea{
   </div>
 
 </div>
-
-<div class="back" onclick="history.back()">← Volver</div>
 
 <div class="bottom">
   <button class="gear" onclick="location.href='settings.html'">⚙️</button>
@@ -341,7 +327,6 @@ import {
   doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-/* 🔥 CONFIG REAL */
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
   authDomain:"becomingsoft-84e72.firebaseapp.com",
@@ -366,10 +351,10 @@ const followBtn = document.getElementById("followBtn");
 const shhhBtn = document.getElementById("shhhBtn");
 const followersLink = document.getElementById("followersLink");
 const followingLink = document.getElementById("followingLink");
+const titleText = document.getElementById("titleText");
+const msgInput = document.getElementById("msgInput");
 
 let viewedUid = null;
-
-/* ---------------- LOAD USER ---------------- */
 
 async function loadUser(){
 
@@ -381,7 +366,6 @@ async function loadUser(){
   viewedUid = userDoc.id;
   const d = userDoc.data();
 
-  /* HEADER */
   aliasEl.textContent = d.alias;
   if(d.photoURL) avatar.src = d.photoURL;
 
@@ -394,11 +378,19 @@ async function loadUser(){
   followingLink.onclick = () =>
     location.href = `list.html?uid=${viewedUid}&type=following`;
 
-  /* SHHH */
   shhhBtn.onclick = ()=>{
-    if(!viewedUid) return;
     location.href = `wall.html?uid=${viewedUid}`;
   };
+
+  /* WALL TEXT FROM SETTINGS */
+  if(d.wallText){
+    if(d.wallText.title){
+      titleText.textContent = d.wallText.title;
+    }
+    if(d.wallText.box){
+      msgInput.placeholder = d.wallText.box;
+    }
+  }
 
   /* SPOTIFY */
   if(d.spotifyEmbed){
@@ -410,7 +402,6 @@ async function loadUser(){
   /* PHOTOS */
   photos.innerHTML="";
   const isMobile = window.innerWidth <= 700;
-
   let desktopArray = d.photosDesktop || d.photos || [];
   let mobileArray  = d.photosMobile  || d.photos || [];
   let currentPhotos = isMobile ? mobileArray : desktopArray;
@@ -425,8 +416,6 @@ async function loadUser(){
 
   setupFollow();
 }
-
-/* ---------------- FOLLOW ---------------- */
 
 async function setupFollow(){
   const user = auth.currentUser;
@@ -464,10 +453,8 @@ async function setupFollow(){
   };
 }
 
-/* ---------------- SEND MESSAGE ---------------- */
-
 window.sendMessage = async ()=>{
-  const text = document.getElementById("msgInput").value.trim();
+  const text = msgInput.value.trim();
   if(!text) return;
 
   const mode = document.querySelector('input[name="mode"]:checked').value;
@@ -487,11 +474,9 @@ window.sendMessage = async ()=>{
     likes:[]
   });
 
-  document.getElementById("msgInput").value="";
+  msgInput.value="";
   alert("enviado 🌷");
 };
-
-/* ---------------- INIT ---------------- */
 
 onAuthStateChanged(auth,(user)=>{
   if(!user){
