@@ -153,7 +153,6 @@ Permitir mensajes anónimos
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import {
   getAuth,
-  onAuthStateChanged,
   deleteUser,
   EmailAuthProvider,
   reauthenticateWithCredential
@@ -188,39 +187,37 @@ const storage = getStorage(app);
 
 let uid = null;
 
-onAuthStateChanged(auth, async(user)=>{
-  console.log("AUTH STATE:", user);
+/* 🔥 Esperar a que Firebase restaure sesión correctamente */
+await auth.authStateReady();
 
-  if(!user){
-    return; // NO redirigir automáticamente
-  }
+const user = auth.currentUser;
 
-  uid = user.uid;
+if(!user){
+  location.href = "login.html";
+}
 
-  const snap = await getDoc(doc(db,"users",uid));
-  const d = snap.data();
+uid = user.uid;
 
-  if(d?.wallText){
-    titlePhrase.value = d.wallText.title || "";
-    boxPhrase.value = d.wallText.box || "";
-  }
+/* Cargar datos */
+const snap = await getDoc(doc(db,"users",uid));
+const d = snap.data();
 
-  allowAnonToggle.checked = d.allowAnonymous ?? true;
+if(d?.wallText){
+  titlePhrase.value = d.wallText.title || "";
+  boxPhrase.value = d.wallText.box || "";
+}
 
-  if(d?.theme){
-    profilePageBg.value = d.theme.profileBgColor || "";
-    profileCardBg.value = d.theme.profileCardColor || "";
-    wallPageBg.value = d.theme.wallBgColor || "";
-    wallCardBg.value = d.theme.wallCardColor || "";
-  }
-});
+allowAnonToggle.checked = d.allowAnonymous ?? true;
 
+if(d?.theme){
+  profilePageBg.value = d.theme.profileBgColor || "";
+  profileCardBg.value = d.theme.profileCardColor || "";
+  wallPageBg.value = d.theme.wallBgColor || "";
+  wallCardBg.value = d.theme.wallCardColor || "";
+}
+
+/* Guardar */
 window.saveAll = async()=>{
-
-  if(!uid){
-    alert("Usuario no autenticado aún.");
-    return;
-  }
 
   const snap = await getDoc(doc(db,"users",uid));
   const existingTheme = snap.data()?.theme || {};
@@ -241,24 +238,20 @@ window.saveAll = async()=>{
   }
 
   await setDoc(doc(db,"users",uid),{
-
     wallText:{
       title:titlePhrase.value.trim(),
       box:boxPhrase.value.trim()
     },
-
     allowAnonymous:allowAnonToggle.checked,
-
     theme:{
       ...existingTheme,
       profileBgColor: profilePageBg.value.trim(),
       profileCardColor: profileCardBg.value.trim(),
-      profileBgImage: profileBgImage,
+      profileBgImage,
       wallBgColor: wallPageBg.value.trim(),
       wallCardColor: wallCardBg.value.trim(),
-      wallBgImage: wallBgImage
+      wallBgImage
     }
-
   },{merge:true});
 
   alert("Cambios guardados 🌷");
@@ -279,10 +272,7 @@ window.removeWallBg = async()=>{
 };
 
 window.deleteAccount = async()=>{
-  const user = auth.currentUser;
-  if(!user) return;
-
-  if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.\n¿Continuar?")) return;
+  if(!confirm("⚠️ Esta acción eliminará tu cuenta permanentemente.")) return;
 
   const password = prompt("Ingresa tu contraseña:");
   if(!password) return;
@@ -295,12 +285,10 @@ window.deleteAccount = async()=>{
     return;
   }
 
-  if(!confirm("❗ Última confirmación.\n¿Eliminar definitivamente?")) return;
+  if(!confirm("¿Eliminar definitivamente?")) return;
 
   await deleteUser(user);
   await deleteDoc(doc(db,"users",uid));
-
-  alert("Cuenta eliminada.");
   location.href="index.html";
 };
 
