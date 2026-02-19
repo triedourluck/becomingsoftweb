@@ -190,7 +190,31 @@ textarea{
 }
 
 .layout{
-  grid-template-columns:1fr;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+/* Primero la parte derecha (mensaje + spotify) */
+.right{
+  order:1;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Después las fotos */
+#photos{
+  order:2;
+}
+
+/* Dentro de la columna derecha:
+   primero mensaje, después Spotify */
+.right > div:first-child{
+  order:2; /* Spotify */
+}
+
+.right > div:last-child{
+  order:1; /* Casilla mensaje */
 }
 
 .photos{
