@@ -14,7 +14,7 @@ body{
 }
 
 .container{
-  max-width:650px;
+  max-width:700px;
   margin:40px auto;
   background:white;
   border-radius:20px;
@@ -23,6 +23,7 @@ body{
 }
 
 h1{margin-top:0;font-size:20px;}
+h2{margin-top:28px;font-size:16px;}
 
 label{
   font-size:13px;
@@ -32,13 +33,28 @@ label{
   margin-bottom:6px;
 }
 
-input[type="text"]{
+input[type="text"],
+input[type="password"]{
   width:100%;
   padding:10px;
   border-radius:10px;
   border:1px solid #ddd;
   font-size:13px;
   box-sizing:border-box;
+}
+
+input[type="file"]{
+  margin-top:6px;
+}
+
+.small-btn{
+  margin-top:6px;
+  padding:6px 10px;
+  font-size:12px;
+  border:none;
+  border-radius:8px;
+  background:#eee;
+  cursor:pointer;
 }
 
 .btn{
@@ -84,9 +100,12 @@ input[type="text"]{
 </style>
 </head>
 <body>
+
 <div class="container">
 
 <h1>Configuración</h1>
+
+<!-- FRASES -->
 
 <label>Frase de recuadro de mensajes</label>
 <input type="text" id="titlePhrase"/>
@@ -98,6 +117,34 @@ input[type="text"]{
 <input type="checkbox" id="allowAnonToggle"/>
 Permitir mensajes anónimos
 </label>
+
+<!-- PROFILE -->
+
+<h2>🎨 Perfil</h2>
+
+<label>Color fondo perfil (HEX)</label>
+<input type="text" id="profilePageBg"/>
+
+<label>Color recuadro perfil (HEX)</label>
+<input type="text" id="profileCardBg"/>
+
+<label>Imagen de fondo perfil</label>
+<input type="file" id="profileBgInput" accept="image/*"/>
+<button class="small-btn" id="removeProfileBg">Eliminar imagen de fondo</button>
+
+<!-- WALL -->
+
+<h2>🌙 Wall</h2>
+
+<label>Color fondo wall (HEX)</label>
+<input type="text" id="wallPageBg"/>
+
+<label>Color recuadro wall (HEX)</label>
+<input type="text" id="wallCardBg"/>
+
+<label>Imagen de fondo wall</label>
+<input type="file" id="wallBgInput" accept="image/*"/>
+<button class="small-btn" id="removeWallBg">Eliminar imagen de fondo</button>
 
 <button class="btn" id="saveBtn">Guardar cambios</button>
 
@@ -121,66 +168,120 @@ import {
 import {
   getFirestore,
   doc,
+  getDoc,
   setDoc,
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
-  authDomain: "becomingsoft-84e72.firebaseapp.com",
-  projectId: "becomingsoft-84e72",
-  storageBucket: "becomingsoft-84e72.firebasestorage.app",
-  messagingSenderId: "605759003962",
-  appId: "1:605759003962:web:ea8603a8e97e42d2278403"
+  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  authDomain:"becomingsoft-84e72.firebaseapp.com",
+  projectId:"becomingsoft-84e72",
+  storageBucket:"becomingsoft-84e72.firebasestorage.app",
+  messagingSenderId:"605759003962",
+  appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 let uid = null;
 
 const saveBtn = document.getElementById("saveBtn");
 const deleteBtn = document.getElementById("deleteBtn");
+const removeProfileBtn = document.getElementById("removeProfileBg");
+const removeWallBtn = document.getElementById("removeWallBg");
 
-onAuthStateChanged(auth,(user)=>{
+onAuthStateChanged(auth, async(user)=>{
   if(!user){
     location.href="login.html";
     return;
   }
+
   uid = user.uid;
+
+  const snap = await getDoc(doc(db,"users",uid));
+  const d = snap.data();
+
+  if(d?.wallText){
+    titlePhrase.value = d.wallText.title || "";
+    boxPhrase.value = d.wallText.box || "";
+  }
+
+  allowAnonToggle.checked = d.allowAnonymous ?? true;
+
+  if(d?.theme){
+    profilePageBg.value = d.theme.profileBgColor || "";
+    profileCardBg.value = d.theme.profileCardColor || "";
+    wallPageBg.value = d.theme.wallBgColor || "";
+    wallCardBg.value = d.theme.wallCardColor || "";
+  }
 });
 
-/* 🔥 LISTENER REAL */
 saveBtn.addEventListener("click", async()=>{
 
-  console.log("CLICK GUARDAR");
-  console.log("UID:", uid);
+  if(!uid) return;
 
-  if(!uid){
-    console.log("UID no listo");
-    alert("Sesión aún no lista");
-    return;
+  const snap = await getDoc(doc(db,"users",uid));
+  const existingTheme = snap.data()?.theme || {};
+
+  let profileBgImage = existingTheme.profileBgImage || "";
+  let wallBgImage = existingTheme.wallBgImage || "";
+
+  if(profileBgInput.files[0]){
+    const refP = ref(storage,`backgrounds/${uid}_profile`);
+    await uploadBytes(refP,profileBgInput.files[0]);
+    profileBgImage = await getDownloadURL(refP);
   }
 
-  try{
-    await setDoc(doc(db,"users",uid),{
-      debugTest: Date.now()
-    },{merge:true});
-
-    console.log("ESCRITURA EXITOSA");
-    alert("Se escribió debugTest correctamente");
-
-  }catch(err){
-    console.error("ERROR:", err);
-    alert("Error al escribir. Mira consola.");
+  if(wallBgInput.files[0]){
+    const refW = ref(storage,`backgrounds/${uid}_wall`);
+    await uploadBytes(refW,wallBgInput.files[0]);
+    wallBgImage = await getDownloadURL(refW);
   }
 
+  await setDoc(doc(db,"users",uid),{
+    wallText:{
+      title:titlePhrase.value.trim(),
+      box:boxPhrase.value.trim()
+    },
+    allowAnonymous:allowAnonToggle.checked,
+    theme:{
+      profileBgColor: profilePageBg.value.trim(),
+      profileCardColor: profileCardBg.value.trim(),
+      profileBgImage,
+      wallBgColor: wallPageBg.value.trim(),
+      wallCardColor: wallCardBg.value.trim(),
+      wallBgImage
+    }
+  },{merge:true});
+
+  alert("Cambios guardados 🌷");
 });
 
-/* ELIMINAR CUENTA */
-deleteBtn.addEventListener("click", async()=>{
+removeProfileBtn.addEventListener("click", async()=>{
+  await setDoc(doc(db,"users",uid),{
+    theme:{ profileBgImage:"" }
+  },{merge:true});
+  alert("Imagen eliminada.");
+});
 
+removeWallBtn.addEventListener("click", async()=>{
+  await setDoc(doc(db,"users",uid),{
+    theme:{ wallBgImage:"" }
+  },{merge:true});
+  alert("Imagen eliminada.");
+});
+
+deleteBtn.addEventListener("click", async()=>{
   const user = auth.currentUser;
   if(!user) return;
 
@@ -202,8 +303,8 @@ deleteBtn.addEventListener("click", async()=>{
   await deleteUser(user);
   await deleteDoc(doc(db,"users",uid));
   location.href="index.html";
-
 });
 </script>
+
 </body>
 </html>
