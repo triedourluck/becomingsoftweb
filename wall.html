@@ -264,6 +264,8 @@ orderBy("createdAt","desc")
 );
 
 const snap=await getDocs(q);
+console.log("UID:", uid);
+console.log("Docs encontrados:", snap.size);
 
 if(snap.empty){
   emptyEl.style.display="block";
