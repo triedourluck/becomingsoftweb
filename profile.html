@@ -224,7 +224,7 @@ const logoutBtn=document.getElementById("logoutBtn");
 const searchBtn=document.getElementById("searchBtn");
 const searchInput=document.getElementById("searchInput");
 const photoInput=document.getElementById("photoInput");
-const photoIds = ["p1","p2","p3","p4","p5","p6"];
+const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
 
 const copyBtn = document.getElementById("copyBtn");
 const copyMessage = document.getElementById("copyMessage");
@@ -285,10 +285,7 @@ let mobileArray=d.photosMobile||d.photos||["","","","","",""];
 let currentPhotos=isMobile?mobileArray:desktopArray;
 
 currentPhotos.forEach((url,i)=>{
-ifconst el = document.getElementById(photoIds[i]);
-if(el){
-  el.src = url;
-}
+if(url) photoEls[i].src=url;
 });
 
 if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
@@ -310,17 +307,11 @@ document.body.style.backgroundImage="none";
 });
 
 /* UPLOAD SEGÚN DISPOSITIVO */
-photoIds.forEach((id, i) => {
-
-  const el = document.getElementById(id);
-
-  if (!el) return;
-
-  el.addEventListener("click", () => {
-    photoIndex = i;
-    photoInput.click();
-  });
-
+photoEls.forEach((el,i)=>{
+el.addEventListener("click",()=>{
+photoIndex=i;
+photoInput.click();
+});
 });
 
 photoInput.addEventListener("change",async()=>{
@@ -336,9 +327,9 @@ const data=snap.data();
 
 const isMobile=window.innerWidth<=700;
 
-let arrayToUpdate = isMobile
-  ? (data.photosMobile || ["", "", "", "", "", ""])
-  : (data.photosDesktop || ["", "", "", "", "", ""]);
+let arrayToUpdate=isMobile
+  ? (data.photosMobile||data.photos||["","","","","",""])
+  : (data.photosDesktop||data.photos||["","","","","",""]);
 
 arrayToUpdate[photoIndex]=url;
 
