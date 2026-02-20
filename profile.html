@@ -327,9 +327,9 @@ const data=snap.data();
 
 const isMobile=window.innerWidth<=700;
 
-let arrayToUpdate=isMobile
-  ? (data.photosMobile||data.photos||["","","","","",""])
-  : (data.photosDesktop||data.photos||["","","","","",""]);
+let arrayToUpdate = isMobile
+  ? (data.photosMobile || ["", "", "", "", "", ""])
+  : (data.photosDesktop || ["", "", "", "", "", ""]);
 
 arrayToUpdate[photoIndex]=url;
 
