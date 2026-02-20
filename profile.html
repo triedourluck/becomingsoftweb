@@ -109,6 +109,18 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 <button class="save-btn" id="saveSpotifyBtn">Guardar playlist</button>
 </div>
 </div>
+
+<div class="share-card">
+  <h3>Share your space 🖇️</h3>
+  <p>Copy your personal link and share it with others.</p>
+
+  <div class="share-link-row">
+    <input type="text" id="profileLink" readonly>
+    <button onclick="copyProfileLink()">Copy</button>
+  </div>
+
+  <span id="copyMessage" class="copy-message"></span>
+</div>
 </div>
 
 <div class="bottom">
@@ -163,6 +175,8 @@ uid=user.uid;
 
 const snap=await getDoc(doc(db,"users",uid));
 const d=snap.data();
+const profileLink = `https://becomingsoft.com/${userData.alias}`;
+document.getElementById("profileLink").value = profileLink;
 
 /* LIMPIEZA FOLLOWERS FANTASMAS */
 let validFollowers=[];
@@ -299,6 +313,17 @@ location.href=`user.html?alias=${value}`;
     location.href=`user.html?alias=${value}`;
   }
 });
+function copyProfileLink(){
+  const input = document.getElementById("profileLink");
+  const message = document.getElementById("copyMessage");
+
+  navigator.clipboard.writeText(input.value);
+  message.textContent = "Link copied ✨";
+
+  setTimeout(() => {
+    message.textContent = "";
+  }, 2000);
+}
 </script>
 
 </body>
