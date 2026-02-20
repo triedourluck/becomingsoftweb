@@ -86,7 +86,7 @@ h1{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -120,43 +120,62 @@ if(!uid || !type) return;
 
 titleEl.textContent = type === "followers" ? "Seguidores" : "Siguiendo";
 
-const userSnap=await getDoc(doc(db,"users",uid));
+const userRef = doc(db,"users",uid);
+const userSnap=await getDoc(userRef);
 if(!userSnap.exists()) return;
 
 const userData=userSnap.data();
 
-const usersArray = type === "followers"
+const originalArray = type === "followers"
   ? userData.followers || []
   : userData.following || [];
 
-if(usersArray.length === 0){
-  listEl.innerHTML="<div class='empty'>No hay usuarios todavía 🌱</div>";
-  return;
-}
+const cleanedArray = [];
+const validUsers = [];
 
-for(const userId of usersArray){
+for(const userId of originalArray){
 
   const snap=await getDoc(doc(db,"users",userId));
   if(!snap.exists()) continue;
 
-  const data=snap.data();
+  cleanedArray.push(userId);
+  validUsers.push({
+    id:userId,
+    data:snap.data()
+  });
+}
+
+/* 🧹 LIMPIEZA REAL EN FIRESTORE */
+if(cleanedArray.length !== originalArray.length){
+  await updateDoc(userRef,{
+    [type]: cleanedArray
+  });
+}
+
+/* RENDER */
+if(validUsers.length === 0){
+  listEl.innerHTML="<div class='empty'>No hay usuarios todavía 🌱</div>";
+  return;
+}
+
+for(const userObj of validUsers){
 
   const row=document.createElement("div");
   row.className="user-row";
 
   const avatar=document.createElement("img");
-  avatar.src=data.photoURL || "anon.png";
+  avatar.src=userObj.data.photoURL || "anon.png";
   avatar.className="mini-avatar";
 
   const name=document.createElement("div");
-  name.textContent=data.alias;
+  name.textContent=userObj.data.alias;
   name.className="mini-alias";
 
   row.onclick=()=>{
-    if(userId === currentUid){
+    if(userObj.id === currentUid){
       window.location.href="profile.html";
     }else{
-      window.location.href=`user.html?alias=${data.alias}`;
+      window.location.href=`user.html?alias=${userObj.data.alias}`;
     }
   };
 
