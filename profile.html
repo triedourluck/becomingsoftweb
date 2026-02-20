@@ -175,7 +175,7 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
   <div class="share-link-row">
     <input type="text" id="profileLink" readonly>
-    <button onclick="copyProfileLink()">Copy</button>
+    <button id="copyBtn">Copy</button>
   </div>
 
   <span id="copyMessage" class="copy-message"></span>
@@ -225,6 +225,9 @@ const searchBtn=document.getElementById("searchBtn");
 const searchInput=document.getElementById("searchInput");
 const photoInput=document.getElementById("photoInput");
 const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
+
+const copyBtn = document.getElementById("copyBtn");
+const copyMessage = document.getElementById("copyMessage");
 
 let uid=null;
 let photoIndex=0;
@@ -372,6 +375,18 @@ location.href=`user.html?alias=${value}`;
     if(!value)return;
     location.href=`user.html?alias=${value}`;
   }
+});
+copyBtn.addEventListener("click", () => {
+  const input = document.getElementById("profileLink");
+  if(!input || !input.value) return;
+
+  navigator.clipboard.writeText(input.value).then(()=>{
+    copyMessage.textContent = "Copied ✨";
+    setTimeout(()=>{ copyMessage.textContent = ""; },2000);
+  }).catch(()=>{
+    copyMessage.textContent = "Couldn't copy";
+    setTimeout(()=>{ copyMessage.textContent = ""; },2000);
+  });
 });
 function copyProfileLink(){
   const input = document.getElementById("profileLink");
