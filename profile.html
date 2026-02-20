@@ -285,7 +285,10 @@ let mobileArray=d.photosMobile||d.photos||["","","","","",""];
 let currentPhotos=isMobile?mobileArray:desktopArray;
 
 currentPhotos.forEach((url,i)=>{
-if(url) photoEls[i].src=url;
+ifconst el = document.getElementById(photoIds[i]);
+if(el){
+  el.src = url;
+}
 });
 
 if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
