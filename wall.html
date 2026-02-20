@@ -237,6 +237,9 @@ if(!user){
   return;
 }
 
+const params = new URLSearchParams(window.location.search);
+const uid = params.get("uid") || user.uid;
+
 if(!uid){
   emptyEl.style.display="block";
   return;
