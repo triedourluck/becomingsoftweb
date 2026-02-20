@@ -229,21 +229,27 @@ const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
 
+onAuthStateChanged(auth,async(user)=>{
 
 const params=new URLSearchParams(window.location.search);
-const uid=params.get("uid")||user.uid;
+const uid=params.get("uid");
+
+if(!uid){
+  emptyEl.style.display="block";
+  return;
+}
 
 /* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
 const userData=userSnap.data();
 
-aliasEl.textContent=userData.alias||"sin alias";
-statsEl.textContent=`${userData.followers?.length||0} followers · ${userData.following?.length||0} following`;
+aliasEl.textContent=userData?.alias||"sin alias";
+statsEl.textContent=`${userData?.followers?.length||0} followers · ${userData?.following?.length||0} following`;
 
-if(userData.photoURL) avatarEl.src=userData.photoURL;
+if(userData?.photoURL) avatarEl.src=userData.photoURL;
 
 /* SOLO FOTO Y ALIAS CLICKABLE */
-if(uid===user.uid){
+if(user && uid===user.uid){
   avatarEl.onclick=()=>location.href="profile.html";
   aliasEl.onclick=()=>location.href="profile.html";
 }else{
@@ -262,8 +268,8 @@ orderBy("createdAt","desc")
 const snap=await getDocs(q);
 
 if(snap.empty){
-emptyEl.style.display="block";
-
+  emptyEl.style.display="block";
+}else{
 
 for(const docSnap of snap.docs){
 
@@ -338,7 +344,7 @@ const likeContainer=document.createElement("div");
 likeContainer.className="like";
 
 const likesArray=data.likes||[];
-const hasLiked=likesArray.includes(user.uid);
+const hasLiked=user ? likesArray.includes(user.uid) : false;
 
 const heart=document.createElement("span");
 heart.textContent=hasLiked?"♥︎":"♡";
@@ -349,6 +355,7 @@ likeCount.textContent=likesArray.length;
 likeContainer.appendChild(heart);
 likeContainer.appendChild(likeCount);
 
+if(user){
 likeContainer.onclick=async()=>{
 if(hasLiked){
 await updateDoc(doc(db,"messages",docSnap.id),{
@@ -361,11 +368,12 @@ likes:[...likesArray,user.uid]
 }
 location.reload();
 };
+}
 
 actions.appendChild(likeContainer);
 
 /* EDITAR */
-if(uid===user.uid){
+if(user && uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
 editBtn.textContent="Editar";
@@ -384,11 +392,13 @@ div.appendChild(actions);
 wallEl.appendChild(div);
 }
 
+}
+
+});
+
 window.goFeed=()=>location.href="feed.html";
 window.goProfile=()=>location.href="profile.html";
 window.goInbox=()=>location.href="inbox.html";
-}
-
 </script>
 
 </body>
