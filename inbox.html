@@ -326,8 +326,8 @@ for(const docSnap of snap.docs){
     
     await addDoc(collection(db,"posts"),{
   authorUid: user.uid,
-  authorAlias: userData.alias,
-  authorPhoto: userData.photoURL || "",
+  authorAlias: user.displayName || "",
+  authorPhoto: user.photoURL || "",
   text: docSnap.data().text || "",
   reply: textarea.value.trim() || "",
   replyImage: imageURL || null,
