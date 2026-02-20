@@ -153,7 +153,8 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
   
-  // 🔥 MIGRACIÓN TEMPORAL
+  // 🔥 MIGRACIÓN COMPLETA
+
 const oldMessages = await getDocs(
   query(
     collection(db,"messages"),
@@ -165,7 +166,7 @@ for(const msg of oldMessages.docs){
 
   const data = msg.data();
 
-  // verificar si ya existe en posts (evita duplicados)
+  // 🧠 evitar duplicados
   const existing = await getDocs(
     query(
       collection(db,"posts"),
@@ -173,22 +174,43 @@ for(const msg of oldMessages.docs){
     )
   );
 
-  if(existing.empty){
+  if(!existing.empty) continue;
 
-    const userSnap = await getDoc(doc(db,"users",data.to));
-    const userData = userSnap.data();
+  // 👤 usuario que responde (dueño del perfil)
+  const authorSnap = await getDoc(doc(db,"users", data.to));
+  const authorData = authorSnap.data();
 
-    await addDoc(collection(db,"posts"),{
-      authorUid: data.to,
-      authorAlias: userData?.alias || "",
-      authorPhoto: userData?.photoURL || "",
-      text: data.text || "",
-      reply: data.reply || "",
-      replyImage: data.imageURL || null,
-      createdAt: data.createdAt,
-      likes: data.likes || [],
-      published: true
-    });
+  // 👤 usuario que envió el mensaje
+  let senderAlias = "anónimo";
+  let senderUid = null;
+
+  if(data.fromAlias){
+    const senderSnap = await getDoc(doc(db,"users", data.fromAlias));
+    const senderData = senderSnap.data();
+    senderAlias = senderData?.alias || "usuario";
+    senderUid = data.fromAlias;
+  }
+
+  await addDoc(collection(db,"posts"),{
+    senderUid: senderUid,
+    senderAlias: senderAlias,
+
+    authorUid: data.to,
+    authorAlias: authorData?.alias || "",
+    authorPhoto: authorData?.photoURL || "",
+
+    text: data.text || "",
+    reply: data.reply || "",
+    replyImage: data.replyImage || data.imageURL || null,
+
+    createdAt: data.createdAt,
+    likes: data.likes || [],
+    published: true
+  });
+
+}
+
+console.log("🔥 Migración terminada");
 
   }
 }
