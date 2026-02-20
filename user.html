@@ -536,6 +536,22 @@ async function loadUser(){
     photos.appendChild(img);
   });
 
+  /* APLICAR DECORACIÓN DEL PERFIL */
+
+  if(d.theme){
+    if(d.theme.pageBg){
+      document.body.style.background = d.theme.pageBg;
+    }
+    if(d.theme.backgroundImage){
+      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+    }
+    if(d.theme.cardBg){
+      container.style.background = d.theme.cardBg;
+    }
+  }
+
   await setupFollow();
 }
 
