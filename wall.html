@@ -230,9 +230,13 @@ const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
 
 onAuthStateChanged(auth,async(user)=>{
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get("uid");
 
-const params=new URLSearchParams(window.location.search);
-const uid = params.get("uid") || (user ? user.uid : null);
+if(!uid){
+  document.body.innerHTML = "User not found";
+  throw new Error("No UID provided");
+}
 
 /* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
