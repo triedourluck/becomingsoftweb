@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <script>
+    const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+    if (path) {
+      window.location.replace("/user.html?alias=" + encodeURIComponent(path));
+    } else {
+      window.location.replace("/");
+    }
+  </script>
+</head>
+<body>
+</body>
+</html>
