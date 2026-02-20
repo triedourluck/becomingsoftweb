@@ -307,12 +307,13 @@ document.body.style.backgroundImage="none";
 });
 
 /* UPLOAD SEGÚN DISPOSITIVO */
-photoEls.forEach((id,i)=>{
+photoEls.forEach((id, i) => {
   const el = document.getElementById(id);
-  el.dataset.index = i;
 
-  el.addEventListener("click",()=>{
-    photoIndex = parseInt(el.dataset.index);
+  if(!el) return;
+
+  el.addEventListener("click", () => {
+    photoIndex = i;
     photoInput.click();
   });
 });
