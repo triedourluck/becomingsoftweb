@@ -175,7 +175,7 @@ uid=user.uid;
 
 const snap=await getDoc(doc(db,"users",uid));
 const d=snap.data();
-const profileLink = `https://becomingsoft.com/${userData.alias}`;
+const profileLink = `https://becomingsoft.com/${d.alias}`;
 document.getElementById("profileLink").value = profileLink;
 
 /* LIMPIEZA FOLLOWERS FANTASMAS */
