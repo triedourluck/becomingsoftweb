@@ -312,7 +312,8 @@ reorderBtn.addEventListener("click",async()=>{
   }else{
     reorderBtn.textContent="Reordenar fotos";
     const isMobile=window.innerWidth<=700;
-    const newOrder=photoEls.map(img=>img.src||"");
+    const photosContainer = document.querySelector(".photos");
+const newOrder = Array.from(photosContainer.children).map(img => img.src || "");
     if(isMobile){
       await updateDoc(doc(db,"users",uid),{photosMobile:newOrder});
     }else{
