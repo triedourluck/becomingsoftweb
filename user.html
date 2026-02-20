@@ -286,6 +286,7 @@ textarea{
   justify-content:center;
 }
 
+}
 </style>
 </head>
 
@@ -360,7 +361,6 @@ import {
   getDocs,
   doc,
   getDoc,
-  updateDoc,
   arrayUnion,
   arrayRemove,
   addDoc,
@@ -404,36 +404,87 @@ window.sendMessage = async ()=>{
     return;
   }
 
-  try {
-    const mode = document.querySelector('input[name="mode"]:checked').value;
-    const currentUser = auth.currentUser;
-    let senderUid = null;
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const currentUser = auth.currentUser;
+  let senderUid = null;
 
-    if(mode === "alias"){
-      if(!currentUser){
-        alert("Debes iniciar sesión para enviar con tu alias 💭");
-        return;
-      }
-      senderUid = currentUser.uid;
+  if(mode === "alias"){
+    if(!currentUser){
+      alert("Debes iniciar sesión para enviar con tu alias 💭");
+      return;
     }
+    senderUid = currentUser.uid;
+  }
 
-    await addDoc(collection(db,"messages"),{
-      text,
-      to:viewedUid,
-      fromAlias:senderUid,
-      createdAt:Date.now(),
-      published:false,
-      likes:[]
+  await addDoc(collection(db,"messages"),{
+    text,
+    to:viewedUid,
+    fromAlias:senderUid,
+    createdAt:Date.now(),
+    published:false,
+    likes:[]
+  });
+
+  msgInput.value="";
+  alert("enviado 🌷");
+};
+
+async function setupFollow(){
+
+  const currentUser = auth.currentUser;
+
+  if(!currentUser){
+    followBtn.style.display = "none";
+    return;
+  }
+
+  if(currentUser.uid === viewedUid){
+    followBtn.style.display = "none";
+    return;
+  }
+
+  followBtn.style.display = "inline-block";
+
+  const currentUserRef = doc(db,"users",currentUser.uid);
+  const viewedUserRef = doc(db,"users",viewedUid);
+
+  const currentSnap = await getDoc(currentUserRef);
+  const currentData = currentSnap.data();
+
+  const isFollowing = currentData.following?.includes(viewedUid);
+
+  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+
+  followBtn.onclick = async () => {
+
+    await runTransaction(db, async (transaction) => {
+
+      const currentDoc = await transaction.get(currentUserRef);
+      const viewedDoc = await transaction.get(viewedUserRef);
+
+      const currentFollowing = currentDoc.data().following || [];
+
+      if(currentFollowing.includes(viewedUid)){
+        transaction.update(currentUserRef,{
+          following: arrayRemove(viewedUid)
+        });
+        transaction.update(viewedUserRef,{
+          followers: arrayRemove(currentUser.uid)
+        });
+      }else{
+        transaction.update(currentUserRef,{
+          following: arrayUnion(viewedUid)
+        });
+        transaction.update(viewedUserRef,{
+          followers: arrayUnion(currentUser.uid)
+        });
+      }
+
     });
 
-    msgInput.value="";
-    alert("enviado 🌷");
-
-  } catch(error){
-    console.error(error);
-    alert("No se pudo enviar 💔");
-  }
-};
+    setupFollow();
+  };
+}
 
 async function loadUser(){
 
@@ -448,33 +499,12 @@ async function loadUser(){
   }
 
   const userDoc = snap.docs[0];
-viewedUid = userDoc.id;
+  viewedUid = userDoc.id;
+  const d = userDoc.data();
 
-shhhBtn.onclick = () => {
-  location.href = `wall.html?uid=${viewedUid}`;
-};
-
-const d = userDoc.data();
-
-  /* THEME */
-  if(d.theme){
-
-    if(d.theme.pageBg){
-      document.body.style.background = d.theme.pageBg;
-    }
-
-    if(d.theme.cardBg){
-      container.style.background = d.theme.cardBg;
-    }
-
-    if(d.theme.backgroundImage){
-      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundPosition = "center";
-      document.body.style.backgroundAttachment = "fixed";
-    }
-
-  }
+  shhhBtn.onclick = () => {
+    location.href = `wall.html?uid=${viewedUid}`;
+  };
 
   aliasEl.textContent = d.alias;
   if(d.photoURL) avatar.src = d.photoURL;
@@ -488,31 +518,15 @@ const d = userDoc.data();
   followingLink.onclick = () =>
     location.href = `list.html?uid=${viewedUid}&type=following`;
 
-  shhhBtn.onclick = ()=>{
-    location.href = `wall.html?uid=${viewedUid}`;
-  };
-
-  if(d.wallText){
-    if(d.wallText.title) titleText.textContent = d.wallText.title;
-    if(d.wallText.box) msgInput.placeholder = d.wallText.box;
-  }
-
   if(d.spotifyEmbed){
     spotifyContainer.innerHTML = d.spotifyEmbed;
-  }else{
-    spotifyContainer.innerHTML = "";
   }
 
   photos.innerHTML="";
   const isMobile = window.innerWidth <= 700;
-
-  let currentPhotos = [];
-
-  if(isMobile){
-    currentPhotos = d.photosMobile || d.photosDesktop || d.photos || [];
-  }else{
-    currentPhotos = d.photosDesktop || d.photosMobile || d.photos || [];
-  }
+  let currentPhotos = isMobile
+    ? (d.photosMobile || d.photosDesktop || d.photos || [])
+    : (d.photosDesktop || d.photosMobile || d.photos || []);
 
   currentPhotos.forEach(url=>{
     if(!url) return;
@@ -522,7 +536,7 @@ const d = userDoc.data();
     photos.appendChild(img);
   });
 
-  setupFollow();
+  await setupFollow();
 }
 
 onAuthStateChanged(auth, async (user)=>{
