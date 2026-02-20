@@ -171,7 +171,9 @@ import {
   doc,
   getDoc,
   updateDoc,
-  deleteDoc
+  deleteDoc,
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import {
   getStorage,
@@ -321,6 +323,18 @@ for(const docSnap of snap.docs){
       imageURL:imageURL||null,
       published:true
     });
+    
+    await addDoc(collection(db,"posts"),{
+  authorUid: user.uid,
+  authorAlias: userData.alias,
+  authorPhoto: userData.photoURL || "",
+  text: docSnap.data().text || "",
+  reply: textarea.value.trim() || "",
+  replyImage: imageURL || null,
+  createdAt: serverTimestamp(),
+  likes: [],
+  published: true
+});
 
     location.reload();
   };
