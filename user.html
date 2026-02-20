@@ -342,7 +342,7 @@ textarea{
 
 </div>
 
-<div class="bottom">
+<div class="bottom" id="bottomNav">
   <button class="gear" onclick="location.href='settings.html'">⚙️</button>
   <button class="icon-btn" onclick="location.href='feed.html'">Feed</button>
   <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
@@ -561,6 +561,14 @@ onAuthStateChanged(auth, async (user) => {
   if(!aliasParam){
     location.href = "index.html";
     return;
+  }
+
+  const bottomNav = document.getElementById("bottomNav");
+
+  if(user){
+    bottomNav.style.display = "flex";
+  }else{
+    bottomNav.style.display = "none";
   }
 
   await loadUser();
