@@ -523,74 +523,34 @@ async function loadUser(){
   }
 
   photos.innerHTML="";
+  const isMobile = window.innerWidth <= 700;
+  let currentPhotos = isMobile
+    ? (d.photosMobile || d.photosDesktop || d.photos || [])
+    : (d.photosDesktop || d.photosMobile || d.photos || []);
 
-const isMobile = window.innerWidth <= 700;
+  currentPhotos.forEach(url=>{
+    if(!url) return;
+    const img=document.createElement("img");
+    img.src=url;
+    img.className="photo";
+    photos.appendChild(img);
+  });
 
-let currentPhotos = [];
+  /* APLICAR DECORACIÓN DEL PERFIL */
 
-if(isMobile){
-  currentPhotos = d.photosMobile || [];
-}else{
-  currentPhotos = d.photosDesktop || [];
-}
-
-currentPhotos.forEach(url=>{
-  if(!url) return;
-  const img=document.createElement("img");
-  img.src=url;
-  img.className="photo";
-  photos.appendChild(img);
-});
-
-/* RESET VISUAL */
-
-document.body.style.backgroundColor = "#f5f5f5";
-document.body.style.backgroundImage = "none";
-document.body.style.backgroundSize = "";
-document.body.style.backgroundPosition = "";
-document.body.style.backgroundRepeat = "";
-container.style.backgroundColor = "white";
-titleText.textContent = "Envíame un mensaje";
-msgInput.placeholder = "Escribe algo suave...";
-
-/* DECORACIÓN DEL PERFIL */
-
-if(d.theme){
-
-  if(d.theme.pageBg){
-    document.body.style.backgroundColor = d.theme.pageBg;
+  if(d.theme){
+    if(d.theme.pageBg){
+      document.body.style.background = d.theme.pageBg;
+    }
+    if(d.theme.backgroundImage){
+      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+    }
+    if(d.theme.cardBg){
+      container.style.background = d.theme.cardBg;
+    }
   }
-
-  if(d.theme.backgroundImage){
-    document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundPosition = "center";
-    document.body.style.backgroundRepeat = "no-repeat";
-  }
-
-  if(d.theme.cardBg){
-    container.style.backgroundColor = d.theme.cardBg;
-  }
-
-}
-
-if(d.wallText){
-  if(d.wallText.title){
-    titleText.textContent = d.wallText.title;
-  }
-  if(d.wallText.box){
-    msgInput.placeholder = d.wallText.box;
-  }
-}
-
-if(d.wallText){
-  if(d.wallText.title){
-    titleText.textContent = d.wallText.title;
-  }
-  if(d.wallText.box){
-    msgInput.placeholder = d.wallText.box;
-  }
-}
 
   await setupFollow();
 }
