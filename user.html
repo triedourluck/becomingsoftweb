@@ -556,13 +556,15 @@ window.sendMessage = async ()=>{
   alert("enviado 🌷");
 };
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // usuario logueado
-    console.log("Usuario logueado");
-  } else {
-    console.log("Visitante anónimo");
+onAuthStateChanged(auth, async (user) => {
+
+  if(!aliasParam){
+    location.href = "index.html";
+    return;
   }
+
+  await loadUser();
+
 });
 
 window.searchUser = function(){
