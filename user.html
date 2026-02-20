@@ -448,8 +448,13 @@ async function loadUser(){
   }
 
   const userDoc = snap.docs[0];
-  viewedUid = userDoc.id;
-  const d = userDoc.data();
+viewedUid = userDoc.id;
+
+shhhBtn.onclick = () => {
+  location.href = `wall.html?uid=${viewedUid}`;
+};
+
+const d = userDoc.data();
 
   /* THEME */
   if(d.theme){
