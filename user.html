@@ -11,6 +11,9 @@ body{
   font-family:Arial, Helvetica, sans-serif;
   background:#f5f5f5;
   color:#111;
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
 }
 
 .container{
@@ -218,11 +221,6 @@ textarea{
   width:100%;
 }
 
-.right > div:last-child{
-  order:1;
-  width:100%;
-}
-
 textarea{
   height:130px;
 }
@@ -397,95 +395,6 @@ const container = document.querySelector(".container");
 
 let viewedUid = null;
 
-window.sendMessage = async ()=>{
-  const text = msgInput.value.trim();
-  if(!text){
-    alert("Escribe algo primero 🌷");
-    return;
-  }
-
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const currentUser = auth.currentUser;
-  let senderUid = null;
-
-  if(mode === "alias"){
-    if(!currentUser){
-      alert("Debes iniciar sesión para enviar con tu alias 💭");
-      return;
-    }
-    senderUid = currentUser.uid;
-  }
-
-  await addDoc(collection(db,"messages"),{
-    text,
-    to:viewedUid,
-    fromAlias:senderUid,
-    createdAt:Date.now(),
-    published:false,
-    likes:[]
-  });
-
-  msgInput.value="";
-  alert("enviado 🌷");
-};
-
-async function setupFollow(){
-
-  const currentUser = auth.currentUser;
-
-  if(!currentUser){
-    followBtn.style.display = "none";
-    return;
-  }
-
-  if(currentUser.uid === viewedUid){
-    followBtn.style.display = "none";
-    return;
-  }
-
-  followBtn.style.display = "inline-block";
-
-  const currentUserRef = doc(db,"users",currentUser.uid);
-  const viewedUserRef = doc(db,"users",viewedUid);
-
-  const currentSnap = await getDoc(currentUserRef);
-  const currentData = currentSnap.data();
-
-  const isFollowing = currentData.following?.includes(viewedUid);
-
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async () => {
-
-    await runTransaction(db, async (transaction) => {
-
-      const currentDoc = await transaction.get(currentUserRef);
-      const viewedDoc = await transaction.get(viewedUserRef);
-
-      const currentFollowing = currentDoc.data().following || [];
-
-      if(currentFollowing.includes(viewedUid)){
-        transaction.update(currentUserRef,{
-          following: arrayRemove(viewedUid)
-        });
-        transaction.update(viewedUserRef,{
-          followers: arrayRemove(currentUser.uid)
-        });
-      }else{
-        transaction.update(currentUserRef,{
-          following: arrayUnion(viewedUid)
-        });
-        transaction.update(viewedUserRef,{
-          followers: arrayUnion(currentUser.uid)
-        });
-      }
-
-    });
-
-    setupFollow();
-  };
-}
-
 async function loadUser(){
 
   if(!aliasParam) return;
@@ -502,21 +411,44 @@ async function loadUser(){
   viewedUid = userDoc.id;
   const d = userDoc.data();
 
-  shhhBtn.onclick = () => {
-    location.href = `wall.html?uid=${viewedUid}`;
-  };
+  /* RESET VISUAL */
+  document.body.style.background = "#f5f5f5";
+  document.body.style.backgroundImage = "";
+  container.style.background = "white";
+  titleText.textContent = "Envíame un mensaje";
+  msgInput.placeholder = "Escribe algo suave...";
+
+  /* DECORACIÓN Y FRASES */
+
+  if(d.theme){
+    if(d.theme.pageBg){
+      document.body.style.background = d.theme.pageBg;
+    }
+    if(d.theme.backgroundImage){
+      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+      document.body.style.backgroundRepeat = "no-repeat";
+    }
+    if(d.theme.cardBg){
+      container.style.background = d.theme.cardBg;
+    }
+  }
+
+  if(d.wallText){
+    if(d.wallText.title){
+      titleText.textContent = d.wallText.title;
+    }
+    if(d.wallText.box){
+      msgInput.placeholder = d.wallText.box;
+    }
+  }
 
   aliasEl.textContent = d.alias;
   if(d.photoURL) avatar.src = d.photoURL;
 
   followersLink.textContent = `${d.followers?.length||0} followers`;
   followingLink.textContent = `${d.following?.length||0} following`;
-
-  followersLink.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=followers`;
-
-  followingLink.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=following`;
 
   if(d.spotifyEmbed){
     spotifyContainer.innerHTML = d.spotifyEmbed;
@@ -535,24 +467,6 @@ async function loadUser(){
     img.className="photo";
     photos.appendChild(img);
   });
-
-  /* APLICAR DECORACIÓN DEL PERFIL */
-
-  if(d.theme){
-    if(d.theme.pageBg){
-      document.body.style.background = d.theme.pageBg;
-    }
-    if(d.theme.backgroundImage){
-      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundPosition = "center";
-    }
-    if(d.theme.cardBg){
-      container.style.background = d.theme.cardBg;
-    }
-  }
-
-  await setupFollow();
 }
 
 onAuthStateChanged(auth, async (user)=>{
