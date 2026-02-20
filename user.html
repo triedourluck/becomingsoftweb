@@ -356,8 +356,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebas
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
   getFirestore, collection, query, where, getDocs,
-  doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+  doc, getDoc, updateDoc, arrayUnion, arrayRemove, addDoc,
+  runTransaction
+} from ...
 
 const firebaseConfig = {
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -485,23 +486,40 @@ async function setupFollow(){
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async ()=>{
-    if(isFollowing){
-      await updateDoc(doc(db,"users",user.uid),{
+
+  await runTransaction(db, async (transaction)=>{
+
+    const meRef = doc(db,"users",user.uid);
+    const otherRef = doc(db,"users",viewedUid);
+
+    const meSnap = await transaction.get(meRef);
+    const otherSnap = await transaction.get(otherRef);
+
+    if(!meSnap.exists() || !otherSnap.exists()) return;
+
+    const meData = meSnap.data();
+    const isFollowingNow = meData.following?.includes(viewedUid);
+
+    if(isFollowingNow){
+      transaction.update(meRef,{
         following: arrayRemove(viewedUid)
       });
-      await updateDoc(doc(db,"users",viewedUid),{
+      transaction.update(otherRef,{
         followers: arrayRemove(user.uid)
       });
     }else{
-      await updateDoc(doc(db,"users",user.uid),{
+      transaction.update(meRef,{
         following: arrayUnion(viewedUid)
       });
-      await updateDoc(doc(db,"users",viewedUid),{
+      transaction.update(otherRef,{
         followers: arrayUnion(user.uid)
       });
     }
-    location.reload();
-  };
+
+  });
+
+  location.reload();
+};
 }
 
 window.sendMessage = async ()=>{
