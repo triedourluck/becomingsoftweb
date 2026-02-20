@@ -377,8 +377,21 @@ function copyProfileLink(){
   const input = document.getElementById("profileLink");
   const message = document.getElementById("copyMessage");
 
-  navigator.clipboard.writeText(input.value);
-  message.textContent = "Link copied ✨";
+  if(!input || !input.value) return;
+
+  // Método compatible con iPhone
+  input.removeAttribute("readonly"); 
+  input.select();
+  input.setSelectionRange(0, 99999);
+
+  try {
+    document.execCommand("copy");
+    message.textContent = "Copied ✨";
+  } catch (err) {
+    message.textContent = "Couldn't copy";
+  }
+
+  input.setAttribute("readonly", true);
 
   setTimeout(() => {
     message.textContent = "";
