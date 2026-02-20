@@ -536,21 +536,45 @@ async function loadUser(){
     photos.appendChild(img);
   });
 
-  /* APLICAR DECORACIÓN DEL PERFIL */
+  /* RESET VISUAL */
 
-  if(d.theme){
-    if(d.theme.pageBg){
-      document.body.style.background = d.theme.pageBg;
-    }
-    if(d.theme.backgroundImage){
-      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundPosition = "center";
-    }
-    if(d.theme.cardBg){
-      container.style.background = d.theme.cardBg;
-    }
+container.style.backgroundColor = "white";
+container.style.backgroundImage = "none";
+container.style.backgroundSize = "";
+container.style.backgroundPosition = "";
+container.style.backgroundRepeat = "";
+titleText.textContent = "Envíame un mensaje";
+msgInput.placeholder = "Escribe algo suave...";
+
+/* DECORACIÓN */
+
+if(d.theme){
+
+  if(d.theme.backgroundImage){
+    container.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+    container.style.backgroundSize = "cover";
+    container.style.backgroundPosition = "center";
+    container.style.backgroundRepeat = "no-repeat";
   }
+
+  if(d.theme.cardBg){
+    container.style.backgroundColor = d.theme.cardBg;
+  }
+
+  if(d.theme.pageBg){
+    document.body.style.backgroundColor = d.theme.pageBg;
+  }
+
+}
+
+if(d.wallText){
+  if(d.wallText.title){
+    titleText.textContent = d.wallText.title;
+  }
+  if(d.wallText.box){
+    msgInput.placeholder = d.wallText.box;
+  }
+}
 
   await setupFollow();
 }
