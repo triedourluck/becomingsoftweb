@@ -229,27 +229,15 @@ const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
 
-const params=new URLSearchParams(window.location.search);
-const uid=params.get("uid");
-
-let currentUser=null;
-
 onAuthStateChanged(auth,async(user)=>{
-currentUser=user;
+if(!user){location.href="login.html";return;}
 
-if(!uid){
-  document.body.innerHTML="User not found";
-  return;
-}
+const params=new URLSearchParams(window.location.search);
+const uid=params.get("uid")||user.uid;
 
 /* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
 const userData=userSnap.data();
-
-if(!userData){
-  document.body.innerHTML="User not found";
-  return;
-}
 
 aliasEl.textContent=userData.alias||"sin alias";
 statsEl.textContent=`${userData.followers?.length||0} followers · ${userData.following?.length||0} following`;
@@ -257,7 +245,7 @@ statsEl.textContent=`${userData.followers?.length||0} followers · ${userData.fo
 if(userData.photoURL) avatarEl.src=userData.photoURL;
 
 /* SOLO FOTO Y ALIAS CLICKABLE */
-if(currentUser && uid===currentUser.uid){
+if(uid===user.uid){
   avatarEl.onclick=()=>location.href="profile.html";
   aliasEl.onclick=()=>location.href="profile.html";
 }else{
@@ -293,10 +281,8 @@ let fromPhoto="anon.png";
 if(data.fromAlias){
 const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
 const fromData=fromSnap.data();
-if(fromData){
 fromAlias=fromData.alias;
 fromPhoto=fromData.photoURL||"anon.png";
-}
 }
 
 const userRow=document.createElement("div");
@@ -355,7 +341,7 @@ const likeContainer=document.createElement("div");
 likeContainer.className="like";
 
 const likesArray=data.likes||[];
-const hasLiked=currentUser ? likesArray.includes(currentUser.uid) : false;
+const hasLiked=likesArray.includes(user.uid);
 
 const heart=document.createElement("span");
 heart.textContent=hasLiked?"♥︎":"♡";
@@ -367,28 +353,22 @@ likeContainer.appendChild(heart);
 likeContainer.appendChild(likeCount);
 
 likeContainer.onclick=async()=>{
-
-if(!currentUser){
-  return;
-}
-
 if(hasLiked){
 await updateDoc(doc(db,"messages",docSnap.id),{
-likes:likesArray.filter(id=>id!==currentUser.uid)
+likes:likesArray.filter(id=>id!==user.uid)
 });
 }else{
 await updateDoc(doc(db,"messages",docSnap.id),{
-likes:[...likesArray,currentUser.uid]
+likes:[...likesArray,user.uid]
 });
 }
-
 location.reload();
 };
 
 actions.appendChild(likeContainer);
 
 /* EDITAR */
-if(currentUser && uid===currentUser.uid){
+if(uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
 editBtn.textContent="Editar";
@@ -406,7 +386,6 @@ actions.appendChild(editBtn);
 div.appendChild(actions);
 wallEl.appendChild(div);
 }
-
 });
 
 window.goFeed=()=>location.href="feed.html";
