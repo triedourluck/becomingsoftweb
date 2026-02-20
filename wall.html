@@ -171,7 +171,7 @@ body{
 
 <div class="container">
 
-<div class="top-nav">
+<div class="top-nav" id="topNav">
 <button onclick="goFeed()">Feed</button>
 <button onclick="goProfile()">Mi perfil</button>
 <button onclick="goInbox()">Inbox</button>
@@ -228,9 +228,16 @@ const emptyEl=document.getElementById("empty");
 const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
+const topNav=document.getElementById("topNav");
 
 onAuthStateChanged(auth,async(user)=>{
 
+/* OCULTAR NAV SI NO HAY SESIÓN */
+if(!user){
+  topNav.style.display="none";
+}
+
+/* OBTENER UID DEL PERFIL */
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid");
 
@@ -248,7 +255,7 @@ statsEl.textContent=`${userData?.followers?.length||0} followers · ${userData?.
 
 if(userData?.photoURL) avatarEl.src=userData.photoURL;
 
-/* SOLO FOTO Y ALIAS CLICKABLE */
+/* CLICK PERFIL */
 if(user && uid===user.uid){
   avatarEl.onclick=()=>location.href="profile.html";
   aliasEl.onclick=()=>location.href="profile.html";
@@ -269,7 +276,8 @@ const snap=await getDocs(q);
 
 if(snap.empty){
   emptyEl.style.display="block";
-}else{
+  return;
+}
 
 for(const docSnap of snap.docs){
 
@@ -390,8 +398,6 @@ actions.appendChild(editBtn);
 
 div.appendChild(actions);
 wallEl.appendChild(div);
-}
-
 }
 
 });
