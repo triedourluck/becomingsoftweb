@@ -126,6 +126,8 @@ import {
   where,
   orderBy,
   getDocs,
+  getDoc,
+  addDoc,
   updateDoc,
   doc,
   limit
@@ -150,6 +152,46 @@ onAuthStateChanged(auth, async(user)=>{
     location.href="login.html";
     return;
   }
+  
+  // 🔥 MIGRACIÓN TEMPORAL
+const oldMessages = await getDocs(
+  query(
+    collection(db,"messages"),
+    where("published","==",true)
+  )
+);
+
+for(const msg of oldMessages.docs){
+
+  const data = msg.data();
+
+  // verificar si ya existe en posts (evita duplicados)
+  const existing = await getDocs(
+    query(
+      collection(db,"posts"),
+      where("createdAt","==",data.createdAt)
+    )
+  );
+
+  if(existing.empty){
+
+    const userSnap = await getDoc(doc(db,"users",data.to));
+    const userData = userSnap.data();
+
+    await addDoc(collection(db,"posts"),{
+      authorUid: data.to,
+      authorAlias: userData?.alias || "",
+      authorPhoto: userData?.photoURL || "",
+      text: data.text || "",
+      reply: data.reply || "",
+      replyImage: data.imageURL || null,
+      createdAt: data.createdAt,
+      likes: data.likes || [],
+      published: true
+    });
+
+  }
+}
 
   const q=query(
   collection(db,"posts"),
