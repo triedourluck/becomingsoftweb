@@ -191,7 +191,9 @@ for(const msg of oldMessages.docs){
     senderUid = data.fromAlias;
   }
 
-  await addDoc(collection(db,"posts"),{
+  await addDoc(
+  collection(db,"posts"),
+  {
     senderUid: senderUid,
     senderAlias: senderAlias,
 
@@ -206,13 +208,13 @@ for(const msg of oldMessages.docs){
     createdAt: data.createdAt,
     likes: data.likes || [],
     published: true
-  });
+  }
+);
 
-}
 
 console.log("🔥 Migración terminada");
 
-  }
+  });
 
   const q=query(
   collection(db,"posts"),
