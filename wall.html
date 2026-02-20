@@ -171,7 +171,7 @@ body{
 
 <div class="container">
 
-<div class="top-nav" id="topNav">
+<div class="top-nav">
 <button onclick="goFeed()">Feed</button>
 <button onclick="goProfile()">Mi perfil</button>
 <button onclick="goInbox()">Inbox</button>
@@ -228,17 +228,11 @@ const emptyEl=document.getElementById("empty");
 const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
-const topNav=document.getElementById("topNav");
-  
-  onAuthStateChanged(auth,async(user)=>{
 
-if(!user){
-  topNav.style.display="none";
-  return;
-}
+onAuthStateChanged(auth,async(user)=>{
 
-const params = new URLSearchParams(window.location.search);
-const uid = params.get("uid") || user.uid;
+const params=new URLSearchParams(window.location.search);
+const uid=params.get("uid");
 
 if(!uid){
   emptyEl.style.display="block";
