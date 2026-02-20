@@ -233,7 +233,7 @@ onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
 
 const params=new URLSearchParams(window.location.search);
-const uid=params.get("uid")||user.uid;
+const uid=params.get("uid")||;
 
 /* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
@@ -341,7 +341,7 @@ const likeContainer=document.createElement("div");
 likeContainer.className="like";
 
 const likesArray=data.likes||[];
-const hasLiked=likesArray.includes(user.uid);
+const hasLiked=user ? likesArray.includes(user.uid) : false;
 
 const heart=document.createElement("span");
 heart.textContent=hasLiked?"♥︎":"♡";
@@ -353,6 +353,11 @@ likeContainer.appendChild(heart);
 likeContainer.appendChild(likeCount);
 
 likeContainer.onclick=async()=>{
+
+if(!user){
+  return;
+}
+
 if(hasLiked){
 await updateDoc(doc(db,"messages",docSnap.id),{
 likes:likesArray.filter(id=>id!==user.uid)
@@ -362,13 +367,14 @@ await updateDoc(doc(db,"messages",docSnap.id),{
 likes:[...likesArray,user.uid]
 });
 }
+
 location.reload();
 };
 
 actions.appendChild(likeContainer);
 
 /* EDITAR */
-if(uid===user.uid){
+if(user && uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
 editBtn.textContent="Editar";
