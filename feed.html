@@ -69,6 +69,7 @@ h1{
   display:block;
 }
 
+/* 🔥 NUEVO: fila de quien responde */
 .responder-row{
   display:flex;
   align-items:center;
@@ -166,7 +167,6 @@ for(const msg of oldMessages.docs){
 
   const data = msg.data();
 
-  // 🧠 evitar duplicados
   const existing = await getDocs(
     query(
       collection(db,"posts"),
@@ -176,11 +176,9 @@ for(const msg of oldMessages.docs){
 
   if(!existing.empty) continue;
 
-  // 👤 usuario que responde (dueño del perfil)
   const authorSnap = await getDoc(doc(db,"users", data.to));
   const authorData = authorSnap.data();
 
-  // 👤 usuario que envió el mensaje
   let senderAlias = "anónimo";
   let senderUid = null;
 
@@ -211,7 +209,6 @@ for(const msg of oldMessages.docs){
   }
 );
 
-
 console.log("🔥 Migración terminada");
  }
 
@@ -234,18 +231,18 @@ console.log("🔥 Migración terminada");
     const post=document.createElement("div");
     post.className="post";
 
-    /* AUTHOR */
+    /* USUARIO QUE ENVÍA */
     const senderDiv=document.createElement("div");
     senderDiv.className="sender";
     senderDiv.textContent = data.senderAlias || "usuario";
 
     senderDiv.onclick = () => {
-  if(data.senderUid === user.uid){
-    location.href = "profile.html";
-  }else{
-    location.href = `user.html?alias=${data.senderAlias}`;
-  }
-};
+      if(data.senderUid === user.uid){
+        location.href = "profile.html";
+      }else{
+        location.href = `user.html?alias=${data.senderAlias}`;
+      }
+    };
 
     post.appendChild(senderDiv);
 
@@ -268,6 +265,30 @@ console.log("🔥 Migración terminada");
     }
 
     post.appendChild(replyBox);
+
+    /* 🔥 FOTO + USUARIO QUE RESPONDE */
+    const responderRow=document.createElement("div");
+    responderRow.className="responder-row";
+
+    const avatar=document.createElement("img");
+    avatar.className="avatar";
+    avatar.src=data.authorPhoto || "";
+    responderRow.appendChild(avatar);
+
+    const responderName=document.createElement("div");
+    responderName.className="responder-name";
+    responderName.textContent=data.authorAlias || "";
+    responderRow.appendChild(responderName);
+
+    responderRow.onclick=()=>{
+      if(data.authorUid === user.uid){
+        location.href="profile.html";
+      }else{
+        location.href=`user.html?alias=${data.authorAlias}`;
+      }
+    };
+
+    post.appendChild(responderRow);
 
     /* LIKE */
     let likesArray=data.likes||[];
