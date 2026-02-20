@@ -308,14 +308,16 @@ document.body.style.backgroundImage="none";
 
 /* UPLOAD SEGÚN DISPOSITIVO */
 photoEls.forEach((id, i) => {
+
   const el = document.getElementById(id);
 
-  if(!el) return;
+  if (!el) return;
 
   el.addEventListener("click", () => {
     photoIndex = i;
     photoInput.click();
   });
+
 });
 
 photoInput.addEventListener("change",async()=>{
