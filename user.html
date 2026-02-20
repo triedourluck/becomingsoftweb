@@ -181,113 +181,6 @@ textarea{
   cursor:pointer;
   font-size:14px;
 }
-
-/* MOBILE */
-@media (max-width:700px){
-
-.container{
-  margin:0;
-  border-radius:0;
-  padding:20px 18px 120px;
-}
-
-.layout{
-  display:flex;
-  flex-direction:column;
-  gap:24px;
-}
-
-#photos{
-  order:1;
-  width:100%;
-}
-
-.photos{
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-
-.photo{
-  height:120px;
-}
-
-.right{
-  order:2;
-  display:flex;
-  flex-direction:column;
-  gap:24px;
-  width:100%;
-}
-
-.right > div:last-child{
-  order:1;
-  width:100%;
-}
-
-textarea{
-  height:130px;
-}
-
-#spotify{
-  order:2;
-  width:100%;
-}
-
-.search{
-  position:static;
-  margin-bottom:14px;
-  justify-content:flex-end;
-}
-
-.search input{
-  width:130px;
-  padding:6px 8px;
-  font-size:12px;
-}
-
-.search button{
-  padding:6px 10px;
-  font-size:12px;
-}
-
-.top{
-  margin-top:6px;
-  gap:12px;
-}
-
-.avatar{
-  width:64px;
-  height:64px;
-}
-
-.alias{
-  font-size:18px;
-}
-
-.stats{
-  font-size:12px;
-  margin-top:4px;
-}
-
-.actions{
-  margin-top:8px;
-  gap:8px;
-}
-
-.btn{
-  padding:6px 12px;
-  font-size:12px;
-}
-
-.bottom{
-  position:fixed;
-  bottom:18px;
-  left:0;
-  width:100%;
-  justify-content:center;
-}
-
-}
 </style>
 </head>
 
@@ -399,198 +292,73 @@ const container = document.querySelector(".container");
 
 let viewedUid = null;
 
+window.sendMessage = async ()=>{
+  const text = msgInput.value.trim();
+  if(!text){
+    alert("Escribe algo primero 🌷");
+    return;
+  }
+
+  try {
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    const currentUser = auth.currentUser;
+    let senderUid = null;
+
+    if(mode === "alias"){
+      if(!currentUser){
+        alert("Debes iniciar sesión para enviar con tu alias 💭");
+        return;
+      }
+      senderUid = currentUser.uid;
+    }
+
+    await addDoc(collection(db,"messages"),{
+      text,
+      to:viewedUid,
+      fromAlias:senderUid,
+      createdAt:Date.now(),
+      published:false,
+      likes:[]
+    });
+
+    msgInput.value="";
+    alert("enviado 🌷");
+
+  } catch(error){
+    console.error(error);
+    alert("No se pudo enviar 💔");
+  }
+};
+
 async function loadUser(){
+  if(!aliasParam) return;
 
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
   const snap = await getDocs(q);
-  if(snap.empty) return;
+  if(snap.empty){
+    alert("Usuario no encontrado 💭");
+    return;
+  }
 
   const userDoc = snap.docs[0];
   viewedUid = userDoc.id;
   const d = userDoc.data();
 
-  /* 🎨 APPLY USER THEME */
-  if(d.theme){
-
-    if(d.theme.pageBg){
-      document.body.style.background = d.theme.pageBg;
-    }
-
-    if(d.theme.cardBg){
-      container.style.background = d.theme.cardBg;
-    }
-
-    if(d.theme.backgroundImage){
-      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
-      document.body.style.backgroundSize = "cover";
-      document.body.style.backgroundPosition = "center";
-      document.body.style.backgroundAttachment = "fixed";
-    }
-
-  }
-
   aliasEl.textContent = d.alias;
   if(d.photoURL) avatar.src = d.photoURL;
-
-  followersLink.textContent = `${d.followers?.length||0} followers`;
-  followingLink.textContent = `${d.following?.length||0} following`;
-
-  followersLink.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=followers`;
-
-  followingLink.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=following`;
-
-  shhhBtn.onclick = ()=>{
-    location.href = `wall.html?uid=${viewedUid}`;
-  };
-
-  if(d.wallText){
-    if(d.wallText.title) titleText.textContent = d.wallText.title;
-    if(d.wallText.box) msgInput.placeholder = d.wallText.box;
-  }
-
-  if(d.spotifyEmbed){
-    spotifyContainer.innerHTML = d.spotifyEmbed;
-  }else{
-    spotifyContainer.innerHTML = "";
-  }
-
-  photos.innerHTML="";
-  const isMobile = window.innerWidth <= 700;
-
-let currentPhotos = [];
-
-if(isMobile){
-  currentPhotos = d.photosMobile || d.photosDesktop || d.photos || [];
-}else{
-  currentPhotos = d.photosDesktop || d.photosMobile || d.photos || [];
 }
 
-  currentPhotos.forEach(url=>{
-    if(!url) return;
-    const img=document.createElement("img");
-    img.src=url;
-    img.className="photo";
-    photos.appendChild(img);
-  });
-
-  setupFollow();
-}
-
-async function setupFollow(){
-  const user = auth.currentUser;
-  if(!user) return;
-
-  if(user.uid === viewedUid){
-    followBtn.style.display="none";
-    return;
-  }
-
-  const meSnap = await getDoc(doc(db,"users",user.uid));
-  const me = meSnap.data();
-
-  const isFollowing = me.following?.includes(viewedUid);
-
-  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
-
-  followBtn.onclick = async ()=>{
-
-  await runTransaction(db, async (transaction)=>{
-
-    const meRef = doc(db,"users",user.uid);
-    const otherRef = doc(db,"users",viewedUid);
-
-    const meSnap = await transaction.get(meRef);
-    const otherSnap = await transaction.get(otherRef);
-
-    if(!meSnap.exists() || !otherSnap.exists()) return;
-
-    const meData = meSnap.data();
-    const isFollowingNow = meData.following?.includes(viewedUid);
-
-    if(isFollowingNow){
-      transaction.update(meRef,{
-        following: arrayRemove(viewedUid)
-      });
-      transaction.update(otherRef,{
-        followers: arrayRemove(user.uid)
-      });
-    }else{
-      transaction.update(meRef,{
-        following: arrayUnion(viewedUid)
-      });
-      transaction.update(otherRef,{
-        followers: arrayUnion(user.uid)
-      });
-    }
-
-  });
-
-  location.reload();
-};
-}
-
-window.sendMessage = async ()=>{
-  const text = msgInput.value.trim();
-  if(!text) return;
-
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const currentUser = auth.currentUser;
-
-  let senderUid = null;
-  if(mode==="alias" && currentUser){
-    senderUid = currentUser.uid;
-  }
-
-  await addDoc(collection(db,"messages"),{
-    text,
-    to:viewedUid,
-    fromAlias:senderUid,
-    createdAt:Date.now(),
-    published:false,
-    likes:[]
-  });
-
-  msgInput.value="";
-  alert("enviado 🌷");
-};
-
-onAuthStateChanged(auth, async (user) => {
-
-  if(!aliasParam){
-    location.href = "index.html";
-    return;
-  }
-
+onAuthStateChanged(auth, async (user)=>{
   const bottomNav = document.getElementById("bottomNav");
-
-  if(user){
-    bottomNav.style.display = "flex";
-  }else{
-    bottomNav.style.display = "none";
-  }
-
+  bottomNav.style.display = user ? "flex" : "none";
   await loadUser();
-
 });
 
 window.searchUser = function(){
-  const input = document.getElementById("searchInput");
-  const value = input.value.trim();
+  const value = document.getElementById("searchInput").value.trim();
   if(!value) return;
-
   window.location.href = `user.html?alias=${value}`;
 };
-
-const searchInput = document.getElementById("searchInput");
-
-searchInput.addEventListener("keydown", (e)=>{
-  if(e.key === "Enter"){
-    window.searchUser();
-  }
-});
-
 </script>
 
 </body>
