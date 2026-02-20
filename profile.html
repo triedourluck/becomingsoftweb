@@ -307,11 +307,14 @@ document.body.style.backgroundImage="none";
 });
 
 /* UPLOAD SEGÚN DISPOSITIVO */
-photoEls.forEach((el,i)=>{
-el.addEventListener("click",()=>{
-photoIndex=i;
-photoInput.click();
-});
+photoEls.forEach((id,i)=>{
+  const el = document.getElementById(id);
+  el.dataset.index = i;
+
+  el.addEventListener("click",()=>{
+    photoIndex = parseInt(el.dataset.index);
+    photoInput.click();
+  });
 });
 
 photoInput.addEventListener("change",async()=>{
