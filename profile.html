@@ -49,15 +49,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
 .hidden{display:none;}
 
-/* === NUEVO: MODO REORDENAR === */
-.reorder-active .photo{
-  cursor:grab;
-  opacity:0.85;
-}
-.reorder-active .photo:active{
-  cursor:grabbing;
-}
-
 @media (max-width:700px){
 .container{margin:0;border-radius:0;padding:20px 18px 90px;}
 .search{position:absolute;top:14px;right:16px;}
@@ -160,10 +151,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
 <div class="layout">
 <div>
-
-<!-- NUEVO BOTÓN -->
-<button class="save-btn" id="reorderBtn">Reordenar fotos</button>
-
 <div class="photos">
 <img id="p1" class="photo"/>
 <img id="p2" class="photo"/>
@@ -193,8 +180,8 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
   <span id="copyMessage" class="copy-message"></span>
 </div>
-</div>
-</div>
+</div>  <!-- cierre .right -->
+</div>  <!-- cierre .layout -->
 
 <div class="bottom">
 <button class="gear" onclick="location.href='settings.html'">⚙️</button>
@@ -206,55 +193,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 </div>
 
 <script type="module">
-/* === NUEVO BLOQUE REORDER === */
-let reorderMode=false;
-let draggedEl=null;
-const reorderBtn=document.getElementById("reorderBtn");
-
-function enableDrag(){
-  document.querySelector(".container").classList.add("reorder-active");
-  photoEls.forEach(el=>{
-    el.setAttribute("draggable",true);
-    el.addEventListener("dragstart",handleDragStart);
-    el.addEventListener("dragover",handleDragOver);
-    el.addEventListener("drop",handleDrop);
-  });
-}
-
-function disableDrag(){
-  document.querySelector(".container").classList.remove("reorder-active");
-  photoEls.forEach(el=>{
-    el.setAttribute("draggable",false);
-    el.removeEventListener("dragstart",handleDragStart);
-    el.removeEventListener("dragover",handleDragOver);
-    el.removeEventListener("drop",handleDrop);
-  });
-}
-
-function handleDragStart(e){
-  draggedEl=this;
-}
-
-function handleDragOver(e){
-  e.preventDefault();
-}
-
-function handleDrop(e){
-  e.preventDefault();
-  if(draggedEl!==this){
-    const parent=this.parentNode;
-    const children=Array.from(parent.children);
-    const draggedIndex=children.indexOf(draggedEl);
-    const targetIndex=children.indexOf(this);
-    if(draggedIndex<targetIndex){
-      parent.insertBefore(draggedEl,this.nextSibling);
-    }else{
-      parent.insertBefore(draggedEl,this);
-    }
-  }
-}
-/* === FIN BLOQUE REORDER === */
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
@@ -288,35 +226,198 @@ const searchInput=document.getElementById("searchInput");
 const photoInput=document.getElementById("photoInput");
 const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
 
-let uid=null;
+const copyBtn = document.getElementById("copyBtn");
+const copyMessage = document.getElementById("copyMessage");
 
-/* === ACTIVAR BOTÓN === */
-reorderBtn.addEventListener("click",async()=>{
-  reorderMode=!reorderMode;
-  if(reorderMode){
-    reorderBtn.textContent="Guardar orden";
-    enableDrag();
-  }else{
-    reorderBtn.textContent="Reordenar fotos";
-    await saveNewOrder();
-    disableDrag();
-  }
+let uid=null;
+let photoIndex=0;
+
+onAuthStateChanged(auth,async(user)=>{
+if(!user){location.href="login.html";return;}
+uid=user.uid;
+
+const wallBtn = document.getElementById("wallBtn");
+
+wallBtn.onclick = () => {
+  location.href = `wall.html?uid=${uid}`;
+};
+
+const snap=await getDoc(doc(db,"users",uid));
+const d=snap.data();
+const profileLink = `https://becomingsoft.com/${d.alias}`;
+document.getElementById("profileLink").value = profileLink;
+
+/* LIMPIEZA FOLLOWERS FANTASMAS */
+let validFollowers=[];
+for(const fid of (d.followers||[])){
+  const exists=await getDoc(doc(db,"users",fid));
+  if(exists.exists()) validFollowers.push(fid);
+}
+
+let validFollowing=[];
+for(const fid of (d.following||[])){
+  const exists=await getDoc(doc(db,"users",fid));
+  if(exists.exists()) validFollowing.push(fid);
+}
+
+if(validFollowers.length!== (d.followers||[]).length ||
+   validFollowing.length!== (d.following||[]).length){
+  await updateDoc(doc(db,"users",uid),{
+    followers:validFollowers,
+    following:validFollowing
+  });
+}
+
+alias.textContent=d.alias||"sin alias";
+followersBtn.textContent=`${validFollowers.length} followers`;
+followingBtn.textContent=`${validFollowing.length} following`;
+
+followersBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
+followingBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
+
+if(d.photoURL) avatar.src=d.photoURL;
+
+const isMobile=window.innerWidth<=700;
+
+let desktopArray=d.photosDesktop||d.photos||["","","","","",""];
+let mobileArray=d.photosMobile||d.photos||["","","","","",""];
+
+let currentPhotos=isMobile?mobileArray:desktopArray;
+
+currentPhotos.forEach((url,i)=>{
+if(url) photoEls[i].src=url;
 });
 
-async function saveNewOrder(){
-  const snap=await getDoc(doc(db,"users",uid));
-  const data=snap.data();
-  const isMobile=window.innerWidth<=700;
-  const newOrder=photoEls.map(img=>img.src||"");
-  if(isMobile){
-    await updateDoc(doc(db,"users",uid),{photosMobile:newOrder});
-  }else{
-    await updateDoc(doc(db,"users",uid),{photosDesktop:newOrder});
-  }
-}
-/* === FIN ACTIVAR BOTÓN === */
+if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
 
-/* RESTO DE TU SCRIPT ORIGINAL SIGUE EXACTAMENTE IGUAL */
+/* THEME */
+if(d.theme){
+document.body.style.backgroundColor=d.theme.pageBg||"#f5f5f5";
+document.querySelector(".container").style.backgroundColor=d.theme.cardBg||"#ffffff";
+
+if(d.theme.backgroundImage){
+document.body.style.backgroundImage=`url(${d.theme.backgroundImage})`;
+document.body.style.backgroundSize="cover";
+document.body.style.backgroundPosition="center";
+}else{
+document.body.style.backgroundImage="none";
+}
+}
+
+});
+
+/* UPLOAD SEGÚN DISPOSITIVO */
+photoEls.forEach((el,i)=>{
+el.addEventListener("click",()=>{
+photoIndex=i;
+photoInput.click();
+});
+});
+
+photoInput.addEventListener("change",async()=>{
+const file=photoInput.files[0];
+if(!file)return;
+
+const storageRef=ref(storage,`spaces/${uid}/${photoIndex}`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
+
+const snap=await getDoc(doc(db,"users",uid));
+const data=snap.data();
+
+const isMobile=window.innerWidth<=700;
+
+let arrayToUpdate=isMobile
+  ? (data.photosMobile||data.photos||["","","","","",""])
+  : (data.photosDesktop||data.photos||["","","","","",""]);
+
+arrayToUpdate[photoIndex]=url;
+
+await updateDoc(doc(db,"users",uid),
+  isMobile
+    ? {photosMobile:arrayToUpdate}
+    : {photosDesktop:arrayToUpdate}
+);
+
+photoEls[photoIndex].src=url;
+});
+
+/* AVATAR */
+avatar.addEventListener("click",()=>avatarInput.click());
+avatarInput.addEventListener("change",async()=>{
+const file=avatarInput.files[0];
+if(!file)return;
+const storageRef=ref(storage,`avatars/${uid}`);
+await uploadBytes(storageRef,file);
+const url=await getDownloadURL(storageRef);
+await updateDoc(doc(db,"users",uid),{photoURL:url});
+avatar.src=url;
+});
+
+/* SPOTIFY */
+saveSpotifyBtn.addEventListener("click",async()=>{
+const embed=spotifyInput.value.trim();
+if(!embed)return;
+await updateDoc(doc(db,"users",uid),{spotifyEmbed:embed});
+spotifyEmbed.innerHTML=embed;
+spotifyInput.value="";
+});
+
+/* LOGOUT */
+logoutBtn.addEventListener("click",async()=>{
+await signOut(auth);
+location.href="login.html";
+});
+
+/* SEARCH */
+searchBtn.addEventListener("click",()=>{
+const value=searchInput.value.trim();
+if(!value)return;
+location.href=`user.html?alias=${value}`;
+});
+  searchInput.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    const value=searchInput.value.trim();
+    if(!value)return;
+    location.href=`user.html?alias=${value}`;
+  }
+});
+copyBtn.addEventListener("click", () => {
+  const input = document.getElementById("profileLink");
+  if(!input || !input.value) return;
+
+  navigator.clipboard.writeText(input.value).then(()=>{
+    copyMessage.textContent = "Copied ✨";
+    setTimeout(()=>{ copyMessage.textContent = ""; },2000);
+  }).catch(()=>{
+    copyMessage.textContent = "Couldn't copy";
+    setTimeout(()=>{ copyMessage.textContent = ""; },2000);
+  });
+});
+function copyProfileLink(){
+  const input = document.getElementById("profileLink");
+  const message = document.getElementById("copyMessage");
+
+  if(!input || !input.value) return;
+
+  // Método compatible con iPhone
+  input.removeAttribute("readonly"); 
+  input.select();
+  input.setSelectionRange(0, 99999);
+
+  try {
+    document.execCommand("copy");
+    message.textContent = "Copied ✨";
+  } catch (err) {
+    message.textContent = "Couldn't copy";
+  }
+
+  input.setAttribute("readonly", true);
+
+  setTimeout(() => {
+    message.textContent = "";
+  }, 2000);
+}
 </script>
 
 </body>
