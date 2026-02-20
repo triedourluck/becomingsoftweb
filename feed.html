@@ -235,14 +235,19 @@ onAuthStateChanged(auth, async(user)=>{
     senderDiv.className="sender";
     senderDiv.textContent = data.senderAlias || "anónimo";
 
-    if(data.senderUid){
-      senderDiv.onclick = () => {
-        if(data.senderUid === user.uid){
-          location.href = "profile.html";
-        }else{
-          location.href = `user.html?uid=${data.senderUid}`;
-        }
-      };
+    senderDiv.onclick = () => {
+
+  if(!data.senderAlias || data.senderAlias === "anónimo"){
+    return; // si es anónimo no hace nada
+  }
+
+  if(data.senderUid === user.uid){
+    location.href = "profile.html";
+  }else{
+    location.href = `user.html?alias=${data.senderAlias}`;
+  }
+
+};
     }else{
       senderDiv.style.cursor="default";
     }
@@ -280,13 +285,15 @@ onAuthStateChanged(auth, async(user)=>{
     responderName.textContent=data.authorAlias || "";
     responderRow.appendChild(responderName);
 
-    responderRow.onclick=()=>{
-      if(data.authorUid === user.uid){
-        location.href="profile.html";
-      }else{
-        location.href=`user.html?uid=${data.authorUid}`;
-      }
-    };
+    responderRow.onclick = () => {
+
+  if(data.authorUid === user.uid){
+    location.href = "profile.html";
+  }else{
+    location.href = `user.html?alias=${data.authorAlias}`;
+  }
+
+};
 
     post.appendChild(responderRow);
 
