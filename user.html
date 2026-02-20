@@ -571,6 +571,15 @@ window.searchUser = function(){
 
   window.location.href = `user.html?alias=${value}`;
 };
+
+const searchInput = document.getElementById("searchInput");
+
+searchInput.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){
+    window.searchUser();
+  }
+});
+
 </script>
 
 </body>
