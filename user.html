@@ -523,18 +523,24 @@ async function loadUser(){
   }
 
   photos.innerHTML="";
-  const isMobile = window.innerWidth <= 700;
-  let currentPhotos = isMobile
-    ? (d.photosMobile || d.photosDesktop || d.photos || [])
-    : (d.photosDesktop || d.photosMobile || d.photos || []);
 
-  currentPhotos.forEach(url=>{
-    if(!url) return;
-    const img=document.createElement("img");
-    img.src=url;
-    img.className="photo";
-    photos.appendChild(img);
-  });
+const isMobile = window.innerWidth <= 700;
+
+let currentPhotos = [];
+
+if(isMobile){
+  currentPhotos = d.photosMobile || [];
+}else{
+  currentPhotos = d.photosDesktop || [];
+}
+
+currentPhotos.forEach(url=>{
+  if(!url) return;
+  const img=document.createElement("img");
+  img.src=url;
+  img.className="photo";
+  photos.appendChild(img);
+});
 
 /* RESET VISUAL */
 
