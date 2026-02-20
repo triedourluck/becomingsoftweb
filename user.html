@@ -11,6 +11,9 @@ body{
   font-family:Arial, Helvetica, sans-serif;
   background:#f5f5f5;
   color:#111;
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
 }
 
 .container{
@@ -183,101 +186,23 @@ textarea{
 }
 
 @media (max-width:700px){
-
 .container{
   margin:0;
   border-radius:0;
   padding:20px 18px 120px;
 }
-
 .layout{
   display:flex;
   flex-direction:column;
   gap:24px;
 }
-
-#photos{
-  order:1;
-  width:100%;
-}
-
 .photos{
   grid-template-columns:repeat(3,1fr);
   gap:10px;
 }
-
 .photo{
   height:120px;
 }
-
-.right{
-  order:2;
-  display:flex;
-  flex-direction:column;
-  gap:24px;
-  width:100%;
-}
-
-.right > div:last-child{
-  order:1;
-  width:100%;
-}
-
-textarea{
-  height:130px;
-}
-
-#spotify{
-  order:2;
-  width:100%;
-}
-
-.search{
-  position:static;
-  margin-bottom:14px;
-  justify-content:flex-end;
-}
-
-.search input{
-  width:130px;
-  padding:6px 8px;
-  font-size:12px;
-}
-
-.search button{
-  padding:6px 10px;
-  font-size:12px;
-}
-
-.top{
-  margin-top:6px;
-  gap:12px;
-}
-
-.avatar{
-  width:64px;
-  height:64px;
-}
-
-.alias{
-  font-size:18px;
-}
-
-.stats{
-  font-size:12px;
-  margin-top:4px;
-}
-
-.actions{
-  margin-top:8px;
-  gap:8px;
-}
-
-.btn{
-  padding:6px 12px;
-  font-size:12px;
-}
-
 .bottom{
   position:fixed;
   bottom:18px;
@@ -285,7 +210,6 @@ textarea{
   width:100%;
   justify-content:center;
 }
-
 }
 </style>
 </head>
@@ -328,9 +252,13 @@ textarea{
       <textarea id="msgInput" placeholder="Escribe algo suave..."></textarea>
 
       <div class="send-row">
-        <div class="send-options">
-          <label><input type="radio" name="mode" value="anon" checked> Anónimo</label>
-          <label><input type="radio" name="mode" value="alias"> Con mi alias</label>
+        <div class="send-options" id="sendOptions">
+          <label id="anonOption">
+            <input type="radio" name="mode" value="anon" checked> Anónimo
+          </label>
+          <label>
+            <input type="radio" name="mode" value="alias"> Con mi alias
+          </label>
         </div>
 
         <button class="send-btn" onclick="sendMessage()">Enviar</button>
@@ -368,7 +296,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
+  apiKey:"AIzaSy...",
   authDomain:"becomingsoft-84e72.firebaseapp.com",
   projectId:"becomingsoft-84e72",
   storageBucket:"becomingsoft-84e72.firebasestorage.app",
@@ -394,25 +322,20 @@ const followingLink = document.getElementById("followingLink");
 const titleText = document.getElementById("titleText");
 const msgInput = document.getElementById("msgInput");
 const container = document.querySelector(".container");
+const anonOption = document.getElementById("anonOption");
 
 let viewedUid = null;
 
 window.sendMessage = async ()=>{
   const text = msgInput.value.trim();
-  if(!text){
-    alert("Escribe algo primero 🌷");
-    return;
-  }
+  if(!text){ alert("Escribe algo primero 🌷"); return; }
 
   const mode = document.querySelector('input[name="mode"]:checked').value;
   const currentUser = auth.currentUser;
   let senderUid = null;
 
   if(mode === "alias"){
-    if(!currentUser){
-      alert("Debes iniciar sesión para enviar con tu alias 💭");
-      return;
-    }
+    if(!currentUser){ alert("Debes iniciar sesión 💭"); return; }
     senderUid = currentUser.uid;
   }
 
@@ -430,15 +353,8 @@ window.sendMessage = async ()=>{
 };
 
 async function setupFollow(){
-
   const currentUser = auth.currentUser;
-
-  if(!currentUser){
-    followBtn.style.display = "none";
-    return;
-  }
-
-  if(currentUser.uid === viewedUid){
+  if(!currentUser || currentUser.uid === viewedUid){
     followBtn.style.display = "none";
     return;
   }
@@ -449,82 +365,61 @@ async function setupFollow(){
   const viewedUserRef = doc(db,"users",viewedUid);
 
   const currentSnap = await getDoc(currentUserRef);
-  const currentData = currentSnap.data();
-
-  const isFollowing = currentData.following?.includes(viewedUid);
+  const isFollowing = currentSnap.data().following?.includes(viewedUid);
 
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
-
     await runTransaction(db, async (transaction) => {
-
       const currentDoc = await transaction.get(currentUserRef);
-      const viewedDoc = await transaction.get(viewedUserRef);
-
       const currentFollowing = currentDoc.data().following || [];
 
       if(currentFollowing.includes(viewedUid)){
-        transaction.update(currentUserRef,{
-          following: arrayRemove(viewedUid)
-        });
-        transaction.update(viewedUserRef,{
-          followers: arrayRemove(currentUser.uid)
-        });
+        transaction.update(currentUserRef,{ following: arrayRemove(viewedUid) });
+        transaction.update(viewedUserRef,{ followers: arrayRemove(currentUser.uid) });
       }else{
-        transaction.update(currentUserRef,{
-          following: arrayUnion(viewedUid)
-        });
-        transaction.update(viewedUserRef,{
-          followers: arrayUnion(currentUser.uid)
-        });
+        transaction.update(currentUserRef,{ following: arrayUnion(viewedUid) });
+        transaction.update(viewedUserRef,{ followers: arrayUnion(currentUser.uid) });
       }
-
     });
-
     setupFollow();
   };
 }
 
 async function loadUser(){
-
   if(!aliasParam) return;
 
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
   const snap = await getDocs(q);
-
-  if(snap.empty){
-    alert("Usuario no encontrado 💭");
-    return;
-  }
+  if(snap.empty){ alert("Usuario no encontrado 💭"); return; }
 
   const userDoc = snap.docs[0];
   viewedUid = userDoc.id;
   const d = userDoc.data();
 
-  shhhBtn.onclick = () => {
-    location.href = `wall.html?uid=${viewedUid}`;
-  };
+  /* RESET VISUAL */
+  document.body.style.background = "#f5f5f5";
+  document.body.style.backgroundImage = "";
+  container.style.background = "white";
+  titleText.textContent = "Envíame un mensaje";
+  msgInput.placeholder = "Escribe algo suave...";
+  anonOption.style.display = "inline-block";
 
+  /* BASIC */
   aliasEl.textContent = d.alias;
   if(d.photoURL) avatar.src = d.photoURL;
 
   followersLink.textContent = `${d.followers?.length||0} followers`;
   followingLink.textContent = `${d.following?.length||0} following`;
 
-  followersLink.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=followers`;
-
-  followingLink.onclick = () =>
-    location.href = `list.html?uid=${viewedUid}&type=following`;
-
   if(d.spotifyEmbed){
     spotifyContainer.innerHTML = d.spotifyEmbed;
   }
 
+  /* PHOTOS */
   photos.innerHTML="";
   const isMobile = window.innerWidth <= 700;
-  let currentPhotos = isMobile
+  const currentPhotos = isMobile
     ? (d.photosMobile || d.photosDesktop || d.photos || [])
     : (d.photosDesktop || d.photosMobile || d.photos || []);
 
@@ -536,12 +431,35 @@ async function loadUser(){
     photos.appendChild(img);
   });
 
+  /* WALL TEXT */
+  if(d.wallText){
+    if(d.wallText.title) titleText.textContent = d.wallText.title;
+    if(d.wallText.box) msgInput.placeholder = d.wallText.box;
+  }
+
+  /* THEME */
+  if(d.theme){
+    if(d.theme.pageBg){
+      document.body.style.background = d.theme.pageBg;
+    }
+    if(d.theme.backgroundImage){
+      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+    }
+    if(d.theme.cardBg){
+      container.style.background = d.theme.cardBg;
+    }
+  }
+
+  /* ALLOW ANON */
+  if(d.allowAnonymous === false){
+    anonOption.style.display = "none";
+  }
+
   await setupFollow();
 }
 
 onAuthStateChanged(auth, async (user)=>{
-  const bottomNav = document.getElementById("bottomNav");
-  bottomNav.style.display = user ? "flex" : "none";
+  document.getElementById("bottomNav").style.display = user ? "flex" : "none";
   await loadUser();
 });
 
