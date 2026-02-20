@@ -229,13 +229,11 @@ const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
 
-  const params = new URLSearchParams(window.location.search);
-  const uid = params.get("uid");
+onAuthStateChanged(auth,async(user)=>{
+if(!user){location.href="login.html";return;}
 
-if(!uid){
-  document.body.innerHTML = "User not found";
-  throw new Error("No UID provided");
-  }
+const params=new URLSearchParams(window.location.search);
+const uid=params.get("uid")||user.uid;
 
 /* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
@@ -264,13 +262,10 @@ orderBy("createdAt","desc")
 );
 
 const snap=await getDocs(q);
-console.log("UID:", uid);
-console.log("Docs encontrados:", snap.size);
 
 if(snap.empty){
-  emptyEl.style.display="block";
-}else{
-  // aquí sigue el for(...)
+emptyEl.style.display="block";
+return;
 }
 
 for(const docSnap of snap.docs){
@@ -391,6 +386,7 @@ actions.appendChild(editBtn);
 div.appendChild(actions);
 wallEl.appendChild(div);
 }
+});
 
 window.goFeed=()=>location.href="feed.html";
 window.goProfile=()=>location.href="profile.html";
