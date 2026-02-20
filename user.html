@@ -563,6 +563,14 @@ onAuthStateChanged(auth,(user)=>{
   }
   loadUser();
 });
+
+window.searchUser = function(){
+  const input = document.getElementById("searchInput");
+  const value = input.value.trim();
+  if(!value) return;
+
+  window.location.href = `user.html?alias=${value}`;
+};
 </script>
 
 </body>
