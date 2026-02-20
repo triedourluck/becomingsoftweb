@@ -229,8 +229,6 @@ const avatarEl=document.getElementById("avatar");
 const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
 
-onAuthStateChanged(auth,async(user)=>{
-if(!user){location.href="login.html";return;}
 
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid")||user.uid;
