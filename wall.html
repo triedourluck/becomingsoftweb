@@ -230,10 +230,9 @@ const aliasEl=document.getElementById("alias");
 const statsEl=document.getElementById("stats");
 
 onAuthStateChanged(auth,async(user)=>{
-if(!user){location.href="login.html";return;}
 
 const params=new URLSearchParams(window.location.search);
-const uid=params.get("uid")||user.uid;
+const uid = params.get("uid") || (user ? user.uid : null);
 
 /* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
