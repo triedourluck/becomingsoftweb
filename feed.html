@@ -215,15 +215,15 @@ for(const msg of oldMessages.docs){
     /* AUTHOR */
     const senderDiv=document.createElement("div");
     senderDiv.className="sender";
-    senderDiv.textContent=data.authorAlias || "usuario";
+    senderDiv.textContent = data.senderAlias || "usuario";
 
-    senderDiv.onclick=()=>{
-      if(data.authorUid===user.uid){
-        location.href="profile.html";
-      }else{
-        location.href=`user.html?alias=${data.authorAlias}`;
-      }
-    };
+    senderDiv.onclick = () => {
+  if(data.senderUid === user.uid){
+    location.href = "profile.html";
+  }else{
+    location.href = `user.html?alias=${data.senderAlias}`;
+  }
+};
 
     post.appendChild(senderDiv);
 
