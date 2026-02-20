@@ -331,10 +331,12 @@ window.sendMessage = async ()=>{
 };
 
 async function loadUser(){
+
   if(!aliasParam) return;
 
   const q = query(collection(db,"users"), where("alias","==",aliasParam));
   const snap = await getDocs(q);
+
   if(snap.empty){
     alert("Usuario no encontrado 💭");
     return;
@@ -344,8 +346,73 @@ async function loadUser(){
   viewedUid = userDoc.id;
   const d = userDoc.data();
 
+  /* THEME */
+  if(d.theme){
+
+    if(d.theme.pageBg){
+      document.body.style.background = d.theme.pageBg;
+    }
+
+    if(d.theme.cardBg){
+      container.style.background = d.theme.cardBg;
+    }
+
+    if(d.theme.backgroundImage){
+      document.body.style.backgroundImage = `url(${d.theme.backgroundImage})`;
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundPosition = "center";
+      document.body.style.backgroundAttachment = "fixed";
+    }
+
+  }
+
   aliasEl.textContent = d.alias;
   if(d.photoURL) avatar.src = d.photoURL;
+
+  followersLink.textContent = `${d.followers?.length||0} followers`;
+  followingLink.textContent = `${d.following?.length||0} following`;
+
+  followersLink.onclick = () =>
+    location.href = `list.html?uid=${viewedUid}&type=followers`;
+
+  followingLink.onclick = () =>
+    location.href = `list.html?uid=${viewedUid}&type=following`;
+
+  shhhBtn.onclick = ()=>{
+    location.href = `wall.html?uid=${viewedUid}`;
+  };
+
+  if(d.wallText){
+    if(d.wallText.title) titleText.textContent = d.wallText.title;
+    if(d.wallText.box) msgInput.placeholder = d.wallText.box;
+  }
+
+  if(d.spotifyEmbed){
+    spotifyContainer.innerHTML = d.spotifyEmbed;
+  }else{
+    spotifyContainer.innerHTML = "";
+  }
+
+  photos.innerHTML="";
+  const isMobile = window.innerWidth <= 700;
+
+  let currentPhotos = [];
+
+  if(isMobile){
+    currentPhotos = d.photosMobile || d.photosDesktop || d.photos || [];
+  }else{
+    currentPhotos = d.photosDesktop || d.photosMobile || d.photos || [];
+  }
+
+  currentPhotos.forEach(url=>{
+    if(!url) return;
+    const img=document.createElement("img");
+    img.src=url;
+    img.className="photo";
+    photos.appendChild(img);
+  });
+
+  setupFollow();
 }
 
 onAuthStateChanged(auth, async (user)=>{
