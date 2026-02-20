@@ -224,7 +224,7 @@ const logoutBtn=document.getElementById("logoutBtn");
 const searchBtn=document.getElementById("searchBtn");
 const searchInput=document.getElementById("searchInput");
 const photoInput=document.getElementById("photoInput");
-const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
+const photoIds = ["p1","p2","p3","p4","p5","p6"];
 
 const copyBtn = document.getElementById("copyBtn");
 const copyMessage = document.getElementById("copyMessage");
@@ -307,7 +307,7 @@ document.body.style.backgroundImage="none";
 });
 
 /* UPLOAD SEGÚN DISPOSITIVO */
-photoEls.forEach((id, i) => {
+photoIds.forEach((id, i) => {
 
   const el = document.getElementById(id);
 
