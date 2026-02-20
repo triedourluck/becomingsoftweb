@@ -181,6 +181,111 @@ textarea{
   cursor:pointer;
   font-size:14px;
 }
+
+@media (max-width:700px){
+
+.container{
+  margin:0;
+  border-radius:0;
+  padding:20px 18px 120px;
+}
+
+.layout{
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+#photos{
+  order:1;
+  width:100%;
+}
+
+.photos{
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.photo{
+  height:120px;
+}
+
+.right{
+  order:2;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  width:100%;
+}
+
+.right > div:last-child{
+  order:1;
+  width:100%;
+}
+
+textarea{
+  height:130px;
+}
+
+#spotify{
+  order:2;
+  width:100%;
+}
+
+.search{
+  position:static;
+  margin-bottom:14px;
+  justify-content:flex-end;
+}
+
+.search input{
+  width:130px;
+  padding:6px 8px;
+  font-size:12px;
+}
+
+.search button{
+  padding:6px 10px;
+  font-size:12px;
+}
+
+.top{
+  margin-top:6px;
+  gap:12px;
+}
+
+.avatar{
+  width:64px;
+  height:64px;
+}
+
+.alias{
+  font-size:18px;
+}
+
+.stats{
+  font-size:12px;
+  margin-top:4px;
+}
+
+.actions{
+  margin-top:8px;
+  gap:8px;
+}
+
+.btn{
+  padding:6px 12px;
+  font-size:12px;
+}
+
+.bottom{
+  position:fixed;
+  bottom:18px;
+  left:0;
+  width:100%;
+  justify-content:center;
+}
+
 </style>
 </head>
 
