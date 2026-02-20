@@ -153,117 +153,171 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
-const q=query(
-  collection(db,"posts"),
-  orderBy("createdAt","desc"),
-  limit(30)
-);
+  /* 🔥 MIGRACIÓN CORRECTA */
 
-const snap=await getDocs(q);
+  const oldMessages = await getDocs(
+    query(
+      collection(db,"messages"),
+      where("published","==",true)
+    )
+  );
 
-if(snap.empty){
-  feedEl.innerHTML="<p>No hay nada por aquí todavía 🌱</p>";
-  return;
-}
+  for(const msg of oldMessages.docs){
 
-for(const postDoc of snap.docs){
+    const data = msg.data();
 
-  const data=postDoc.data();
-  const post=document.createElement("div");
-  post.className="post";
+    const existing = await getDocs(
+      query(
+        collection(db,"posts"),
+        where("createdAt","==",data.createdAt)
+      )
+    );
 
-  /* USUARIO QUE ENVÍA */
-  const senderDiv=document.createElement("div");
-  senderDiv.className="sender";
-  senderDiv.textContent = data.senderAlias || "anónimo";
+    if(!existing.empty) continue;
 
-  if(data.senderUid){
-    senderDiv.onclick = () => {
-      if(data.senderUid === user.uid){
-        location.href = "profile.html";
+    let senderAlias = "anónimo";
+    let senderUid = null;
+
+    if(data.fromAlias){
+
+      const senderSnap = await getDoc(doc(db,"users", data.fromAlias));
+
+      if(senderSnap.exists()){
+        senderUid = senderSnap.id;
+        senderAlias = senderSnap.data().alias || "anónimo";
+      }
+    }
+
+    const authorSnap = await getDoc(doc(db,"users", data.to));
+    const authorData = authorSnap.data();
+
+    await addDoc(
+      collection(db,"posts"),
+      {
+        senderUid: senderUid,
+        senderAlias: senderAlias,
+
+        authorUid: data.to,
+        authorAlias: authorData?.alias || "",
+        authorPhoto: authorData?.photoURL || "",
+
+        text: data.text || "",
+        reply: data.reply || "",
+        replyImage: data.replyImage || data.imageURL || null,
+
+        createdAt: data.createdAt,
+        likes: data.likes || [],
+        published: true
+      }
+    );
+  }
+
+  const q=query(
+    collection(db,"posts"),
+    orderBy("createdAt","desc"),
+    limit(30)
+  );
+
+  const snap=await getDocs(q);
+
+  if(snap.empty){
+    feedEl.innerHTML="<p>No hay nada por aquí todavía 🌱</p>";
+    return;
+  }
+
+  for(const postDoc of snap.docs){
+
+    const data=postDoc.data();
+    const post=document.createElement("div");
+    post.className="post";
+
+    const senderDiv=document.createElement("div");
+    senderDiv.className="sender";
+    senderDiv.textContent = data.senderAlias || "anónimo";
+
+    if(data.senderUid){
+      senderDiv.onclick = () => {
+        if(data.senderUid === user.uid){
+          location.href = "profile.html";
+        }else{
+          location.href = `user.html?uid=${data.senderUid}`;
+        }
+      };
+    }else{
+      senderDiv.style.cursor="default";
+    }
+
+    post.appendChild(senderDiv);
+
+    const messageBox=document.createElement("div");
+    messageBox.className="message-box";
+    messageBox.textContent=data.text || "";
+    post.appendChild(messageBox);
+
+    const replyBox=document.createElement("div");
+    replyBox.className="reply-box";
+    replyBox.textContent=data.reply || "";
+
+    if(data.replyImage){
+      const img=document.createElement("img");
+      img.src=data.replyImage;
+      img.className="reply-image";
+      replyBox.appendChild(img);
+    }
+
+    post.appendChild(replyBox);
+
+    const responderRow=document.createElement("div");
+    responderRow.className="responder-row";
+
+    const avatar=document.createElement("img");
+    avatar.className="avatar";
+    avatar.src=data.authorPhoto || "";
+    responderRow.appendChild(avatar);
+
+    const responderName=document.createElement("div");
+    responderName.className="responder-name";
+    responderName.textContent=data.authorAlias || "";
+    responderRow.appendChild(responderName);
+
+    responderRow.onclick=()=>{
+      if(data.authorUid === user.uid){
+        location.href="profile.html";
       }else{
-        location.href = `user.html?uid=${data.senderUid}`;
+        location.href=`user.html?uid=${data.authorUid}`;
       }
     };
-  }else{
-    senderDiv.style.cursor="default";
-  }
 
-  post.appendChild(senderDiv);
+    post.appendChild(responderRow);
 
-  /* MENSAJE */
-  const messageBox=document.createElement("div");
-  messageBox.className="message-box";
-  messageBox.textContent=data.text || "";
-  post.appendChild(messageBox);
+    let likesArray=data.likes||[];
+    let hasLiked=likesArray.includes(user.uid);
 
-  /* RESPUESTA */
-  const replyBox=document.createElement("div");
-  replyBox.className="reply-box";
-  replyBox.textContent=data.reply || "";
-
-  if(data.replyImage){
-    const img=document.createElement("img");
-    img.src=data.replyImage;
-    img.className="reply-image";
-    replyBox.appendChild(img);
-  }
-
-  post.appendChild(replyBox);
-
-  /* FOTO + USUARIO QUE RESPONDE */
-  const responderRow=document.createElement("div");
-  responderRow.className="responder-row";
-
-  const avatar=document.createElement("img");
-  avatar.className="avatar";
-  avatar.src=data.authorPhoto || "";
-  responderRow.appendChild(avatar);
-
-  const responderName=document.createElement("div");
-  responderName.className="responder-name";
-  responderName.textContent=data.authorAlias || "";
-  responderRow.appendChild(responderName);
-
-  responderRow.onclick=()=>{
-    if(data.authorUid === user.uid){
-      location.href="profile.html";
-    }else{
-      location.href=`user.html?uid=${data.authorUid}`;
-    }
-  };
-
-  post.appendChild(responderRow);
-
-  /* LIKE */
-  let likesArray=data.likes||[];
-  let hasLiked=likesArray.includes(user.uid);
-
-  const likeDiv=document.createElement("div");
-  likeDiv.className="like";
-  likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
-
-  likeDiv.onclick=async()=>{
-
-    if(hasLiked){
-      likesArray=likesArray.filter(id=>id!==user.uid);
-      hasLiked=false;
-    }else{
-      likesArray=[...likesArray,user.uid];
-      hasLiked=true;
-    }
-
-    await updateDoc(doc(db,"posts",postDoc.id),{
-      likes:likesArray
-    });
-
+    const likeDiv=document.createElement("div");
+    likeDiv.className="like";
     likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
-  };
 
-  post.appendChild(likeDiv);
+    likeDiv.onclick=async()=>{
 
-  feedEl.appendChild(post);
-}
+      if(hasLiked){
+        likesArray=likesArray.filter(id=>id!==user.uid);
+        hasLiked=false;
+      }else{
+        likesArray=[...likesArray,user.uid];
+        hasLiked=true;
+      }
+
+      await updateDoc(doc(db,"posts",postDoc.id),{
+        likes:likesArray
+      });
+
+      likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
+    };
+
+    post.appendChild(likeDiv);
+
+    feedEl.appendChild(post);
+  }
 
 });
 
