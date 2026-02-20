@@ -327,7 +327,12 @@ for(const docSnap of snap.docs){
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.data();
     
+    const senderSnap = await getDoc(doc(db,"users",data.fromAlias));
+    const senderData = senderSnap.data();
+    
     await addDoc(collection(db,"posts"),{
+  senderUid: docSnap.data().fromAlias,
+  senderAlias: senderData?.alias || "",
   authorUid: user.uid,
   authorAlias: userData.alias || "",
   authorPhoto: userData.photoURL || "",
