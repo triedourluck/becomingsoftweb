@@ -331,18 +331,19 @@ for(const docSnap of snap.docs){
     const senderData = senderSnap.data();
     
     await addDoc(collection(db,"posts"),{
-  senderUid: docSnap.data().fromAlias,
-  senderAlias: senderData?.alias || "",
-  authorUid: user.uid,
-  authorAlias: userData.alias || "",
-  authorPhoto: userData.photoURL || "",
-  text: docSnap.data().text || "",
-  reply: textarea.value.trim() || "",
-  replyImage: imageURL || null,
-  createdAt: serverTimestamp(),
-  likes: [],
-  published: true
-});
+      originalMessageId: docSnap.id,
+      senderUid: docSnap.data().fromAlias,
+      senderAlias: senderData?.alias || "",
+      authorUid: user.uid,
+      authorAlias: userData.alias || "",
+      authorPhoto: userData.photoURL || "",
+      text: docSnap.data().text || "",
+      reply: textarea.value.trim() || "",
+      replyImage: imageURL || null,
+      createdAt: serverTimestamp(),
+      likes: [],
+      published: true
+    });
 
     location.reload();
   };
@@ -354,7 +355,20 @@ for(const docSnap of snap.docs){
   deleteBtn.onclick=async()=>{
     const ok=confirm("¿Eliminar este mensaje?");
     if(!ok) return;
+
     await deleteDoc(doc(db,"messages",docSnap.id));
+
+    const postQuery=query(
+      collection(db,"posts"),
+      where("originalMessageId","==",docSnap.id)
+    );
+
+    const postSnap=await getDocs(postQuery);
+
+    for(const postDoc of postSnap.docs){
+      await deleteDoc(doc(db,"posts",postDoc.id));
+    }
+
     location.reload();
   };
 
