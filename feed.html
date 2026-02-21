@@ -1,3 +1,6 @@
+ULTIMO FEED FUNCIONAL
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -126,6 +129,8 @@ import {
   where,
   orderBy,
   getDocs,
+  getDoc,
+  addDoc,
   updateDoc,
   doc,
   limit
@@ -151,11 +156,70 @@ onAuthStateChanged(auth, async(user)=>{
     return;
   }
 
+  /* 🔥 MIGRACIÓN CORRECTA */
+
+  const oldMessages = await getDocs(
+    query(
+      collection(db,"messages"),
+      where("published","==",true)
+    )
+  );
+
+  for(const msg of oldMessages.docs){
+
+    const data = msg.data();
+
+    const existing = await getDocs(
+      query(
+        collection(db,"posts"),
+        where("createdAt","==",data.createdAt)
+      )
+    );
+
+    if(!existing.empty) continue;
+
+    let senderAlias = "anónimo";
+    let senderUid = null;
+
+    if(data.fromAlias){
+
+      const senderSnap = await getDoc(doc(db,"users", data.fromAlias));
+
+      if(senderSnap.exists()){
+        senderUid = senderSnap.id;
+        senderAlias = senderSnap.data().alias || "anónimo";
+      }
+    }
+
+    const authorSnap = await getDoc(doc(db,"users", data.to));
+    const authorData = authorSnap.data();
+
+    await addDoc(
+      collection(db,"posts"),
+      {
+        senderUid: senderUid,
+        senderAlias: senderAlias,
+
+        authorUid: data.to,
+        authorAlias: authorData?.alias || "",
+        authorPhoto: authorData?.photoURL || "",
+
+        text: data.text || "",
+        reply: data.reply || "",
+        replyImage: data.replyImage || data.imageURL || null,
+
+        createdAt: data.createdAt,
+        likes: data.likes || [],
+        published: true
+      }
+    );
+  }
+
   const q=query(
-  collection(db,"posts"),
-  orderBy("createdAt","desc"),
-  limit(30)
-);
+    collection(db,"posts"),
+    orderBy("createdAt","desc"),
+    limit(30)
+  );
 
   const snap=await getDocs(q);
 
@@ -170,34 +234,31 @@ onAuthStateChanged(auth, async(user)=>{
     const post=document.createElement("div");
     post.className="post";
 
-    /* USUARIO QUE ENVÍA */
     const senderDiv=document.createElement("div");
     senderDiv.className="sender";
+    senderDiv.textContent = data.senderAlias || "anónimo";
 
-    if(!data.senderAlias || data.senderAlias === "anónimo"){
-      senderDiv.textContent="anónimo";
-      senderDiv.style.cursor="default";
-    }else{
-      senderDiv.textContent=data.senderAlias;
+    senderDiv.onclick = () => {
 
-      senderDiv.onclick = () => {
-        if(data.senderUid === user.uid){
-          location.href="profile.html";
-        }else{
-          location.href=`user.html?alias=${data.senderAlias}`;
-        }
-      };
-    }
+  if(!data.senderAlias || data.senderAlias === "anónimo"){
+    return; // si es anónimo no hace nada
+  }
 
+  if(data.senderUid === user.uid){
+    location.href = "profile.html";
+  }else{
+    location.href = `user.html?alias=${data.senderAlias}`;
+  }
+
+};
+    
     post.appendChild(senderDiv);
 
-    /* MENSAJE */
     const messageBox=document.createElement("div");
     messageBox.className="message-box";
     messageBox.textContent=data.text || "";
     post.appendChild(messageBox);
 
-    /* RESPUESTA */
     const replyBox=document.createElement("div");
     replyBox.className="reply-box";
     replyBox.textContent=data.reply || "";
@@ -211,32 +272,31 @@ onAuthStateChanged(auth, async(user)=>{
 
     post.appendChild(replyBox);
 
-    /* USUARIO QUE RESPONDE */
     const responderRow=document.createElement("div");
     responderRow.className="responder-row";
 
     const avatar=document.createElement("img");
     avatar.className="avatar";
-    if(data.authorPhoto) avatar.src=data.authorPhoto;
+    avatar.src=data.authorPhoto || "";
+    responderRow.appendChild(avatar);
 
     const responderName=document.createElement("div");
     responderName.className="responder-name";
     responderName.textContent=data.authorAlias || "";
-
-    responderRow.appendChild(avatar);
     responderRow.appendChild(responderName);
 
     responderRow.onclick = () => {
-      if(data.authorUid === user.uid){
-        location.href="profile.html";
-      }else{
-        location.href=`user.html?alias=${data.authorAlias}`;
-      }
-    };
+
+  if(data.authorUid === user.uid){
+    location.href = "profile.html";
+  }else{
+    location.href = `user.html?alias=${data.authorAlias}`;
+  }
+
+};
 
     post.appendChild(responderRow);
 
-    /* LIKE */
     let likesArray=data.likes||[];
     let hasLiked=likesArray.includes(user.uid);
 
