@@ -309,13 +309,19 @@ for(const docSnap of snap.docs){
   publishBtn.className="publish";
   publishBtn.textContent="Publicar";
 
-  publishBtn.onclick=async()=>{
-    let imageURL=null;
+  publishBtn.onclick = async () => {
+
+  publishBtn.disabled = true;
+  publishBtn.textContent = "Publicando...";
+
+  try {
+
+    let imageURL = null;
 
     if(selectedFile){
-      const storageRef=ref(storage,`replies/${docSnap.id}`);
+      const storageRef = ref(storage,`replies/${docSnap.id}_${Date.now()}`);
       await uploadBytes(storageRef,selectedFile);
-      imageURL=await getDownloadURL(storageRef);
+      imageURL = await getDownloadURL(storageRef);
     }
 
     await updateDoc(doc(db,"messages",docSnap.id),{
@@ -323,26 +329,39 @@ for(const docSnap of snap.docs){
       imageURL:imageURL||null,
       published:true
     });
-    
+
     const userSnap = await getDoc(doc(db,"users",user.uid));
     const userData = userSnap.data();
-    
-    const senderSnap = await getDoc(doc(db,"users",data.fromAlias));
-    const senderData = senderSnap.data();
-    
+
+    let senderData = null;
+
+    if(data.fromAlias){
+      const senderSnap = await getDoc(doc(db,"users",data.fromAlias));
+      senderData = senderSnap.data();
+    }
+
     await addDoc(collection(db,"posts"),{
-  senderUid: docSnap.data().fromAlias,
-  senderAlias: senderData?.alias || "",
-  authorUid: user.uid,
-  authorAlias: userData.alias || "",
-  authorPhoto: userData.photoURL || "",
-  text: docSnap.data().text || "",
-  reply: textarea.value.trim() || "",
-  replyImage: imageURL || null,
-  createdAt: serverTimestamp(),
-  likes: [],
-  published: true
-});
+      senderUid: data.fromAlias || null,
+      senderAlias: senderData?.alias || "anónimo",
+      authorUid: user.uid,
+      authorAlias: userData.alias || "",
+      authorPhoto: userData.photoURL || "",
+      text: data.text || "",
+      reply: textarea.value.trim() || "",
+      replyImage: imageURL || null,
+      createdAt: serverTimestamp(),
+      likes: [],
+      published: true
+    });
+
+    location.reload();
+
+  } catch(err){
+    console.error(err);
+    publishBtn.disabled = false;
+    publishBtn.textContent = "Publicar";
+  }
+};
 
     location.reload();
   };
