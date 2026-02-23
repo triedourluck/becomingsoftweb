@@ -457,11 +457,11 @@ onSnapshot(q,(snapshot)=>{
     }
 
     else if(data.type==="like"){
-      div.textContent = `${data.fromUsername} liked your space`;
-      div.addEventListener("click",()=>{
-        location.href = `user.html?alias=${data.fromUsername}`;
-      });
-    }
+  div.textContent = `${data.fromUsername} le dio like a: "${(data.postText || "").slice(0,30)}..."`;
+  div.addEventListener("click",()=>{
+    location.href = "feed.html";
+  });
+}
 
     else if(data.type==="message"){
       div.textContent = `${data.fromUsername} sent you a message`;
@@ -469,6 +469,13 @@ onSnapshot(q,(snapshot)=>{
         location.href = `inbox.html?alias=${data.fromUsername}`;
       });
     }
+    
+    else if(data.type==="reply"){
+  div.textContent = `${data.fromUsername} respondió tu mensaje`;
+  div.addEventListener("click",()=>{
+    location.href = "feed.html";
+  });
+}
 
     else{
       div.textContent = "new activity";
