@@ -252,13 +252,20 @@ div.className="msg";
 let fromAlias="anónimo";
 let fromPhoto="anon.png";
 
-if(data.senderUid){
-  const fromSnap=await getDoc(doc(db,"users",data.senderUid));
+let possibleUid = data.senderUid || data.fromAlias;
+
+if(possibleUid){
+
+  const fromSnap = await getDoc(doc(db,"users", possibleUid));
+
   if(fromSnap.exists()){
-    const fromData=fromSnap.data();
-    fromAlias=fromData.alias;
-    fromPhoto=fromData.photoURL||"anon.png";
+    const fromData = fromSnap.data();
+    fromAlias = fromData.alias || "anónimo";
+    fromPhoto = fromData.photoURL || "anon.png";
+  } else {
+    fromAlias = data.fromAlias || "anónimo";
   }
+
 }
 
 const userRow=document.createElement("div");
