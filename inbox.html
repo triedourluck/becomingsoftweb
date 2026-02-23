@@ -353,8 +353,21 @@ for(const docSnap of snap.docs){
       senderData = senderSnap.data();
     }
 
-    await addDoc(collection(db,"posts"),{
-      if(data.fromUserId && data.fromUserId !== user.uid){
+    const newPostRef = await addDoc(collection(db,"posts"),{
+  senderUid: data.fromUserId || null,
+  senderAlias: senderData?.alias || "anónimo",
+  authorUid: user.uid,
+  authorAlias: userData.alias || "",
+  authorPhoto: userData.photoURL || "",
+  text: data.text || "",
+  reply: textarea.value.trim() || "",
+  replyImage: imageURL || null,
+  createdAt: Date.now(),
+  likes: [],
+  published: true
+});
+
+if(data.fromUserId && data.fromUserId !== user.uid){
 
   await addDoc(collection(db,"notifications"),{
     toUserId: data.fromUserId,
