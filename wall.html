@@ -291,6 +291,7 @@ let fromPhoto = "anon.png";
 
 if(data.senderUid){
   const fromSnap = await getDoc(doc(db,"users",data.senderUid));
+
   if(fromSnap.exists()){
     const fromData = fromSnap.data();
     fromAlias = fromData.alias || fromAlias;
