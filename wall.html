@@ -18,7 +18,6 @@ body{
   padding:20px;
 }
 
-/* TOP NAV */
 .top-nav{
   display:flex;
   gap:8px;
@@ -35,7 +34,6 @@ body{
   font-size:12px;
 }
 
-/* HEADER */
 .header{
   background:white;
   border-radius:20px;
@@ -82,7 +80,6 @@ body{
   margin-top:4px;
 }
 
-/* MESSAGE */
 .msg{
   background:white;
   border-radius:15px;
@@ -116,11 +113,6 @@ body{
 
 .username{
   font-size:13px;
-}
-
-.username.anon{
-  font-size:12px;
-  color:#777;
 }
 
 .reply-img{
@@ -265,7 +257,7 @@ where("published","==",true),
 orderBy("createdAt","desc")
 );
 
-const snap = await getDocs(q);   /* 🔥 ESTA ERA LA LÍNEA QUE FALTABA */
+const snap = await getDocs(q);
 
 if(snap.empty){
   emptyEl.style.display="block";
@@ -275,65 +267,55 @@ if(snap.empty){
 for(const docSnap of snap.docs){
 
 const data=docSnap.data();
-console.log("MENSAJE:", data);
-
 const div=document.createElement("div");
 div.className="msg";
 
-let fromAlias = "anónimo";
-let fromPhoto = "anon.png";
+let fromAlias="anónimo";
+let fromPhoto="anon.png";
 
-/* CASO 1 — tiene fromUserId */
-if (data.fromUserId) {
+if(data.fromUserId){
 
-  const fromSnap = await getDoc(doc(db, "users", data.fromUserId));
+  const fromSnap=await getDoc(doc(db,"users",data.fromUserId));
 
-  if (fromSnap.exists()) {
-
-    const fromData = fromSnap.data();
-    fromAlias = fromData.alias || "anónimo";
-    fromPhoto = fromData.photoURL || "anon.png";
-
-  } else if (data.fromAlias) {
-    // si el user no existe pero hay alias antiguo
-    fromAlias = data.fromAlias;
+  if(fromSnap.exists()){
+    const fromData=fromSnap.data();
+    fromAlias=fromData.alias||"anónimo";
+    fromPhoto=fromData.photoURL||"anon.png";
+  }else if(data.fromAlias){
+    fromAlias=data.fromAlias;
   }
 
-}
+}else if(data.fromAlias){
 
-/* CASO 2 — solo tiene fromAlias */
-else if (data.fromAlias) {
+  fromAlias=data.fromAlias;
 
-  fromAlias = data.fromAlias;
-
-  const qUser = query(
-    collection(db, "users"),
-    where("alias", "==", data.fromAlias)
+  const qUser=query(
+    collection(db,"users"),
+    where("alias","==",data.fromAlias)
   );
 
-  const userSnap = await getDocs(qUser);
+  const userSnap=await getDocs(qUser);
 
-  if (!userSnap.empty) {
-    const userData = userSnap.docs[0].data();
-    fromPhoto = userData.photoURL || "anon.png";
+  if(!userSnap.empty){
+    const userData=userSnap.docs[0].data();
+    fromPhoto=userData.photoURL||"anon.png";
   }
-
 }
 
-const userRow = document.createElement("div");
-userRow.className = data.senderUid ? "user-row clickable" : "user-row";
+const userRow=document.createElement("div");
+userRow.className=data.fromUserId?"user-row clickable":"user-row";
 
-const userAvatar = document.createElement("img");
-userAvatar.className = "user-avatar";
-userAvatar.src = fromPhoto;
+const userAvatar=document.createElement("img");
+userAvatar.className="user-avatar";
+userAvatar.src=fromPhoto;
 
-const username = document.createElement("div");
-username.className = "username";
-username.textContent = fromAlias;
+const username=document.createElement("div");
+username.className="username";
+username.textContent=fromAlias;
 
-if (data.fromUserId) {
-  userRow.onclick = () => {
-    window.location.href = `user.html?alias=${fromAlias}`;
+if(data.fromUserId){
+  userRow.onclick=()=>{
+    window.location.href=`user.html?alias=${fromAlias}`;
   };
 }
 
@@ -371,7 +353,7 @@ const likeContainer=document.createElement("div");
 likeContainer.className="like";
 
 const likesArray=data.likes||[];
-const hasLiked=user ? likesArray.includes(user.uid) : false;
+const hasLiked=user?likesArray.includes(user.uid):false;
 
 const heart=document.createElement("span");
 heart.textContent=hasLiked?"♥︎":"♡";
@@ -399,7 +381,7 @@ location.reload();
 
 actions.appendChild(likeContainer);
 
-if(user && uid===user.uid){
+if(user&&uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
 editBtn.textContent="Editar";
