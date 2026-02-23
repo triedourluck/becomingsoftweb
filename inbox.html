@@ -329,19 +329,19 @@ for(const docSnap of snap.docs){
         }
       }
 
-      const newPostRef = await addDoc(collection(db,"posts"),{
-        senderUid: data.fromUserId || null,
-        senderAlias: senderData?.alias || "anónimo",
-        authorUid: user.uid,
-        authorAlias: userData.alias || "",
-        authorPhoto: userData.photoURL || "",
-        text: data.text || "",
-        reply: textarea.value.trim() || "",
-        replyImage: imageURL || null,
-        createdAt: Date.now(),
-        likes: [],
-        published: true
-      });
+      await addDoc(collection(db,"posts"),{
+  senderUid: user.uid,
+  senderAlias: userData.alias,
+  authorUid: data.authorUid,
+  authorAlias: data.authorAlias,
+  authorPhoto: data.authorPhoto || "",
+  text: data.text || "",
+  reply: textarea.value.trim() || "",
+  replyImage: imageURL || null,
+  createdAt: serverTimestamp(),
+  likes: [],
+  published: true
+});
 
       if(data.fromUserId && data.fromUserId !== user.uid){
 
