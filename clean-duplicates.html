@@ -1,6 +1,6 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, collection, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -16,31 +16,39 @@ const db = getFirestore(app);
 
 async function cleanDuplicates(){
 
-  const q = query(
-    collection(db,"posts"),
-    orderBy("createdAt","desc")
-  );
-
-  const snap = await getDocs(q);
-
-  let lastKey = null;
-  let deletedCount = 0;
+  const snap = await getDocs(collection(db,"posts"));
+  const groups = {};
+  let deleted = 0;
 
   for(const postDoc of snap.docs){
-
     const data = postDoc.data();
-    const key = `${data.text}_${data.authorUid}_${data.senderAlias}`;
 
-    if(key === lastKey){
-      await deleteDoc(doc(db,"posts",postDoc.id));
-      deletedCount++;
-      console.log("Eliminado:", postDoc.id);
+    const normalizedText = (data.text || "").trim().toLowerCase();
+
+    const key = `${normalizedText}_${data.authorUid}_${data.senderUid}`;
+
+    if(!groups[key]){
+      groups[key] = [];
     }
 
-    lastKey = key;
+    groups[key].push(postDoc);
   }
 
-  alert(`✨ Limpieza completada. Eliminados: ${deletedCount}`);
+  for(const key in groups){
+    const posts = groups[key];
+
+    if(posts.length > 1){
+
+      // dejamos el primero y borramos el resto
+      for(let i = 1; i < posts.length; i++){
+        await deleteDoc(doc(db,"posts",posts[i].id));
+        deleted++;
+        console.log("Eliminado:", posts[i].id);
+      }
+    }
+  }
+
+  alert(`✨ Eliminados ${deleted} duplicados`);
 }
 
 cleanDuplicates();
