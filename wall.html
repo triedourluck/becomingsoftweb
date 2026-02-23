@@ -252,7 +252,7 @@ div.className="msg";
 let fromAlias="anónimo";
 let fromPhoto="anon.png";
 
-let possibleUid = data.senderUid || data.fromAlias;
+let possibleUid = data.senderUid || data.fromUserId || data.fromAlias;
 
 if(possibleUid){
 
@@ -268,14 +268,15 @@ if(possibleUid){
 
 }
 
-const userRow=document.createElement("div");
-userRow.className="user-row";
+const userRow = document.createElement("div");
+userRow.className = "user-row";
+userRow.style.cursor = "pointer";
 
-userRow.onclick=()=>{
-  if(data.senderUid){
-    location.href=`user.html?alias=${fromAlias}`;
-  }
-};
+if(possibleUid){
+  userRow.onclick = () => {
+    window.location.href = `user.html?alias=${fromAlias}`;
+  };
+}
 
 const userAvatar=document.createElement("img");
 userAvatar.className="user-avatar";
