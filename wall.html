@@ -289,11 +289,14 @@ div.className="msg";
 let fromAlias="anónimo";
 let fromPhoto="anon.png";
 
-if(data.fromAlias){
-const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
-const fromData=fromSnap.data();
-fromAlias=fromData.alias;
-fromPhoto=fromData.photoURL||"anon.png";
+if(data.fromUserId){
+  const fromSnap = await getDoc(doc(db,"users",data.fromUserId));
+
+  if(fromSnap.exists()){
+    const fromData = fromSnap.data();
+    fromAlias = fromData.alias || "anónimo";
+    fromPhoto = fromData.photoURL || "anon.png";
+  }
 }
 
 const userRow=document.createElement("div");
