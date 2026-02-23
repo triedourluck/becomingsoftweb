@@ -253,18 +253,32 @@ if(user && uid===user.uid){
 const q = query(
   collection(db,"messages"),
   where("to","==",uid),
-  where("published","==",true),
-  orderBy("createdAt","desc")
+  where("published","==",true)
 );
 
 const snap = await getDocs(q);
+
+let docs = snap.docs;
+
+// Orden seguro compatible con number o Timestamp
+docs.sort((a, b) => {
+  const aTime = a.data().createdAt?.seconds
+    ? a.data().createdAt.seconds
+    : a.data().createdAt || 0;
+
+  const bTime = b.data().createdAt?.seconds
+    ? b.data().createdAt.seconds
+    : b.data().createdAt || 0;
+
+  return bTime - aTime;
+});
 
 if(snap.empty){
   emptyEl.style.display="block";
   return;
 }
 
-for(const docSnap of snap.docs){
+for(const docSnap of docs){
 
 const data=docSnap.data();
 const div=document.createElement("div");
