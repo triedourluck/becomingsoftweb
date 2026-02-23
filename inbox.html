@@ -243,8 +243,8 @@ for(const docSnap of snap.docs){
   let photo="anon.png";
   let clickable=false;
 
-  if(data.fromAlias){
-    const fromSnap=await getDoc(doc(db,"users",data.fromAlias));
+  if(data.fromUserId){
+  const fromSnap = await getDoc(doc(db,"users",data.fromUserId));
     if(fromSnap.exists()){
       const fromData=fromSnap.data();
       alias=fromData.alias;
