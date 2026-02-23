@@ -197,6 +197,7 @@ Aún no hay mensajes publicados 🌙
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
+  getFirestore,
   collection,
   query,
   where,
@@ -204,8 +205,7 @@ import {
   getDocs,
   doc,
   getDoc,
-  updateDoc,
-  initializeFirestore
+  updateDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
@@ -219,11 +219,7 @@ const firebaseConfig={
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
-
-const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true,
-  useFetchStreams: false
-});
+const db=getFirestore(app);
 
 const wallEl=document.getElementById("wall");
 const emptyEl=document.getElementById("empty");
