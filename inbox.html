@@ -354,6 +354,20 @@ for(const docSnap of snap.docs){
     }
 
     await addDoc(collection(db,"posts"),{
+      if(data.fromUserId && data.fromUserId !== user.uid){
+
+  await addDoc(collection(db,"notifications"),{
+    toUserId: data.fromUserId,
+    fromUserId: user.uid,
+    fromUsername: userData.alias,
+    fromAlias: userData.alias,
+    type: "reply",
+    postId: newPostRef.id,
+    createdAt: Date.now(),
+    read: false
+  });
+
+}
       senderUid: data.fromAlias || null,
       senderAlias: senderData?.alias || "anónimo",
       authorUid: user.uid,
