@@ -457,10 +457,45 @@ onSnapshot(q,(snapshot)=>{
     }
 
     else if(data.type==="like"){
-  div.textContent = `${data.fromUsername} le dio like a: "${(data.postText || "").slice(0,30)}..."`;
-  div.addEventListener("click",()=>{
-    location.href = "feed.html";
+
+  div.innerHTML = "";
+
+  let fromAlias = "alguien";
+  let messagePreview = "...";
+
+  if(data.messagePreview){
+    messagePreview = data.messagePreview.slice(0,30);
+  }
+
+  // obtener alias real desde users usando fromUid
+  getDoc(doc(db,"users",data.fromUid)).then(userSnap=>{
+
+    if(userSnap.exists()){
+      fromAlias = userSnap.data().alias || "alguien";
+    }
+
+    const userSpan = document.createElement("span");
+    userSpan.textContent = fromAlias;
+    userSpan.style.fontWeight = "600";
+    userSpan.style.cursor = "pointer";
+
+    userSpan.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      location.href = `user.html?alias=${fromAlias}`;
+    });
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = ` le dio like a: "${messagePreview}"`;
+
+    div.appendChild(userSpan);
+    div.appendChild(textSpan);
+
   });
+
+  div.addEventListener("click",()=>{
+    location.href = `wall.html?highlight=${data.messageId}`;
+  });
+
 }
 
     else if(data.type==="message"){
