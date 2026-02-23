@@ -326,17 +326,37 @@ likeDiv.className="like";
 likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
 
 if(user){
-likeDiv.onclick=async()=>{
-if(hasLiked){
-await updateDoc(doc(db,"messages",docSnap.id),{
-likes:likesArray.filter(id=>id!==user.uid)
-});
-}else{
-await updateDoc(doc(db,"messages",docSnap.id),{
-likes:[...likesArray,user.uid]
-});
-}
-location.reload();
+likeDiv.onclick = async()=>{
+
+  if(hasLiked){
+
+    await updateDoc(doc(db,"messages",docSnap.id),{
+      likes:likesArray.filter(id=>id!==user.uid)
+    });
+
+  }else{
+
+    await updateDoc(doc(db,"messages",docSnap.id),{
+      likes:[...likesArray,user.uid]
+    });
+
+    // 🔔 CREAR NOTIFICACIÓN
+    if(user.uid !== data.to){
+
+      await addDoc(collection(db,"notifications"),{
+        type:"like",
+        fromUid:user.uid,
+        toUid:data.to,
+        messageId:docSnap.id,
+        createdAt:serverTimestamp(),
+        read:false
+      });
+
+    }
+
+  }
+
+  location.reload();
 };
 }
 
