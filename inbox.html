@@ -338,7 +338,7 @@ for(const docSnap of snap.docs){
         text: data.text || "",
         reply: textarea.value.trim() || "",
         replyImage: imageURL || null,
-        createdAt: serverTimestamp(),
+        createdAt: Date.now(),
         likes: [],
         published: true
       });
