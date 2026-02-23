@@ -270,39 +270,45 @@ const data=docSnap.data();
 const div=document.createElement("div");
 div.className="msg";
 
-let fromAlias="anónimo";
-let fromPhoto="anon.png";
+let fromAlias = "anónimo";
+let fromPhoto = "anon.png";
 
-if(data.fromUserId){
+const userId = data.fromUserId || data.senderUid || null;
 
-  const fromSnap=await getDoc(doc(db,"users",data.fromUserId));
+/* CASO 1 — tiene userId (nuevo o viejo) */
+if (userId) {
 
-  if(fromSnap.exists()){
-    const fromData=fromSnap.data();
-    fromAlias=fromData.alias||"anónimo";
-    fromPhoto=fromData.photoURL||"anon.png";
-  }else if(data.fromAlias){
-    fromAlias=data.fromAlias;
+  const fromSnap = await getDoc(doc(db, "users", userId));
+
+  if (fromSnap.exists()) {
+    const fromData = fromSnap.data();
+    fromAlias = fromData.alias || "anónimo";
+    fromPhoto = fromData.photoURL || "anon.png";
+  } else if (data.fromAlias) {
+    fromAlias = data.fromAlias;
   }
 
-}else if(data.fromAlias){
+}
 
-  fromAlias=data.fromAlias;
+/* CASO 2 — solo tiene alias */
+else if (data.fromAlias) {
 
-  const qUser=query(
-    collection(db,"users"),
-    where("alias","==",data.fromAlias)
+  fromAlias = data.fromAlias;
+
+  const qUser = query(
+    collection(db, "users"),
+    where("alias", "==", data.fromAlias)
   );
 
-  const userSnap=await getDocs(qUser);
+  const userSnap = await getDocs(qUser);
 
-  if(!userSnap.empty){
-    const userData=userSnap.docs[0].data();
-    fromPhoto=userData.photoURL||"anon.png";
+  if (!userSnap.empty) {
+    const userData = userSnap.docs[0].data();
+    fromPhoto = userData.photoURL || "anon.png";
   }
 }
 
-const userRow=document.createElement("div");
+userRow.className = userId ? "user-row clickable" : "user-row";
 userRow.className=data.fromUserId?"user-row clickable":"user-row";
 
 const userAvatar=document.createElement("img");
@@ -313,9 +319,9 @@ const username=document.createElement("div");
 username.className="username";
 username.textContent=fromAlias;
 
-if(data.fromUserId){
-  userRow.onclick=()=>{
-    window.location.href=`user.html?alias=${fromAlias}`;
+if (userId) {
+  userRow.onclick = () => {
+    window.location.href = `user.html?alias=${fromAlias}`;
   };
 }
 
