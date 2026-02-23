@@ -452,7 +452,7 @@ onSnapshot(q,(snapshot)=>{
     if(data.type==="follow"){
       div.textContent = `${data.fromUsername} started following you`;
       div.addEventListener("click",()=>{
-        location.href = `user.html?uid=${data.fromUserId}`;
+        location.href = `user.html?alias=${data.fromUsername}`;
       });
     }
 
