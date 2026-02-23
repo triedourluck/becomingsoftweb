@@ -282,9 +282,7 @@ if(user){
     orderBy("createdAt","desc")
   );
 
-  onSnapshot(
-  q,
-  (snapshot)=>{
+  onSnapshot(q,(snapshot)=>{
     notifList.innerHTML="";
     let unread=0;
 
@@ -312,11 +310,9 @@ if(user){
     });
 
     notifDot.style.display=unread>0?"block":"none";
-  },
-  (error)=>{
-    console.error("Notifications listener error:", error);
-  }
-);
+  });
+
+}
 
 /* LOAD PROFILE */
 
