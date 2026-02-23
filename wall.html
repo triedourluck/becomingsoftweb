@@ -123,7 +123,6 @@ body{
   color:#777;
 }
 
-/* REPLY IMAGE */
 .reply-img{
   max-width:100%;
   max-height:300px;
@@ -132,7 +131,6 @@ body{
   object-fit:cover;
 }
 
-/* ACTIONS */
 .actions{
   margin-top:12px;
   display:flex;
@@ -199,7 +197,6 @@ Aún no hay mensajes publicados 🌙
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import {
-  getFirestore,
   collection,
   query,
   where,
@@ -207,7 +204,8 @@ import {
   getDocs,
   doc,
   getDoc,
-  updateDoc
+  updateDoc,
+  initializeFirestore
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
@@ -221,7 +219,6 @@ const firebaseConfig={
 
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
-import { initializeFirestore } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const db = initializeFirestore(app, {
   experimentalForceLongPolling: true,
@@ -237,12 +234,10 @@ const topNav=document.getElementById("topNav");
 
 onAuthStateChanged(auth,async(user)=>{
 
-/* OCULTAR NAV SI NO HAY SESIÓN */
 if(!user){
   topNav.style.display="none";
 }
 
-/* OBTENER UID DEL PERFIL */
 const params=new URLSearchParams(window.location.search);
 const uid=params.get("uid");
 
@@ -251,7 +246,6 @@ if(!uid){
   return;
 }
 
-/* LOAD USER */
 const userSnap=await getDoc(doc(db,"users",uid));
 const userData=userSnap.data();
 
@@ -260,7 +254,6 @@ statsEl.textContent=`${userData?.followers?.length||0} followers · ${userData?.
 
 if(userData?.photoURL) avatarEl.src=userData.photoURL;
 
-/* CLICK PERFIL */
 if(user && uid===user.uid){
   avatarEl.onclick=()=>location.href="profile.html";
   aliasEl.onclick=()=>location.href="profile.html";
@@ -269,13 +262,14 @@ if(user && uid===user.uid){
   aliasEl.onclick=()=>location.href=`user.html?alias=${userData.alias}`;
 }
 
-/* LOAD MESSAGES */
 const q=query(
 collection(db,"messages"),
 where("to","==",uid),
 where("published","==",true),
 orderBy("createdAt","desc")
 );
+
+const snap = await getDocs(q);   /* 🔥 ESTA ERA LA LÍNEA QUE FALTABA */
 
 if(snap.empty){
   emptyEl.style.display="block";
@@ -288,21 +282,15 @@ const data=docSnap.data();
 const div=document.createElement("div");
 div.className="msg";
 
-/* USER INFO */
-
 let fromAlias = data.senderAlias || "anónimo";
 let fromPhoto = "anon.png";
 
 if (data.senderUid) {
   const fromSnap = await getDoc(doc(db, "users", data.senderUid));
-
   if (fromSnap.exists()) {
     const fromData = fromSnap.data();
-
-    if (fromData) {
-      fromAlias = fromData.alias || fromAlias;
-      fromPhoto = fromData.photoURL || "anon.png";
-    }
+    fromAlias = fromData.alias || fromAlias;
+    fromPhoto = fromData.photoURL || "anon.png";
   }
 }
 
@@ -327,7 +315,6 @@ userRow.appendChild(userAvatar);
 userRow.appendChild(username);
 div.appendChild(userRow);
 
-/* ORIGINAL MESSAGE */
 if(data.text){
 const original=document.createElement("div");
 original.style.opacity="0.75";
@@ -337,7 +324,6 @@ original.textContent=data.text;
 div.appendChild(original);
 }
 
-/* REPLY TEXT */
 if(data.reply){
 const reply=document.createElement("div");
 reply.style.marginTop="8px";
@@ -345,7 +331,6 @@ reply.textContent=data.reply;
 div.appendChild(reply);
 }
 
-/* REPLY IMAGE */
 if(data.replyImage){
 const img=document.createElement("img");
 img.src=data.replyImage;
@@ -353,11 +338,9 @@ img.className="reply-img";
 div.appendChild(img);
 }
 
-/* ACTIONS */
 const actions=document.createElement("div");
 actions.className="actions";
 
-/* LIKE */
 const likeContainer=document.createElement("div");
 likeContainer.className="like";
 
@@ -390,7 +373,6 @@ location.reload();
 
 actions.appendChild(likeContainer);
 
-/* EDITAR */
 if(user && uid===user.uid){
 const editBtn=document.createElement("button");
 editBtn.className="edit-btn";
