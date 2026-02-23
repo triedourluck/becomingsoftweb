@@ -6,7 +6,6 @@
 <title>becomingsoft — mi perfil</title>
 
 <style>
-/* TODO TU CSS EXACTAMENTE IGUAL — NO TOQUÉ NADA */
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#111;}
 
 .container{
@@ -19,73 +18,111 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
   position:relative;
 }
 
-/* =========================
-   NOTIFICATIONS
-========================= */
+.notif-wrapper{position:absolute;top:20px;left:24px;}
+.notif-btn{cursor:pointer;position:relative;background:none;border:none;padding:6px;}
+.notif-dot{width:6px;height:6px;background:#111;border-radius:50%;position:absolute;top:4px;right:4px;display:none;}
+.notif-dropdown{position:absolute;top:36px;left:0;width:260px;background:white;border:1px solid #eee;box-shadow:0 4px 20px rgba(0,0,0,0.05);display:none;z-index:999;}
+.notif-header{padding:12px;font-size:13px;border-bottom:1px solid #f2f2f2;text-transform:lowercase;}
+.notif-item{padding:12px;font-size:13px;border-bottom:1px solid #f5f5f5;cursor:pointer;}
+.notif-item:hover{background:#fafafa;}
 
-.notif-wrapper{
-  position:absolute;
-  top:20px;
-  left:24px;
+.search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
+.search input{width:190px;padding:10px 12px;border-radius:12px;border:1px solid #ddd;font-size:14px;}
+.search button{padding:10px 16px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;font-size:14px;}
+
+.top-actions{position:absolute;top:64px;right:24px;display:flex;gap:8px;}
+.reorder-top,.logout{padding:8px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:13px;}
+
+.top{display:flex;gap:20px;align-items:center;margin-top:10px;}
+.avatar{width:80px;height:80px;border-radius:50%;background:#ddd;object-fit:cover;cursor:pointer;}
+.alias{font-size:20px;font-weight:600;}
+
+.stats{font-size:13px;color:#666;margin-top:6px;}
+.stats span{cursor:pointer;}
+
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;align-items:start;}
+.photos{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.photo{width:100%;height:140px;background:#eee;border-radius:12px;object-fit:cover;cursor:pointer;}
+
+.right{display:flex;flex-direction:column;gap:20px;}
+
+.spotify{margin-top:40px;width:100%;}
+.spotify iframe{width:100%;border:none;border-radius:12px;display:block;}
+.spotify input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid #ddd;margin-top:14px;box-sizing:border-box;}
+
+.save-btn{margin-top:8px;padding:6px 12px;border:none;border-radius:8px;background:#111;color:white;cursor:pointer;font-size:12px;}
+
+.bottom{margin-top:24px;display:flex;gap:12px;}
+.gear,.icon-btn{padding:10px 14px;border:none;border-radius:10px;background:#111;color:white;cursor:pointer;font-size:14px;}
+
+.hidden{display:none;}
+
+@media (max-width:700px){
+.container{margin:0;border-radius:0;padding:20px 18px 90px;}
+.photos{grid-template-columns:repeat(3,1fr);gap:10px;}
+.photo{height:100px;}
+.bottom{position:fixed;bottom:18px;left:0;width:100%;justify-content:center;}
 }
-
-.notif-btn{
-  cursor:pointer;
-  position:relative;
-  background:none;
-  border:none;
-  padding:6px;
-}
-
-.notif-dot{
-  width:6px;
-  height:6px;
-  background:#111;
-  border-radius:50%;
-  position:absolute;
-  top:4px;
-  right:4px;
-  display:none;
-}
-
-.notif-dropdown{
-  position:absolute;
-  top:36px;
-  left:0;
-  width:260px;
-  background:white;
-  border:1px solid #eee;
-  box-shadow:0 4px 20px rgba(0,0,0,0.05);
-  display:none;
-  z-index:999;
-}
-
-.notif-header{
-  padding:12px;
-  font-size:13px;
-  border-bottom:1px solid #f2f2f2;
-  text-transform:lowercase;
-}
-
-.notif-item{
-  padding:12px;
-  font-size:13px;
-  border-bottom:1px solid #f5f5f5;
-  cursor:pointer;
-}
-
-.notif-item:hover{
-  background:#fafafa;
-}
-
-/* RESTO DEL CSS IGUAL... */
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- TODO TU HTML EXACTAMENTE IGUAL — NO LO TOQUÉ -->
+<div class="notif-wrapper">
+<button id="notifBtn" class="notif-btn">
+🔔
+<span id="notifDot" class="notif-dot"></span>
+</button>
+<div id="notifDropdown" class="notif-dropdown">
+<div class="notif-header">notifications</div>
+<div id="notifList"></div>
+</div>
+</div>
+
+<div class="search">
+<input id="searchInput" placeholder="buscar usuario"/>
+<button id="searchBtn">ir</button>
+</div>
+
+<div class="top-actions">
+<button class="reorder-top" id="reorderBtn">Reordenar fotos</button>
+<button class="logout" id="logoutBtn">Cerrar sesión</button>
+</div>
+
+<div class="top">
+<img id="avatar" class="avatar"/>
+<div>
+<div class="alias" id="alias">...</div>
+<div class="stats">
+<span id="followersBtn">0 followers</span> ·
+<span id="followingBtn">0 following</span>
+</div>
+</div>
+</div>
+
+<div class="layout">
+<div>
+<div class="photos">
+<img id="p1" class="photo"/>
+<img id="p2" class="photo"/>
+<img id="p3" class="photo"/>
+<img id="p4" class="photo"/>
+<img id="p5" class="photo"/>
+<img id="p6" class="photo"/>
+</div>
+</div>
+
+<div class="right">
+<div class="spotify">
+<div id="spotifyEmbed"></div>
+</div>
+
+<div>
+<input type="text" id="profileLink" readonly>
+</div>
+</div>
+</div>
 
 </div>
 
@@ -93,7 +130,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, updateDoc, collection, query, where, orderBy, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig={
 apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -107,23 +143,15 @@ appId:"1:605759003962:web:ea8603a8e97e42d2278403"
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
-getStorage(app);
-
-/* ===== FIX IMPORTANTE =====
-   ESTO ERA LO QUE TE ESTABA ROMPIENDO TODO
-   FALTABAN ESTAS REFERENCIAS
-*/
 
 const notifBtn=document.getElementById("notifBtn");
 const notifDropdown=document.getElementById("notifDropdown");
 const notifDot=document.getElementById("notifDot");
 const notifList=document.getElementById("notifList");
-
 const alias=document.getElementById("alias");
 const avatar=document.getElementById("avatar");
 const followersBtn=document.getElementById("followersBtn");
 const followingBtn=document.getElementById("followingBtn");
-const spotifyEmbed=document.getElementById("spotifyEmbed");
 const logoutBtn=document.getElementById("logoutBtn");
 
 let uid=null;
@@ -132,7 +160,14 @@ onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
 uid=user.uid;
 
-/* LISTEN NOTIFICATIONS */
+const snap=await getDoc(doc(db,"users",uid));
+if(!snap.exists()) return;
+const d=snap.data();
+
+alias.textContent=d.alias||"sin alias";
+followersBtn.textContent=`${(d.followers||[]).length} followers`;
+followingBtn.textContent=`${(d.following||[]).length} following`;
+if(d.photoURL) avatar.src=d.photoURL;
 
 const q=query(
 collection(db,"notifications"),
@@ -141,6 +176,7 @@ orderBy("createdAt","desc")
 );
 
 onSnapshot(q,(snapshot)=>{
+if(!notifList) return;
 notifList.innerHTML="";
 let unread=0;
 
@@ -150,87 +186,35 @@ if(!data.read) unread++;
 
 const div=document.createElement("div");
 div.className="notif-item";
-
-if(data.type==="follow"){
-div.textContent=`${data.fromUsername} started following you`;
-}
-else if(data.type==="like"){
-div.textContent=`${data.fromUsername} liked your space`;
-}
-else if(data.type==="message"){
-div.textContent=`${data.fromUsername} sent you a message`;
-}
-else{
-div.textContent="new activity";
-}
+div.textContent=data.type==="follow"
+?`${data.fromUsername} started following you`
+:data.type==="like"
+?`${data.fromUsername} liked your space`
+:data.type==="message"
+?`${data.fromUsername} sent you a message`
+:"new activity";
 
 notifList.appendChild(div);
 });
 
-notifDot.style.display=unread>0?"block":"none";
+if(notifDot) notifDot.style.display=unread>0?"block":"none";
+});
 });
 
-/* LOAD PROFILE */
-
-const snap=await getDoc(doc(db,"users",uid));
-if(!snap.exists()) return;
-
-const d=snap.data();
-
-document.getElementById("profileLink").value=`https://becomingsoft.com/${d.alias||""}`;
-
-alias.textContent=d.alias||"sin alias";
-followersBtn.textContent=`${(d.followers||[]).length} followers`;
-followingBtn.textContent=`${(d.following||[]).length} following`;
-
-if(d.photoURL) avatar.src=d.photoURL;
-
-const currentPhotos=(d.photosDesktop||d.photos||["","","","","",""]);
-currentPhotos.forEach((url,i)=>{
-if(url){
-const img=document.getElementById(`p${i+1}`);
-if(img) img.src=url;
-}
-});
-
-if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
-
-});
-
-/* MARK AS READ */
-
-notifBtn.addEventListener("click",async(e)=>{
-e.stopPropagation();
-
+if(notifBtn){
+notifBtn.addEventListener("click",async()=>{
+if(!notifDropdown) return;
 const open=notifDropdown.style.display==="block";
 notifDropdown.style.display=open?"none":"block";
-
-if(!open && uid){
-const unreadQuery=query(
-collection(db,"notifications"),
-where("toUserId","==",uid),
-where("read","==",false)
-);
-
-const snap=await getDocs(unreadQuery);
-snap.forEach(docSnap=>{
-updateDoc(doc(db,"notifications",docSnap.id),{read:true});
 });
 }
-});
 
-document.addEventListener("click",(e)=>{
-if(!e.target.closest(".notif-wrapper")){
-notifDropdown.style.display="none";
-}
-});
-
-/* LOGOUT */
-
+if(logoutBtn){
 logoutBtn.addEventListener("click",async()=>{
 await signOut(auth);
 location.href="login.html";
 });
+}
 </script>
 
 </body>
