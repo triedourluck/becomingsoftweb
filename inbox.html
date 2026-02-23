@@ -197,6 +197,8 @@ const db=getFirestore(app);
 const storage=getStorage(app);
 
 const listEl=document.getElementById("list");
+const params = new URLSearchParams(window.location.search);
+const fromParam = params.get("from");
 
 onAuthStateChanged(auth, async(user)=>{
 if(!user){
@@ -205,12 +207,24 @@ if(!user){
 }
 
 /* SOLO MENSAJES NO PUBLICADOS */
-const q=query(
+let baseQuery = query(
   collection(db,"messages"),
   where("to","==",user.uid),
   where("published","==",false),
   orderBy("createdAt","desc")
 );
+
+if(fromParam){
+  baseQuery = query(
+    collection(db,"messages"),
+    where("to","==",user.uid),
+    where("fromAlias","==",fromParam),
+    where("published","==",false),
+    orderBy("createdAt","desc")
+  );
+}
+
+const snap = await getDocs(baseQuery);
 
 const snap=await getDocs(q);
 
