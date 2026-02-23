@@ -286,6 +286,8 @@ const div=document.createElement("div");
 div.className="msg";
 
 /* USER INFO */
+/* USER INFO */
+
 let fromAlias = data.senderAlias || "anónimo";
 let fromPhoto = "anon.png";
 
@@ -299,21 +301,21 @@ if(data.senderUid){
   }
 }
 
-const userRow=document.createElement("div");
-userRow.className=data.fromAlias?"user-row clickable":"user-row";
+const userRow = document.createElement("div");
+userRow.className = data.senderUid ? "user-row clickable" : "user-row";
 
-const userAvatar=document.createElement("img");
-userAvatar.className="user-avatar";
-userAvatar.src=fromPhoto;
+const userAvatar = document.createElement("img");
+userAvatar.className = "user-avatar";
+userAvatar.src = fromPhoto;
 
-const username=document.createElement("div");
-username.className=data.fromAlias?"username":"username anon";
-username.textContent=fromAlias;
+const username = document.createElement("div");
+username.className = "username";
+username.textContent = fromAlias;
 
-if(data.fromAlias){
-userRow.onclick=()=>{
-window.location.href=`user.html?alias=${fromAlias}`;
-};
+if(data.senderUid){
+  userRow.onclick = () => {
+    window.location.href = `user.html?alias=${fromAlias}`;
+  };
 }
 
 userRow.appendChild(userAvatar);
