@@ -283,6 +283,7 @@ div.className="msg";
 let fromAlias = "anónimo";
 let fromPhoto = "anon.png";
 
+/* CASO 1 — mensajes nuevos (correctos) */
 if (data.fromUserId) {
 
   const fromSnap = await getDoc(doc(db, "users", data.fromUserId));
@@ -291,6 +292,24 @@ if (data.fromUserId) {
     const fromData = fromSnap.data();
     fromAlias = fromData.alias || "anónimo";
     fromPhoto = fromData.photoURL || "anon.png";
+  }
+
+/* CASO 2 — mensajes antiguos que guardaban fromAlias */
+} else if (data.fromAlias) {
+
+  fromAlias = data.fromAlias;
+
+  // intentamos buscar el usuario por alias
+  const qUser = query(
+    collection(db, "users"),
+    where("alias", "==", data.fromAlias)
+  );
+
+  const userSnap = await getDocs(qUser);
+
+  if (!userSnap.empty) {
+    const userData = userSnap.docs[0].data();
+    fromPhoto = userData.photoURL || "anon.png";
   }
 
 }
