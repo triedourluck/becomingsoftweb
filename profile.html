@@ -274,41 +274,45 @@ if(!user){location.href="login.html";return;}
 uid=user.uid;
 
 /* LISTEN NOTIFICATIONS */
-const q=query(
-collection(db,"notifications"),
-where("toUserId","==",uid),
-orderBy("createdAt")
-);
+if(user){
 
-onSnapshot(q,(snapshot)=>{
-notifList.innerHTML="";
-let unread=0;
+  const q=query(
+    collection(db,"notifications"),
+    where("toUserId","==",user.uid),
+    orderBy("createdAt","desc")
+  );
 
-snapshot.forEach(docSnap=>{
-const data=docSnap.data();
-if(!data.read) unread++;
+  onSnapshot(q,(snapshot)=>{
+    notifList.innerHTML="";
+    let unread=0;
 
-const div=document.createElement("div");
-div.className="notif-item";
+    snapshot.forEach(docSnap=>{
+      const data=docSnap.data();
+      if(!data.read) unread++;
 
-if(data.type==="follow"){
-div.textContent=`${data.fromUsername} started following you`;
+      const div=document.createElement("div");
+      div.className="notif-item";
+
+      if(data.type==="follow"){
+        div.textContent=`${data.fromUsername} started following you`;
+      }
+      else if(data.type==="like"){
+        div.textContent=`${data.fromUsername} liked your space`;
+      }
+      else if(data.type==="message"){
+        div.textContent=`${data.fromUsername} sent you a message`;
+      }
+      else{
+        div.textContent="new activity";
+      }
+
+      notifList.appendChild(div);
+    });
+
+    notifDot.style.display=unread>0?"block":"none";
+  });
+
 }
-else if(data.type==="like"){
-div.textContent=`${data.fromUsername} liked your space`;
-}
-else if(data.type==="message"){
-div.textContent=`${data.fromUsername} sent you a message`;
-}
-else{
-div.textContent="new activity";
-}
-
-notifList.appendChild(div);
-});
-
-notifDot.style.display=unread>0?"block":"none";
-});
 
 /* LOAD PROFILE */
 
