@@ -18,6 +18,67 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
   position:relative;
 }
 
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+.notif-wrapper{
+  position:absolute;
+  top:20px;
+  left:24px;
+}
+
+.notif-btn{
+  cursor:pointer;
+  position:relative;
+  background:none;
+  border:none;
+  padding:6px;
+}
+
+.notif-dot{
+  width:6px;
+  height:6px;
+  background:#111;
+  border-radius:50%;
+  position:absolute;
+  top:4px;
+  right:4px;
+  display:none;
+}
+
+.notif-dropdown{
+  position:absolute;
+  top:36px;
+  left:0;
+  width:260px;
+  background:white;
+  border:1px solid #eee;
+  box-shadow:0 4px 20px rgba(0,0,0,0.05);
+  display:none;
+  z-index:999;
+}
+
+.notif-header{
+  padding:12px;
+  font-size:13px;
+  border-bottom:1px solid #f2f2f2;
+  text-transform:lowercase;
+}
+
+.notif-item{
+  padding:12px;
+  font-size:13px;
+  border-bottom:1px solid #f5f5f5;
+  cursor:pointer;
+}
+
+.notif-item:hover{
+  background:#fafafa;
+}
+
+/* ========================= */
+
 .search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
 .search input{width:190px;padding:10px 12px;border-radius:12px;border:1px solid #ddd;font-size:14px;}
 .search button{padding:10px 16px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;font-size:14px;}
@@ -69,68 +130,22 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 .reorder-active .photo{cursor:grab;opacity:0.85;}
 .reorder-active .photo:active{cursor:grabbing;}
 
-/* ===== SHARE CARD ===== */
-
-.share-card{
-  margin-top:20px;
-}
-
-.share-card h3{
-  margin:0 0 4px 0;
-  font-size:15px;
-}
-
-.share-card p{
-  margin:0 0 10px 0;
-  font-size:13px;
-  opacity:0.7;
-}
-
-.share-link-row{
-  display:flex;
-  gap:10px;
-  width:100%;
-}
-
-.share-link-row input{
-  flex:1;
-  width:100%;
-  padding:14px 16px;
-  border-radius:12px;
-  border:1px solid #ddd;
-  font-size:14px;
-  box-sizing:border-box;
-}
-
-.share-link-row button{
-  padding:14px 18px;
-  border:none;
-  border-radius:12px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-  appearance:none;
-  -webkit-appearance:none;
-}
-
-.copy-message{
-  display:block;
-  margin-top:6px;
-  font-size:12px;
-}
+.share-card{margin-top:20px;}
+.share-card h3{margin:0 0 4px 0;font-size:15px;}
+.share-card p{margin:0 0 10px 0;font-size:13px;opacity:0.7;}
+.share-link-row{display:flex;gap:10px;width:100%;}
+.share-link-row input{flex:1;width:100%;padding:14px 16px;border-radius:12px;border:1px solid #ddd;font-size:14px;box-sizing:border-box;}
+.share-link-row button{padding:14px 18px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;font-size:14px;}
+.copy-message{display:block;margin-top:6px;font-size:12px;}
 
 @media (max-width:700px){
 .container{margin:0;border-radius:0;padding:20px 18px 90px;}
+.notif-wrapper{top:14px;left:16px;}
 .search{position:absolute;top:14px;right:16px;}
 .search input{width:130px;padding:6px 8px;font-size:12px;}
 .search button{padding:6px 10px;font-size:12px;}
-
 .top-actions{top:54px;right:16px;}
-
-.reorder-top,
-.logout{font-size:12px;padding:6px 10px;}
-
+.reorder-top,.logout{font-size:12px;padding:6px 10px;}
 .top{margin-top:80px;gap:12px;}
 .avatar{width:64px;height:64px;}
 .alias{font-size:18px;}
@@ -139,9 +154,6 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 .photos{grid-template-columns:repeat(3,1fr);gap:10px;}
 .photo{height:100px;}
 .bottom{position:fixed;bottom:18px;left:0;width:100%;justify-content:center;}
-
-.share-card h3{font-size:14px;}
-.share-card p{font-size:12px;margin-bottom:8px;}
 }
 </style>
 </head>
@@ -149,14 +161,30 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 <body>
 <div class="container">
 
+<!-- NOTIFICATIONS -->
+<div class="notif-wrapper">
+<button id="notifBtn" class="notif-btn">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+<path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7" stroke="#111" stroke-width="1.5"/>
+<path d="M13.73 21a2 2 0 01-3.46 0" stroke="#111" stroke-width="1.5"/>
+</svg>
+<span id="notifDot" class="notif-dot"></span>
+</button>
+
+<div id="notifDropdown" class="notif-dropdown">
+<div class="notif-header">notifications</div>
+<div id="notifList"></div>
+</div>
+</div>
+
 <div class="search">
 <input id="searchInput" placeholder="buscar usuario"/>
 <button id="searchBtn">ir</button>
 </div>
 
 <div class="top-actions">
-  <button class="reorder-top" id="reorderBtn">Reordenar fotos</button>
-  <button class="logout" id="logoutBtn">Cerrar sesión</button>
+<button class="reorder-top" id="reorderBtn">Reordenar fotos</button>
+<button class="logout" id="logoutBtn">Cerrar sesión</button>
 </div>
 
 <div class="top">
@@ -192,15 +220,13 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 </div>
 
 <div class="share-card">
-  <h3>Share your space 🖇️</h3>
-  <p>Copy your personal link and share it with others.</p>
-
-  <div class="share-link-row">
-    <input type="text" id="profileLink" readonly>
-    <button id="copyBtn">Copy</button>
-  </div>
-
-  <span id="copyMessage" class="copy-message"></span>
+<h3>Share your space 🖇️</h3>
+<p>Copy your personal link and share it with others.</p>
+<div class="share-link-row">
+<input type="text" id="profileLink" readonly>
+<button id="copyBtn">Copy</button>
+</div>
+<span id="copyMessage" class="copy-message"></span>
 </div>
 </div>
 </div>
@@ -217,10 +243,10 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, where, orderBy, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
-const firebaseConfig = {
+const firebaseConfig={
 apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
 authDomain:"becomingsoft-84e72.firebaseapp.com",
 projectId:"becomingsoft-84e72",
@@ -234,275 +260,104 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 const storage=getStorage(app);
 
-const avatar=document.getElementById("avatar");
-const avatarInput=document.getElementById("avatarInput");
-const alias=document.getElementById("alias");
-const followersBtn=document.getElementById("followersBtn");
-const followingBtn=document.getElementById("followingBtn");
-const spotifyEmbed=document.getElementById("spotifyEmbed");
-const spotifyInput=document.getElementById("spotifyInput");
-const saveSpotifyBtn=document.getElementById("saveSpotifyBtn");
-const logoutBtn=document.getElementById("logoutBtn");
-const searchBtn=document.getElementById("searchBtn");
-const searchInput=document.getElementById("searchInput");
-const photoInput=document.getElementById("photoInput");
-const reorderBtn=document.getElementById("reorderBtn");
-const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
-const copyBtn=document.getElementById("copyBtn");
-const copyMessage=document.getElementById("copyMessage");
+/* NOTIFICATIONS */
+
+const notifBtn=document.getElementById("notifBtn");
+const notifDropdown=document.getElementById("notifDropdown");
+const notifDot=document.getElementById("notifDot");
+const notifList=document.getElementById("notifList");
 
 let uid=null;
-let photoIndex=0;
-
-/* =========================
-   REORDER SYSTEM
-========================= */
-
-let reorderMode=false;
-let draggedEl=null;
-
-function enableDrag(){
-  document.querySelector(".container").classList.add("reorder-active");
-  photoEls.forEach(el=>{
-    el.setAttribute("draggable",true);
-    el.addEventListener("dragstart",handleDragStart);
-    el.addEventListener("dragover",handleDragOver);
-    el.addEventListener("drop",handleDrop);
-  });
-}
-
-function disableDrag(){
-  document.querySelector(".container").classList.remove("reorder-active");
-  photoEls.forEach(el=>{
-    el.setAttribute("draggable",false);
-    el.removeEventListener("dragstart",handleDragStart);
-    el.removeEventListener("dragover",handleDragOver);
-    el.removeEventListener("drop",handleDrop);
-  });
-}
-
-function handleDragStart(e){
-  draggedEl=this;
-}
-
-function handleDragOver(e){
-  e.preventDefault();
-}
-
-function handleDrop(e){
-  e.preventDefault();
-  if(draggedEl!==this){
-    const parent=this.parentNode;
-    const children=Array.from(parent.children);
-    const draggedIndex=children.indexOf(draggedEl);
-    const targetIndex=children.indexOf(this);
-    if(draggedIndex<targetIndex){
-      parent.insertBefore(draggedEl,this.nextSibling);
-    }else{
-      parent.insertBefore(draggedEl,this);
-    }
-  }
-}
-
-reorderBtn.addEventListener("click",async()=>{
-  reorderMode=!reorderMode;
-  if(reorderMode){
-    reorderBtn.textContent="Guardar orden";
-    enableDrag();
-  }else{
-    reorderBtn.textContent="Reordenar fotos";
-    const isMobile=window.innerWidth<=700;
-    const photosContainer = document.querySelector(".photos");
-const newOrder = Array.from(photosContainer.children).map(img => img.src || "");
-    if(isMobile){
-      await updateDoc(doc(db,"users",uid),{photosMobile:newOrder});
-    }else{
-      await updateDoc(doc(db,"users",uid),{photosDesktop:newOrder});
-    }
-    disableDrag();
-  }
-});
-
-/* =========================
-   AUTH + LOAD PROFILE
-========================= */
 
 onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
 uid=user.uid;
 
-const wallBtn=document.getElementById("wallBtn");
-wallBtn.onclick=()=>location.href=`wall.html?uid=${uid}`;
+/* LISTEN NOTIFICATIONS */
+const q=query(
+collection(db,"notifications"),
+where("toUserId","==",uid),
+orderBy("createdAt","desc")
+);
+
+onSnapshot(q,(snapshot)=>{
+notifList.innerHTML="";
+let unread=0;
+
+snapshot.forEach(docSnap=>{
+const data=docSnap.data();
+if(!data.read) unread++;
+
+const div=document.createElement("div");
+div.className="notif-item";
+
+if(data.type==="follow"){
+div.textContent=`${data.fromUsername} started following you`;
+}
+else if(data.type==="like"){
+div.textContent=`${data.fromUsername} liked your space`;
+}
+else if(data.type==="message"){
+div.textContent=`${data.fromUsername} sent you a message`;
+}
+else{
+div.textContent="new activity";
+}
+
+notifList.appendChild(div);
+});
+
+notifDot.style.display=unread>0?"block":"none";
+});
+
+/* LOAD PROFILE */
 
 const snap=await getDoc(doc(db,"users",uid));
 const d=snap.data();
 const profileLink=`https://becomingsoft.com/${d.alias}`;
 document.getElementById("profileLink").value=profileLink;
 
-/* LIMPIEZA FOLLOWERS FANTASMAS */
-let validFollowers=[];
-for(const fid of (d.followers||[])){
-  const exists=await getDoc(doc(db,"users",fid));
-  if(exists.exists()) validFollowers.push(fid);
-}
-
-let validFollowing=[];
-for(const fid of (d.following||[])){
-  const exists=await getDoc(doc(db,"users",fid));
-  if(exists.exists()) validFollowing.push(fid);
-}
-
-if(validFollowers.length!==(d.followers||[]).length ||
-   validFollowing.length!==(d.following||[]).length){
-  await updateDoc(doc(db,"users",uid),{
-    followers:validFollowers,
-    following:validFollowing
-  });
-}
-
 alias.textContent=d.alias||"sin alias";
-followersBtn.textContent=`${validFollowers.length} followers`;
-followingBtn.textContent=`${validFollowing.length} following`;
-
-followersBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=followers`;
-followingBtn.onclick=()=>location.href=`list.html?uid=${uid}&type=following`;
+followersBtn.textContent=`${(d.followers||[]).length} followers`;
+followingBtn.textContent=`${(d.following||[]).length} following`;
 
 if(d.photoURL) avatar.src=d.photoURL;
 
-const isMobile=window.innerWidth<=700;
-let desktopArray=d.photosDesktop||d.photos||["","","","","",""];
-let mobileArray=d.photosMobile||d.photos||["","","","","",""];
-let currentPhotos=isMobile?mobileArray:desktopArray;
-
-currentPhotos.forEach((url,i)=>{
-if(url) photoEls[i].src=url;
-});
+const currentPhotos=(d.photosDesktop||d.photos||["","","","","",""]);
+currentPhotos.forEach((url,i)=>{if(url) document.getElementById(`p${i+1}`).src=url;});
 
 if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
-
-/* THEME */
-if(d.theme){
-document.body.style.backgroundColor=d.theme.pageBg||"#f5f5f5";
-document.querySelector(".container").style.backgroundColor=d.theme.cardBg||"#ffffff";
-
-if(d.theme.backgroundImage){
-document.body.style.backgroundImage=`url(${d.theme.backgroundImage})`;
-document.body.style.backgroundSize="cover";
-document.body.style.backgroundPosition="center";
-}else{
-document.body.style.backgroundImage="none";
-}
-}
 });
 
-/* =========================
-   PHOTO UPLOAD
-========================= */
+/* MARK AS READ */
+notifBtn.addEventListener("click",async()=>{
+const open=notifDropdown.style.display==="block";
+notifDropdown.style.display=open?"none":"block";
 
-photoEls.forEach((el,i)=>{
-el.addEventListener("click",()=>{
-if(reorderMode) return;
-photoIndex=i;
-photoInput.click();
-});
-});
-
-photoInput.addEventListener("change",async()=>{
-const file=photoInput.files[0];
-if(!file)return;
-
-const storageRef=ref(storage,`spaces/${uid}/${photoIndex}`);
-await uploadBytes(storageRef,file);
-const url=await getDownloadURL(storageRef);
-
-const snap=await getDoc(doc(db,"users",uid));
-const data=snap.data();
-const isMobile=window.innerWidth<=700;
-
-let arrayToUpdate=isMobile
-? (data.photosMobile||data.photos||["","","","","",""])
-: (data.photosDesktop||data.photos||["","","","","",""]);
-
-arrayToUpdate[photoIndex]=url;
-
-await updateDoc(doc(db,"users",uid),
-isMobile
-? {photosMobile:arrayToUpdate}
-: {photosDesktop:arrayToUpdate}
+if(!open && uid){
+const unreadQuery=query(
+collection(db,"notifications"),
+where("toUserId","==",uid),
+where("read","==",false)
 );
 
-photoEls[photoIndex].src=url;
+const snap=await getDocs(unreadQuery);
+snap.forEach(docSnap=>{
+updateDoc(doc(db,"notifications",docSnap.id),{read:true});
+});
+}
 });
 
-/* =========================
-   AVATAR
-========================= */
-
-avatar.addEventListener("click",()=>avatarInput.click());
-avatarInput.addEventListener("change",async()=>{
-const file=avatarInput.files[0];
-if(!file)return;
-const storageRef=ref(storage,`avatars/${uid}`);
-await uploadBytes(storageRef,file);
-const url=await getDownloadURL(storageRef);
-await updateDoc(doc(db,"users",uid),{photoURL:url});
-avatar.src=url;
+document.addEventListener("click",(e)=>{
+if(!e.target.closest(".notif-wrapper")){
+notifDropdown.style.display="none";
+}
 });
 
-/* =========================
-   SPOTIFY
-========================= */
-
-saveSpotifyBtn.addEventListener("click",async()=>{
-const embed=spotifyInput.value.trim();
-if(!embed)return;
-await updateDoc(doc(db,"users",uid),{spotifyEmbed:embed});
-spotifyEmbed.innerHTML=embed;
-spotifyInput.value="";
-});
-
-/* =========================
-   LOGOUT
-========================= */
-
+/* LOGOUT */
 logoutBtn.addEventListener("click",async()=>{
 await signOut(auth);
 location.href="login.html";
-});
-
-/* =========================
-   SEARCH
-========================= */
-
-searchBtn.addEventListener("click",()=>{
-const value=searchInput.value.trim();
-if(!value)return;
-location.href=`user.html?alias=${value}`;
-});
-
-searchInput.addEventListener("keydown",(e)=>{
-if(e.key==="Enter"){
-const value=searchInput.value.trim();
-if(!value)return;
-location.href=`user.html?alias=${value}`;
-}
-});
-
-/* =========================
-   COPY LINK
-========================= */
-
-copyBtn.addEventListener("click",()=>{
-const input=document.getElementById("profileLink");
-if(!input||!input.value)return;
-
-navigator.clipboard.writeText(input.value).then(()=>{
-copyMessage.textContent="Copied ✨";
-setTimeout(()=>copyMessage.textContent="",2000);
-}).catch(()=>{
-copyMessage.textContent="Couldn't copy";
-setTimeout(()=>copyMessage.textContent="",2000);
-});
 });
 </script>
 
