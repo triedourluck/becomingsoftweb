@@ -280,11 +280,12 @@ console.log("MENSAJE:", data);
 const div=document.createElement("div");
 div.className="msg";
 
-let fromAlias = data.senderAlias || "anónimo";
+let fromAlias = data.fromAlias || "anónimo";
 let fromPhoto = "anon.png";
 
-if (data.senderUid) {
-  const fromSnap = await getDoc(doc(db, "users", data.senderUid));
+if (data.fromUserId) {
+  const fromSnap = await getDoc(doc(db, "users", data.fromUserId));
+
   if (fromSnap.exists()) {
     const fromData = fromSnap.data();
     fromAlias = fromData.alias || fromAlias;
@@ -303,7 +304,7 @@ const username = document.createElement("div");
 username.className = "username";
 username.textContent = fromAlias;
 
-if (data.senderUid) {
+if (data.fromUserId) {
   userRow.onclick = () => {
     window.location.href = `user.html?alias=${fromAlias}`;
   };
