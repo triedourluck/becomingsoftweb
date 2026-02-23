@@ -1,16 +1,6 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Limpiar duplicados</title>
-</head>
-<body>
-
-<h2>Limpiando duplicados...</h2>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyCbhjiiQ8ej5yu6LqLPb57XwrFlubFZyvA",
@@ -26,33 +16,32 @@ const db = getFirestore(app);
 
 async function cleanDuplicates(){
 
-  const snap = await getDocs(collection(db,"posts"));
+  const q = query(
+    collection(db,"posts"),
+    orderBy("createdAt","desc")
+  );
 
-  const seen = {};
+  const snap = await getDocs(q);
+
+  let lastKey = null;
   let deletedCount = 0;
 
   for(const postDoc of snap.docs){
 
     const data = postDoc.data();
+    const key = `${data.text}_${data.authorUid}_${data.senderAlias}`;
 
-    const key = `${data.text}_${data.authorUid}_${data.createdAt?.seconds || data.createdAt}`;
-
-    if(seen[key]){
+    if(key === lastKey){
       await deleteDoc(doc(db,"posts",postDoc.id));
       deletedCount++;
       console.log("Eliminado:", postDoc.id);
-    }else{
-      seen[key] = true;
     }
+
+    lastKey = key;
   }
 
-  console.log("✨ Limpieza terminada.");
-  console.log("Posts eliminados:", deletedCount);
-  alert("Limpieza completada. Revisa la consola.");
+  alert(`✨ Limpieza completada. Eliminados: ${deletedCount}`);
 }
 
 cleanDuplicates();
 </script>
-
-</body>
-</html>
