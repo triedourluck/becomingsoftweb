@@ -277,7 +277,7 @@ uid=user.uid;
 const q=query(
 collection(db,"notifications"),
 where("toUserId","==",uid),
-orderBy("createdAt","desc")
+orderBy("createdAt")
 );
 
 onSnapshot(q,(snapshot)=>{
