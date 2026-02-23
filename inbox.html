@@ -36,7 +36,6 @@ h1{
   background:#fafafa;
 }
 
-/* USER ROW */
 .user-row{
   display:flex;
   align-items:center;
@@ -65,13 +64,11 @@ h1{
   font-weight:500;
 }
 
-/* TEXTO */
 .text{
   font-size:15px;
   margin-bottom:12px;
 }
 
-/* RESPUESTA */
 .reply-box{
   position:relative;
 }
@@ -106,7 +103,6 @@ textarea{
   display:none;
 }
 
-/* ACTIONS */
 .actions{
   margin-top:10px;
   display:flex;
@@ -149,13 +145,9 @@ button{
 <body>
 
 <div class="container">
-
 <h1>Inbox privado</h1>
-
 <div id="list"></div>
-
 <div class="back" onclick="goBack()">← Volver</div>
-
 </div>
 
 <script type="module">
@@ -197,8 +189,6 @@ const db=getFirestore(app);
 const storage=getStorage(app);
 
 const listEl=document.getElementById("list");
-const params = new URLSearchParams(window.location.search);
-const fromParam = params.get("from");
 
 onAuthStateChanged(auth, async(user)=>{
 if(!user){
@@ -206,26 +196,14 @@ if(!user){
   return;
 }
 
-/* SOLO MENSAJES NO PUBLICADOS */
-let baseQuery = query(
+const baseQuery = query(
   collection(db,"messages"),
   where("to","==",user.uid),
   where("published","==",false),
   orderBy("createdAt","desc")
 );
 
-if(fromParam){
-  baseQuery = query(
-    collection(db,"messages"),
-    where("to","==",user.uid),
-    where("fromAlias","==",fromParam),
-    where("published","==",false),
-    orderBy("createdAt","desc")
-  );
-}
-
 const snap = await getDocs(baseQuery);
-
 
 if(snap.empty){
   listEl.innerHTML="<div class='empty'>No tienes mensajes nuevos 🌿</div>";
@@ -238,13 +216,12 @@ for(const docSnap of snap.docs){
   const div=document.createElement("div");
   div.className="msg";
 
-  /* USER INFO */
   let alias="anónimo";
   let photo="anon.png";
   let clickable=false;
 
   if(data.fromUserId){
-  const fromSnap = await getDoc(doc(db,"users",data.fromUserId));
+    const fromSnap=await getDoc(doc(db,"users",data.fromUserId));
     if(fromSnap.exists()){
       const fromData=fromSnap.data();
       alias=fromData.alias;
@@ -273,12 +250,10 @@ for(const docSnap of snap.docs){
   userRow.appendChild(avatar);
   userRow.appendChild(name);
 
-  /* TEXTO MENSAJE */
   const text=document.createElement("div");
   text.className="text";
   text.textContent=data.text;
 
-  /* RESPUESTA */
   const replyBox=document.createElement("div");
   replyBox.className="reply-box";
 
@@ -314,7 +289,6 @@ for(const docSnap of snap.docs){
   replyBox.appendChild(fileInput);
   replyBox.appendChild(preview);
 
-  /* ACTIONS */
   const actions=document.createElement("div");
   actions.className="actions";
 
@@ -324,97 +298,75 @@ for(const docSnap of snap.docs){
 
   publishBtn.onclick = async () => {
 
-  publishBtn.disabled = true;
-  publishBtn.textContent = "Publicando...";
+    publishBtn.disabled = true;
+    publishBtn.textContent = "Publicando...";
 
-  try {
+    try {
 
-    let imageURL = null;
+      let imageURL = null;
 
-    if(selectedFile){
-      const storageRef = ref(storage,`replies/${docSnap.id}_${Date.now()}`);
-      await uploadBytes(storageRef,selectedFile);
-      imageURL = await getDownloadURL(storageRef);
+      if(selectedFile){
+        const storageRef = ref(storage,`replies/${docSnap.id}_${Date.now()}`);
+        await uploadBytes(storageRef,selectedFile);
+        imageURL = await getDownloadURL(storageRef);
+      }
+
+      await updateDoc(doc(db,"messages",docSnap.id),{
+        reply:textarea.value.trim()||"",
+        imageURL:imageURL||null,
+        published:true
+      });
+
+      const userSnap = await getDoc(doc(db,"users",user.uid));
+      const userData = userSnap.data();
+
+      let senderData = null;
+
+      if(data.fromUserId){
+        const senderSnap = await getDoc(doc(db,"users",data.fromUserId));
+        if(senderSnap.exists()){
+          senderData = senderSnap.data();
+        }
+      }
+
+      const newPostRef = await addDoc(collection(db,"posts"),{
+        senderUid: data.fromUserId || null,
+        senderAlias: senderData?.alias || "anónimo",
+        authorUid: user.uid,
+        authorAlias: userData.alias || "",
+        authorPhoto: userData.photoURL || "",
+        text: data.text || "",
+        reply: textarea.value.trim() || "",
+        replyImage: imageURL || null,
+        createdAt: serverTimestamp(),
+        likes: [],
+        published: true
+      });
+
+      if(data.fromUserId && data.fromUserId !== user.uid){
+
+        await addDoc(collection(db,"notifications"),{
+          toUserId: data.fromUserId,
+          fromUserId: user.uid,
+          fromUsername: userData.alias,
+          fromAlias: userData.alias,
+          type: "reply",
+          postId: newPostRef.id,
+          postText: data.text || "",
+          createdAt: serverTimestamp(),
+          read: false
+        });
+
+      }
+
+      location.reload();
+
+    } catch(err){
+      console.error(err);
+      publishBtn.disabled = false;
+      publishBtn.textContent = "Publicar";
     }
-
-    await updateDoc(doc(db,"messages",docSnap.id),{
-      reply:textarea.value.trim()||"",
-      imageURL:imageURL||null,
-      published:true
-    });
-
-    const userSnap = await getDoc(doc(db,"users",user.uid));
-    const userData = userSnap.data();
-
-    let senderData = null;
-
-    if(data.fromAlias){
-      const senderSnap = await getDoc(doc(db,"users",data.fromAlias));
-      senderData = senderSnap.data();
-    }
-
-    const newPostRef = await addDoc(collection(db,"posts"),{
-  senderUid: data.fromUserId || null,
-  senderAlias: senderData?.alias || "anónimo",
-  authorUid: user.uid,
-  authorAlias: userData.alias || "",
-  authorPhoto: userData.photoURL || "",
-  text: data.text || "",
-  reply: textarea.value.trim() || "",
-  replyImage: imageURL || null,
-  createdAt: Date.now(),
-  likes: [],
-  published: true
-});
-
-if(data.fromUserId && data.fromUserId !== user.uid){
-
-  await addDoc(collection(db,"notifications"),{
-    toUserId: data.fromUserId,
-    fromUserId: user.uid,
-    fromUsername: userData.alias,
-    fromAlias: userData.alias,
-    type: "reply",
-    postId: newPostRef.id,
-    createdAt: Date.now(),
-    read: false
-  });
-
-}
-      senderUid: data.fromAlias || null,
-      senderAlias: senderData?.alias || "anónimo",
-      authorUid: user.uid,
-      authorAlias: userData.alias || "",
-      authorPhoto: userData.photoURL || "",
-      text: data.text || "",
-      reply: textarea.value.trim() || "",
-      replyImage: imageURL || null,
-      createdAt: serverTimestamp(),
-      likes: [],
-      published: true
-    });
-    
-    if(data.fromUserId){
-  await addDoc(collection(db,"notifications"),{
-    toUserId: data.fromUserId,
-    fromUserId: user.uid,
-    fromUsername: userData.alias,
-    fromAlias: userData.alias,
-    type: "reply",
-    postText: data.text || "",
-    createdAt: serverTimestamp(),
-    read: false
-  });
-}
-
-    location.reload();
-
-  } catch(err){
-    console.error(err);
-    publishBtn.disabled = false;
-    publishBtn.textContent = "Publicar";
-  }
-};
+  };
 
   const deleteBtn=document.createElement("button");
   deleteBtn.className="delete";
