@@ -459,14 +459,14 @@ onSnapshot(q,(snapshot)=>{
     else if(data.type==="like"){
       div.textContent = `${data.fromUsername} liked your space`;
       div.addEventListener("click",()=>{
-        location.href = `user.html?uid=${data.fromUserId}`;
+        location.href = `user.html?alias=${data.fromUsername}`;
       });
     }
 
     else if(data.type==="message"){
       div.textContent = `${data.fromUsername} sent you a message`;
       div.addEventListener("click",()=>{
-        location.href = `inbox.html?from=${data.fromUsername}`;
+        location.href = `inbox.html?alias=${data.fromUsername}`;
       });
     }
 
