@@ -334,7 +334,7 @@ if(d.photoURL) avatar.src=d.photoURL;
 const currentPhotos=(d.photosDesktop||d.photos||["","","","","",""]);
 currentPhotos.forEach((url,i)=>{if(url) document.getElementById(`p${i+1}`).src=url;});
 
-if(d.spotifyEmbed) spotifyEmbed.innerHTML=d.spotifyEmbed;
+if(d.spotifyEmbed) spotifyEmbed.innerHTML = d.spotifyEmbed;
 });
 
 /* MARK AS READ */
