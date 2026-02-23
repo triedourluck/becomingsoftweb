@@ -275,6 +275,8 @@ if(snap.empty){
 for(const docSnap of snap.docs){
 
 const data=docSnap.data();
+console.log("MENSAJE:", data);
+
 const div=document.createElement("div");
 div.className="msg";
 
