@@ -237,28 +237,136 @@ if(user && uid===user.uid){
 let q;
 
 if(highlightId){
+
   const singleSnap = await getDoc(doc(db,"messages",highlightId));
 
-  if(singleSnap.exists()){
-    const docSnap = singleSnap;
+  wallEl.innerHTML = "";
 
-    const data = docSnap.data();
-
-    // pega aquí TODO tu código que renderiza un mensaje
-    // (el mismo que está dentro del for(docSnap of snap.docs))
-    
+  if(!singleSnap.exists()){
+    emptyEl.style.display="block";
+    return;
   }
 
-  return; // importante: detener el resto del wall
+  emptyEl.style.display="none";
+
+  const docSnap = singleSnap;
+  const data = docSnap.data();
+  const div=document.createElement("div");
+  div.className="msg";
+
+  /* SENDER */
+  let fromAlias="anónimo";
+  let fromPhoto="anon.png";
+
+  let possibleUid = data.senderUid || data.fromUserId || data.fromAlias;
+
+  if(possibleUid){
+    const fromSnap = await getDoc(doc(db,"users", possibleUid));
+
+    if(fromSnap.exists()){
+      const fromData = fromSnap.data();
+      fromAlias = fromData.alias || "anónimo";
+      fromPhoto = fromData.photoURL || "anon.png";
+    } else {
+      fromAlias = data.fromAlias || "anónimo";
+    }
+  }
+
+  const userRow = document.createElement("div");
+  userRow.className = "user-row";
+  userRow.style.cursor = "pointer";
+
+  if(possibleUid){
+    userRow.onclick = () => {
+      window.location.href = `user.html?alias=${fromAlias}`;
+    };
+  }
+
+  const userAvatar=document.createElement("img");
+  userAvatar.className="user-avatar";
+  userAvatar.src=fromPhoto;
+
+  const username=document.createElement("div");
+  username.className="username";
+  username.textContent=fromAlias;
+
+  userRow.appendChild(userAvatar);
+  userRow.appendChild(username);
+  div.appendChild(userRow);
+
+  if(data.text){
+    const original=document.createElement("div");
+    original.style.opacity="0.75";
+    original.style.fontSize="14px";
+    original.style.marginBottom="6px";
+    original.textContent=data.text;
+    div.appendChild(original);
+  }
+
+  if(data.reply){
+    const reply=document.createElement("div");
+    reply.textContent=data.reply;
+    div.appendChild(reply);
+  }
+
+  if(data.replyImage){
+    const img=document.createElement("img");
+    img.src=data.replyImage;
+    img.className="reply-img";
+    div.appendChild(img);
+  }
+
+  const actions=document.createElement("div");
+  actions.className="actions";
+
+  const likesArray=data.likes||[];
+  const hasLiked=user ? likesArray.includes(user.uid) : false;
+
+  const likeDiv=document.createElement("div");
+  likeDiv.className="like";
+  likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
+
+  if(user){
+    likeDiv.onclick = async () => {
+
+      const hasLiked = likesArray.includes(user.uid);
+
+      if(hasLiked){
+        await updateDoc(doc(db,"messages",docSnap.id),{
+          likes: arrayRemove(user.uid)
+        });
+      } else {
+        await updateDoc(doc(db,"messages",docSnap.id),{
+          likes: arrayUnion(user.uid)
+        });
+
+        if(user.uid !== data.to){
+          await addDoc(collection(db,"notifications"),{
+            type:"like",
+            fromUid:user.uid,
+            toUserId:data.to,
+            messageId:docSnap.id,
+            createdAt:serverTimestamp(),
+            read:false
+          });
+        }
+      }
+    };
+  }
+
+  actions.appendChild(likeDiv);
+  div.appendChild(actions);
+  wallEl.appendChild(div);
+
+  return;
 }
-} else {
-  q = query(
-    collection(db,"messages"),
-    where("to","==",uid),
-    where("published","==",true),
-    orderBy("createdAt","desc")
-  );
-}
+
+q = query(
+  collection(db,"messages"),
+  where("to","==",uid),
+  where("published","==",true),
+  orderBy("createdAt","desc")
+);
 
 onSnapshot(q, async (snap) => {
 
