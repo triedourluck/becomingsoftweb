@@ -286,15 +286,14 @@ const div=document.createElement("div");
 div.className="msg";
 
 /* USER INFO */
-let fromAlias="anónimo";
-let fromPhoto="anon.png";
+let fromAlias = data.senderAlias || "anónimo";
+let fromPhoto = "anon.png";
 
-if(data.fromUserId){
-  const fromSnap = await getDoc(doc(db,"users",data.fromUserId));
-
+if(data.senderUid){
+  const fromSnap = await getDoc(doc(db,"users",data.senderUid));
   if(fromSnap.exists()){
     const fromData = fromSnap.data();
-    fromAlias = fromData.alias || "anónimo";
+    fromAlias = fromData.alias || fromAlias;
     fromPhoto = fromData.photoURL || "anon.png";
   }
 }
