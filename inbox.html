@@ -366,6 +366,19 @@ for(const docSnap of snap.docs){
       likes: [],
       published: true
     });
+    
+    if(data.fromUserId){
+  await addDoc(collection(db,"notifications"),{
+    toUserId: data.fromUserId,
+    fromUserId: user.uid,
+    fromUsername: userData.alias,
+    fromAlias: userData.alias,
+    type: "reply",
+    postText: data.text || "",
+    createdAt: serverTimestamp(),
+    read: false
+  });
+}
 
     location.reload();
 
