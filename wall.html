@@ -237,10 +237,20 @@ if(user && uid===user.uid){
 let q;
 
 if(highlightId){
-  q = query(
-    collection(db,"messages"),
-    where("__name__","==",highlightId)
-  );
+  const singleSnap = await getDoc(doc(db,"messages",highlightId));
+
+  if(singleSnap.exists()){
+    const docSnap = singleSnap;
+
+    const data = docSnap.data();
+
+    // pega aquí TODO tu código que renderiza un mensaje
+    // (el mismo que está dentro del for(docSnap of snap.docs))
+    
+  }
+
+  return; // importante: detener el resto del wall
+}
 } else {
   q = query(
     collection(db,"messages"),
