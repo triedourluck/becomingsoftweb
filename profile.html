@@ -19,7 +19,64 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
   position:relative;
 }
+/* =========================
+   NOTIFICATIONS
+========================= */
 
+.notif-wrapper{
+  position:absolute;
+  top:20px;
+  left:24px;
+}
+
+.notif-btn{
+  cursor:pointer;
+  position:relative;
+  background:none;
+  border:none;
+  padding:6px;
+}
+
+.notif-dot{
+  width:6px;
+  height:6px;
+  background:#111;
+  border-radius:50%;
+  position:absolute;
+  top:4px;
+  right:4px;
+  display:none;
+}
+
+.notif-dropdown{
+  position:absolute;
+  top:36px;
+  left:0;
+  width:260px;
+  background:white;
+  border:1px solid #eee;
+  box-shadow:0 4px 20px rgba(0,0,0,0.05);
+  display:none;
+  z-index:999;
+}
+
+.notif-header{
+  padding:12px;
+  font-size:13px;
+  border-bottom:1px solid #f2f2f2;
+  text-transform:lowercase;
+}
+
+.notif-item{
+  padding:12px;
+  font-size:13px;
+  border-bottom:1px solid #f5f5f5;
+  cursor:pointer;
+}
+
+.notif-item:hover{
+  background:#fafafa;
+}
 .search{position:absolute;top:20px;right:24px;display:flex;gap:8px;}
 .search input{width:190px;padding:10px 12px;border-radius:12px;border:1px solid #ddd;font-size:14px;}
 .search button{padding:10px 16px;border:none;border-radius:12px;background:#111;color:white;cursor:pointer;font-size:14px;}
@@ -150,6 +207,22 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 
 <body>
 <div class="container">
+  
+  <!-- NOTIFICATIONS -->
+<div class="notif-wrapper">
+  <button id="notifBtn" class="notif-btn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M18 8a6 6 0 10-12 0c0 7-3 7-3 7h18s-3 0-3-7" stroke="#111" stroke-width="1.5"/>
+      <path d="M13.73 21a2 2 0 01-3.46 0" stroke="#111" stroke-width="1.5"/>
+    </svg>
+    <span id="notifDot" class="notif-dot"></span>
+  </button>
+
+  <div id="notifDropdown" class="notif-dropdown">
+    <div class="notif-header">notifications</div>
+    <div id="notifList"></div>
+  </div>
+</div>
 
 <div class="search">
 <input id="searchInput" placeholder="buscar usuario"/>
@@ -219,7 +292,18 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f5f5f5;color:#1
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  collection, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot, 
+  getDocs 
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -252,6 +336,14 @@ const reorderBtn=document.getElementById("reorderBtn");
 const photoEls=["p1","p2","p3","p4","p5","p6"].map(id=>document.getElementById(id));
 const copyBtn=document.getElementById("copyBtn");
 const copyMessage=document.getElementById("copyMessage");
+/* =========================
+   NOTIFICATIONS DOM
+========================= */
+
+const notifBtn = document.getElementById("notifBtn");
+const notifDropdown = document.getElementById("notifDropdown");
+const notifDot = document.getElementById("notifDot");
+const notifList = document.getElementById("notifList");
 
 let uid=null;
 let photoIndex=0;
@@ -332,6 +424,45 @@ const newOrder = Array.from(photosContainer.children).map(img => img.src || "");
 onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
 uid=user.uid;
+/* =========================
+   LISTEN NOTIFICATIONS
+========================= */
+
+const q = query(
+  collection(db,"notifications"),
+  where("toUserId","==",uid),
+  orderBy("createdAt","desc")
+);
+
+onSnapshot(q,(snapshot)=>{
+  notifList.innerHTML="";
+  let unread=0;
+
+  snapshot.forEach(docSnap=>{
+    const data=docSnap.data();
+    if(!data.read) unread++;
+
+    const div=document.createElement("div");
+    div.className="notif-item";
+
+    if(data.type==="follow"){
+      div.textContent=`${data.fromUsername} started following you`;
+    }
+    else if(data.type==="like"){
+      div.textContent=`${data.fromUsername} liked your space`;
+    }
+    else if(data.type==="message"){
+      div.textContent=`${data.fromUsername} sent you a message`;
+    }
+    else{
+      div.textContent="new activity";
+    }
+
+    notifList.appendChild(div);
+  });
+
+  notifDot.style.display = unread>0 ? "block" : "none";
+});
 
 const wallBtn=document.getElementById("wallBtn");
 wallBtn.onclick=()=>location.href=`wall.html?uid=${uid}`;
@@ -505,6 +636,34 @@ setTimeout(()=>copyMessage.textContent="",2000);
 copyMessage.textContent="Couldn't copy";
 setTimeout(()=>copyMessage.textContent="",2000);
 });
+});
+
+/* =========================
+   NOTIFICATION TOGGLE
+========================= */
+
+notifBtn.addEventListener("click",async()=>{
+  const open = notifDropdown.style.display==="block";
+  notifDropdown.style.display = open ? "none" : "block";
+
+  if(!open && uid){
+    const unreadQuery=query(
+      collection(db,"notifications"),
+      where("toUserId","==",uid),
+      where("read","==",false)
+    );
+
+    const snap=await getDocs(unreadQuery);
+    snap.forEach(docSnap=>{
+      updateDoc(doc(db,"notifications",docSnap.id),{read:true});
+    });
+  }
+});
+
+document.addEventListener("click",(e)=>{
+  if(!e.target.closest(".notif-wrapper")){
+    notifDropdown.style.display="none";
+  }
 });
 </script>
 
