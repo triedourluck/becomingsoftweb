@@ -411,17 +411,32 @@ window.sendMessage = async ()=>{
     senderUid = currentUser.uid;
   }
 
-  await addDoc(collection(db,"messages"),{
-    text,
-    to:viewedUid,
-    fromAlias:senderUid,
-    createdAt:Date.now(),
-    published:false,
-    likes:[]
-  });
+  const userSnap = await getDoc(doc(db,"users",currentUser.uid));
+const currentUserData = userSnap.data();
 
-  msgInput.value="";
-  alert("enviado 🌷");
+await addDoc(collection(db,"messages"),{
+  text,
+  to:viewedUid,
+  fromAlias: currentUserData.alias,
+  fromUserId: currentUser.uid,
+  createdAt: Date.now(),
+  published:false,
+  likes:[]
+});
+
+await addDoc(collection(db,"notifications"),{
+  toUserId: viewedUid,
+  fromUserId: currentUser.uid,
+  fromUsername: currentUserData.alias,
+  fromAlias: currentUserData.alias,
+  type: "message",
+  createdAt: Date.now(),
+  read: false
+});
+
+msgInput.value="";
+alert("enviado 🌷");
+
 };
 
 async function setupFollow(){
