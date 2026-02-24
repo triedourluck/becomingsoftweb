@@ -492,9 +492,14 @@ onSnapshot(q,(snapshot)=>{
 
   });
 
-  div.addEventListener("click",()=>{
-    location.href = `wall.html?uid=${data.toUserId}&highlight=${data.messageId}`;
+  div.addEventListener("click", async ()=>{
+
+  await updateDoc(doc(db,"notifications",docSnap.id),{
+    read:true
   });
+
+  location.href = `wall.html?uid=${data.toUserId}&highlight=${data.messageId}`;
+});
 
 }
 
