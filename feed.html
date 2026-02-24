@@ -191,15 +191,14 @@ if (data.source === "messages") {
     }
   }
 
-} else {
+} else { // POSTS
 
-  if (data.authorAlias) {
+  if (data.authorUid) {
+    senderUser = await getUserByUid(data.authorUid);
+  }
 
+  if (!senderUser && data.authorAlias) {
     senderUser = await getUserByAlias(data.authorAlias);
-
-    if (!senderUser) {
-      senderUser = await getUserByUid(data.authorAlias);
-    }
   }
 }
 
