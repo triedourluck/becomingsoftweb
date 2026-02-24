@@ -171,7 +171,11 @@ onAuthStateChanged(auth, async(user)=>{
   feedEl.innerHTML="";
 
   const messagesSnap = await getDocs(
-    query(collection(db,"messages"), orderBy("createdAt","desc"))
+  query(
+    collection(db,"messages"),
+    where("published","==",true),
+    orderBy("createdAt","desc")
+  )
 );
 
   const postsSnap=await getDocs(query(
