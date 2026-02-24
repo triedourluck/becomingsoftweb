@@ -467,6 +467,48 @@ onSnapshot(q,(snapshot)=>{
     messagePreview = data.messagePreview.slice(0,30);
   }
 
+  getDoc(doc(db,"users",data.fromUid)).then(userSnap=>{
+
+    if(userSnap.exists()){
+      fromAlias = userSnap.data().alias || "alguien";
+    }
+
+    const userSpan = document.createElement("span");
+    userSpan.textContent = fromAlias;
+    userSpan.style.fontWeight = "600";
+    userSpan.style.cursor = "pointer";
+
+    userSpan.addEventListener("click",(e)=>{
+      e.stopPropagation();
+      location.href = `user.html?alias=${fromAlias}`;
+    });
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = ` le dio like a: "${messagePreview}"`;
+
+    div.appendChild(userSpan);
+    div.appendChild(textSpan);
+
+  });
+
+  div.addEventListener("click", async ()=>{
+
+    await updateDoc(doc(db,"notifications",docSnap.id),{
+      read:true
+    });
+
+    const messageId = data.messageId || data.postId || data.replyId;
+
+    if(messageId){
+      location.href = `wall.html?uid=${data.toUserId}&highlight=${messageId}`;
+    }else{
+      location.href = `wall.html?uid=${data.toUserId}`;
+    }
+
+  });
+
+}
+
   // obtener alias real desde users usando fromUid
   getDoc(doc(db,"users",data.fromUid)).then(userSnap=>{
 
