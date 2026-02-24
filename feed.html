@@ -35,26 +35,14 @@ h1{
   background:#fafafa;
 }
 
-.sender-row{
-  display:flex;
-  align-items:center;
-  gap:10px;
+.username{
+  font-weight:600;
   margin-bottom:10px;
   cursor:pointer;
 }
 
-.sender-row:hover{ opacity:0.8; }
-
-.avatar{
-  width:44px;
-  height:44px;
-  border-radius:50%;
-  object-fit:cover;
-  background:#ddd;
-}
-
-.sender-name{
-  font-weight:600;
+.username:hover{
+  opacity:0.7;
 }
 
 .message-box{
@@ -62,7 +50,7 @@ h1{
   border:1px solid #eee;
   border-radius:14px;
   padding:12px;
-  margin-bottom:10px;
+  margin-bottom:12px;
   font-size:15px;
 }
 
@@ -71,9 +59,32 @@ h1{
   border:1px solid #eee;
   border-radius:14px;
   padding:12px;
-  margin-bottom:12px;
+  margin-bottom:10px;
   font-size:15px;
   color:#555;
+}
+
+.reply-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+}
+
+.reply-row:hover{
+  opacity:0.8;
+}
+
+.avatar{
+  width:40px;
+  height:40px;
+  border-radius:50%;
+  object-fit:cover;
+  background:#ddd;
+}
+
+.reply-name{
+  font-weight:600;
 }
 
 .like{
@@ -109,9 +120,8 @@ import {
   collection,
   query,
   orderBy,
-  getDocs,
-  getDoc,
   where,
+  getDocs,
   doc,
   updateDoc,
   arrayUnion,
@@ -142,34 +152,30 @@ onAuthStateChanged(auth, async(user)=>{
 
   feedEl.innerHTML="";
 
-  // ===== LEER MESSAGES =====
   const messagesQuery=query(
     collection(db,"messages"),
     where("published","==",true),
     orderBy("createdAt","desc")
   );
 
-  const messagesSnap=await getDocs(messagesQuery);
-
-  // ===== LEER POSTS ANTIGUOS =====
   const postsQuery=query(
     collection(db,"posts"),
     orderBy("createdAt","desc")
   );
 
+  const messagesSnap=await getDocs(messagesQuery);
   const postsSnap=await getDocs(postsQuery);
 
   const allDocs=[];
 
-  messagesSnap.forEach(doc=>{
-    allDocs.push({id:doc.id, ...doc.data(), source:"messages"});
+  messagesSnap.forEach(d=>{
+    allDocs.push({id:d.id, ...d.data(), source:"messages"});
   });
 
-  postsSnap.forEach(doc=>{
-    allDocs.push({id:doc.id, ...doc.data(), source:"posts"});
+  postsSnap.forEach(d=>{
+    allDocs.push({id:d.id, ...d.data(), source:"posts"});
   });
 
-  // ordenar manualmente por fecha
   allDocs.sort((a,b)=>{
     if(!a.createdAt || !b.createdAt) return 0;
     return b.createdAt.seconds - a.createdAt.seconds;
@@ -185,49 +191,31 @@ onAuthStateChanged(auth, async(user)=>{
     const post=document.createElement("div");
     post.className="post";
 
-    const senderRow=document.createElement("div");
-    senderRow.className="sender-row";
+    // ===== PREGUNTA USERNAME (sin avatar) =====
 
-    const avatar=document.createElement("img");
-    avatar.className="avatar";
+    const username=document.createElement("div");
+    username.className="username";
 
-    const senderName=document.createElement("div");
-    senderName.className="sender-name";
-
-    let userDoc=null;
-
-    if(data.fromAlias){
-      const userQuery=query(
-        collection(db,"users"),
-        where("alias","==",data.fromAlias)
-      );
-      const userSnap=await getDocs(userQuery);
-
-      if(!userSnap.empty){
-        userDoc=userSnap.docs[0];
-        const userData=userDoc.data();
-        avatar.src=userData.photoURL || "";
-        senderName.textContent=userData.alias;
-
-        senderRow.onclick=()=>{
-          if(user.uid===userDoc.id){
-            location.href="profile.html";
-          }else{
-            location.href=`user.html?alias=${userData.alias}`;
-          }
+    if(data.source==="posts"){
+      username.textContent=data.authorAlias || "anónimo";
+      username.onclick=()=>{
+        location.href=`user.html?alias=${data.authorAlias}`;
+      };
+    }else{
+      if(data.fromAlias){
+        username.textContent=data.fromAlias;
+        username.onclick=()=>{
+          location.href=`user.html?alias=${data.fromAlias}`;
         };
+      }else{
+        username.textContent="anónimo";
+        username.style.cursor="default";
       }
     }
 
-    if(!userDoc){
-      avatar.src="";
-      senderName.textContent="anónimo";
-      senderRow.style.cursor="default";
-    }
+    post.appendChild(username);
 
-    senderRow.appendChild(avatar);
-    senderRow.appendChild(senderName);
-    post.appendChild(senderRow);
+    // ===== MENSAJE =====
 
     if(data.text){
       const messageBox=document.createElement("div");
@@ -236,12 +224,56 @@ onAuthStateChanged(auth, async(user)=>{
       post.appendChild(messageBox);
     }
 
+    // ===== RESPUESTA =====
+
     if(data.reply){
+
       const replyBox=document.createElement("div");
       replyBox.className="reply-box";
       replyBox.textContent=data.reply;
       post.appendChild(replyBox);
+
+      const replyRow=document.createElement("div");
+      replyRow.className="reply-row";
+
+      const avatar=document.createElement("img");
+      avatar.className="avatar";
+
+      const replyName=document.createElement("div");
+      replyName.className="reply-name";
+
+      if(data.source==="posts"){
+        avatar.src=data.authorPhoto || "";
+        replyName.textContent=data.authorAlias || "";
+        replyRow.onclick=()=>{
+          location.href=`user.html?alias=${data.authorAlias}`;
+        };
+      }else{
+        const userDoc=await getDocs(query(
+          collection(db,"users"),
+          where("__name__","==",data.to)
+        ));
+
+        if(!userDoc.empty){
+          const userData=userDoc.docs[0].data();
+          avatar.src=userData.photoURL || "";
+          replyName.textContent=userData.alias;
+          replyRow.onclick=()=>{
+            if(user.uid===data.to){
+              location.href="profile.html";
+            }else{
+              location.href=`user.html?alias=${userData.alias}`;
+            }
+          };
+        }
+      }
+
+      replyRow.appendChild(avatar);
+      replyRow.appendChild(replyName);
+      post.appendChild(replyRow);
     }
+
+    // ===== LIKES =====
 
     const likesArray=data.likes||[];
     const hasLiked=likesArray.includes(user.uid);
@@ -251,7 +283,6 @@ onAuthStateChanged(auth, async(user)=>{
     likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
 
     likeDiv.onclick=async()=>{
-
       const ref=doc(db,data.source,data.id);
 
       if(hasLiked){
@@ -281,7 +312,6 @@ onAuthStateChanged(auth, async(user)=>{
     post.appendChild(likeDiv);
     feedEl.appendChild(post);
   }
-
 });
 
 window.goBack=()=>location.href="profile.html";
