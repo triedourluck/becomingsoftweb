@@ -149,12 +149,13 @@ onAuthStateChanged(auth, async(user)=>{
     return b.createdAt.seconds - a.createdAt.seconds;
   });
 
-  for(const data of allDocs){
+  // 🔥 SOLO MOSTRAR 20
+  const limitedDocs = allDocs.slice(0,20);
+
+  for(const data of limitedDocs){
 
     const post=document.createElement("div");
     post.className="post";
-
-    // ===== FUNCIÓN PARA OBTENER USER POR UID =====
 
     async function getUserByUid(uid){
       const userRef=doc(db,"users",uid);
@@ -162,8 +163,6 @@ onAuthStateChanged(auth, async(user)=>{
       if(snap.exists()) return {id:snap.id, ...snap.data()};
       return null;
     }
-
-    // ===== FUNCIÓN PARA OBTENER USER POR ALIAS =====
 
     async function getUserByAlias(alias){
       const snap=await getDocs(query(
@@ -174,33 +173,27 @@ onAuthStateChanged(auth, async(user)=>{
       return null;
     }
 
-    // ===== PREGUNTA =====
-
     let senderUser = null;
 
-if (data.source === "messages") {
+    if (data.source === "messages") {
 
-  if (data.fromAlias) {
+      if (data.fromAlias) {
+        senderUser = await getUserByAlias(data.fromAlias);
+        if (!senderUser) {
+          senderUser = await getUserByUid(data.fromAlias);
+        }
+      }
 
-    // intentar como alias
-    senderUser = await getUserByAlias(data.fromAlias);
+    } else {
 
-    // si no encontró, intentar como UID
-    if (!senderUser) {
-      senderUser = await getUserByUid(data.fromAlias);
+      if (data.authorUid) {
+        senderUser = await getUserByUid(data.authorUid);
+      }
+
+      if (!senderUser && data.authorAlias) {
+        senderUser = await getUserByAlias(data.authorAlias);
+      }
     }
-  }
-
-} else { // POSTS
-
-  if (data.authorUid) {
-    senderUser = await getUserByUid(data.authorUid);
-  }
-
-  if (!senderUser && data.authorAlias) {
-    senderUser = await getUserByAlias(data.authorAlias);
-  }
-}
 
     const senderRow=document.createElement("div");
     senderRow.className="user-row";
@@ -237,8 +230,6 @@ if (data.source === "messages") {
       messageBox.textContent=data.text;
       post.appendChild(messageBox);
     }
-
-    // ===== RESPUESTA =====
 
     if(data.reply){
 
@@ -283,8 +274,6 @@ if (data.source === "messages") {
         post.appendChild(replyRow);
       }
     }
-
-    // ===== LIKES =====
 
     const likesArray=data.likes||[];
     const hasLiked=likesArray.includes(user.uid);
