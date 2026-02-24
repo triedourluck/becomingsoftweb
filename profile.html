@@ -499,9 +499,9 @@ onSnapshot(q,(snapshot)=>{
         const messageId = data.messageId || data.postId;
 
         if(messageId){
-          location.href = `wall.html?post=${messageId}`;
+          location.href = `wall.html?uid=${data.toUserId}&post=${messageId}`;
         }else{
-          location.href = `wall.html`;
+          location.href = `wall.html?uid=${data.toUserId}`;
         }
       });
     }
