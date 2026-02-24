@@ -238,31 +238,41 @@ onAuthStateChanged(auth, async(user)=>{
     likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
 
     likeDiv.onclick=async()=>{
-      if(hasLiked){
-        likesArray=likesArray.filter(id=>id!==user.uid);
-        hasLiked=false;
-      }else{
-        likesArray=[...likesArray,user.uid];
-        hasLiked=true;
 
-        if(user.uid !== data.to){
-          await addDoc(collection(db,"notifications"),{
-            type:"like",
-            fromUid:user.uid,
-            toUserId:data.to,
-            postId:postDoc.id,
-            createdAt:serverTimestamp(),
-            read:false
-          });
-        }
-      }
+  if(hasLiked){
 
-      await updateDoc(doc(db,"posts",postDoc.id),{
-        likes:likesArray
+    await updateDoc(doc(db,"posts",postDoc.id),{
+      likes: arrayRemove(user.uid)
+    });
+
+    hasLiked=false;
+
+  }else{
+
+    await updateDoc(doc(db,"posts",postDoc.id),{
+      likes: arrayUnion(user.uid)
+    });
+
+    hasLiked=true;
+
+    if(user.uid !== data.to){
+      await addDoc(collection(db,"notifications"),{
+        type:"like",
+        fromUid:user.uid,
+        toUserId:data.to,
+        postId:postDoc.id,
+        createdAt:serverTimestamp(),
+        read:false
       });
+    }
+  }
 
-      likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
-    };
+  const updatedDoc = await getDoc(doc(db,"posts",postDoc.id));
+  const updatedData = updatedDoc.data();
+  const updatedLikes = updatedData.likes || [];
+
+  likeDiv.textContent=`${updatedLikes.includes(user.uid)?"♥︎":"♡"} ${updatedLikes.length}`;
+};
 
     post.appendChild(likeDiv);
 
