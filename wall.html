@@ -318,6 +318,27 @@ if(highlightId){
 
   const actions=document.createElement("div");
   actions.className="actions";
+  
+  // ===== EDITAR =====
+if(user && data.to === user.uid){
+
+  const editBtn=document.createElement("button");
+  editBtn.className="edit-btn";
+  editBtn.textContent="Editar";
+
+  editBtn.onclick=async()=>{
+
+    // Quitar del wall
+    await updateDoc(doc(db,"messages",docSnap.id),{
+      published:false
+    });
+
+    // Ir a inbox para editar
+    location.href=`inbox.html?edit=${docSnap.id}`;
+  };
+
+  actions.appendChild(editBtn);
+}
 
   const likesArray=data.likes||[];
   const hasLiked=user ? likesArray.includes(user.uid) : false;
