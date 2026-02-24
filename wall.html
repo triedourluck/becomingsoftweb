@@ -254,46 +254,6 @@ if(highlightId){
   const div=document.createElement("div");
   div.className="msg";
 
-  /* SENDER */
-  let fromAlias="anónimo";
-  let fromPhoto="anon.png";
-
-  let possibleUid = data.senderUid || data.fromUserId || data.fromAlias;
-
-  if(possibleUid){
-    const fromSnap = await getDoc(doc(db,"users", possibleUid));
-
-    if(fromSnap.exists()){
-      const fromData = fromSnap.data();
-      fromAlias = fromData.alias || "anónimo";
-      fromPhoto = fromData.photoURL || "anon.png";
-    } else {
-      fromAlias = data.fromAlias || "anónimo";
-    }
-  }
-
-  const userRow = document.createElement("div");
-  userRow.className = "user-row";
-  userRow.style.cursor = "pointer";
-
-  if(possibleUid){
-    userRow.onclick = () => {
-      window.location.href = `user.html?alias=${fromAlias}`;
-    };
-  }
-
-  const userAvatar=document.createElement("img");
-  userAvatar.className="user-avatar";
-  userAvatar.src=fromPhoto;
-
-  const username=document.createElement("div");
-  username.className="username";
-  username.textContent=fromAlias;
-
-  userRow.appendChild(userAvatar);
-  userRow.appendChild(username);
-  div.appendChild(userRow);
-
   if(data.text){
     const original=document.createElement("div");
     original.style.opacity="0.75";
@@ -318,27 +278,22 @@ if(highlightId){
 
   const actions=document.createElement("div");
   actions.className="actions";
-  
-  // ===== EDITAR =====
-if(user && data.to === user.uid){
 
-  const editBtn=document.createElement("button");
-  editBtn.className="edit-btn";
-  editBtn.textContent="Editar";
+  if(user && uid === user.uid){
 
-  editBtn.onclick=async()=>{
+    const editBtn=document.createElement("button");
+    editBtn.className="edit-btn";
+    editBtn.textContent="Editar";
 
-    // Quitar del wall
-    await updateDoc(doc(db,"messages",docSnap.id),{
-      published:false
-    });
+    editBtn.onclick=async()=>{
+      await updateDoc(doc(db,"messages",docSnap.id),{
+        published:false
+      });
+      location.href=`inbox.html?edit=${docSnap.id}`;
+    };
 
-    // Ir a inbox para editar
-    location.href=`inbox.html?edit=${docSnap.id}`;
-  };
-
-  actions.appendChild(editBtn);
-}
+    actions.appendChild(editBtn);
+  }
 
   const likesArray=data.likes||[];
   const hasLiked=user ? likesArray.includes(user.uid) : false;
@@ -346,34 +301,6 @@ if(user && data.to === user.uid){
   const likeDiv=document.createElement("div");
   likeDiv.className="like";
   likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
-
-  if(user){
-    likeDiv.onclick = async () => {
-
-      const hasLiked = likesArray.includes(user.uid);
-
-      if(hasLiked){
-        await updateDoc(doc(db,"messages",docSnap.id),{
-          likes: arrayRemove(user.uid)
-        });
-      } else {
-        await updateDoc(doc(db,"messages",docSnap.id),{
-          likes: arrayUnion(user.uid)
-        });
-
-        if(user.uid !== data.to){
-          await addDoc(collection(db,"notifications"),{
-            type:"like",
-            fromUid:user.uid,
-            toUserId:data.to,
-            messageId:docSnap.id,
-            createdAt:serverTimestamp(),
-            read:false
-          });
-        }
-      }
-    };
-  }
 
   actions.appendChild(likeDiv);
   div.appendChild(actions);
@@ -406,49 +333,6 @@ onSnapshot(q, async (snap) => {
     const div=document.createElement("div");
     div.className="msg";
 
-    /* SENDER */
-    let fromAlias="anónimo";
-    let fromPhoto="anon.png";
-
-    let possibleUid = data.senderUid || data.fromUserId || data.fromAlias;
-
-    if(possibleUid){
-
-      const fromSnap = await getDoc(doc(db,"users", possibleUid));
-
-      if(fromSnap.exists()){
-        const fromData = fromSnap.data();
-        fromAlias = fromData.alias || "anónimo";
-        fromPhoto = fromData.photoURL || "anon.png";
-      } else {
-        fromAlias = data.fromAlias || "anónimo";
-      }
-
-    }
-
-    const userRow = document.createElement("div");
-    userRow.className = "user-row";
-    userRow.style.cursor = "pointer";
-
-    if(possibleUid){
-      userRow.onclick = () => {
-        window.location.href = `user.html?alias=${fromAlias}`;
-      };
-    }
-
-    const userAvatar=document.createElement("img");
-    userAvatar.className="user-avatar";
-    userAvatar.src=fromPhoto;
-
-    const username=document.createElement("div");
-    username.className="username";
-    username.textContent=fromAlias;
-
-    userRow.appendChild(userAvatar);
-    userRow.appendChild(username);
-    div.appendChild(userRow);
-
-    /* ORIGINAL MESSAGE */
     if(data.text){
       const original=document.createElement("div");
       original.style.opacity="0.75";
@@ -458,7 +342,6 @@ onSnapshot(q, async (snap) => {
       div.appendChild(original);
     }
 
-    /* REPLY */
     if(data.reply){
       const reply=document.createElement("div");
       reply.textContent=data.reply;
@@ -472,9 +355,24 @@ onSnapshot(q, async (snap) => {
       div.appendChild(img);
     }
 
-    /* LIKE */
     const actions=document.createElement("div");
     actions.className="actions";
+
+    if(user && uid === user.uid){
+
+      const editBtn=document.createElement("button");
+      editBtn.className="edit-btn";
+      editBtn.textContent="Editar";
+
+      editBtn.onclick=async()=>{
+        await updateDoc(doc(db,"messages",docSnap.id),{
+          published:false
+        });
+        location.href=`inbox.html?edit=${docSnap.id}`;
+      };
+
+      actions.appendChild(editBtn);
+    }
 
     const likesArray=data.likes||[];
     const hasLiked=user ? likesArray.includes(user.uid) : false;
@@ -482,35 +380,6 @@ onSnapshot(q, async (snap) => {
     const likeDiv=document.createElement("div");
     likeDiv.className="like";
     likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
-
-    if(user){
-      likeDiv.onclick = async () => {
-
-        const hasLiked = likesArray.includes(user.uid);
-
-        if(hasLiked){
-          await updateDoc(doc(db,"messages",docSnap.id),{
-            likes: arrayRemove(user.uid)
-          });
-        } else {
-          await updateDoc(doc(db,"messages",docSnap.id),{
-            likes: arrayUnion(user.uid)
-          });
-
-          if(user.uid !== data.to){
-            await addDoc(collection(db,"notifications"),{
-              type:"like",
-              fromUid:user.uid,
-              toUserId:data.to,
-              messageId:docSnap.id,
-              createdAt:serverTimestamp(),
-              read:false
-            });
-          }
-        }
-
-      };
-    }
 
     actions.appendChild(likeDiv);
     div.appendChild(actions);
