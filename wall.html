@@ -387,7 +387,27 @@ onSnapshot(q, async (snap) => {
   }
 
   const userRow=document.createElement("div");
-  userRow.className="user-row";
+userRow.className="user-row";
+
+if(possibleUid){
+  userRow.onclick = () => {
+    if(user && possibleUid === user.uid){
+      location.href = "profile.html";
+    } else {
+      location.href = `user.html?alias=${fromAlias}`;
+    }
+  };
+}
+
+if(possibleUid){
+  userRow.onclick = () => {
+    if(user && possibleUid === user.uid){
+      location.href = "profile.html";
+    } else {
+      location.href = `user.html?alias=${fromAlias}`;
+    }
+  };
+}
 
   const userAvatar=document.createElement("img");
   userAvatar.className="user-avatar";
