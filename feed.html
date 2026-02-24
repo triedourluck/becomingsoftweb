@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Feed ॐ</title>
+<title>Feed</title>
 
 <style>
 body{
@@ -22,10 +22,7 @@ body{
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-h1{
-  margin-top:0;
-  font-size:22px;
-}
+h1{ margin-top:0; font-size:22px; }
 
 .post{
   border:1px solid #eee;
@@ -35,45 +32,15 @@ h1{
   background:#fafafa;
 }
 
-.username{
-  font-weight:600;
-  margin-bottom:10px;
-  cursor:pointer;
-}
-
-.username:hover{
-  opacity:0.7;
-}
-
-.message-box{
-  background:white;
-  border:1px solid #eee;
-  border-radius:14px;
-  padding:12px;
-  margin-bottom:12px;
-  font-size:15px;
-}
-
-.reply-box{
-  background:white;
-  border:1px solid #eee;
-  border-radius:14px;
-  padding:12px;
-  margin-bottom:10px;
-  font-size:15px;
-  color:#555;
-}
-
-.reply-row{
+.user-row{
   display:flex;
   align-items:center;
   gap:10px;
+  margin-bottom:8px;
   cursor:pointer;
 }
 
-.reply-row:hover{
-  opacity:0.8;
-}
+.user-row:hover{ opacity:0.8; }
 
 .avatar{
   width:40px;
@@ -83,23 +50,27 @@ h1{
   background:#ddd;
 }
 
-.reply-name{
+.username{
   font-weight:600;
 }
+
+.message-box,
+.reply-box{
+  background:white;
+  border:1px solid #eee;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:12px;
+  font-size:15px;
+}
+
+.reply-box{ color:#555; }
 
 .like{
   margin-top:10px;
   font-size:15px;
   cursor:pointer;
   user-select:none;
-}
-
-.back{
-  margin-top:20px;
-  text-align:center;
-  text-decoration:underline;
-  cursor:pointer;
-  font-size:14px;
 }
 </style>
 </head>
@@ -109,7 +80,6 @@ h1{
 <div class="container">
 <h1>Feed ॐ</h1>
 <div id="feed"></div>
-<div class="back" onclick="goBack()">← Volver</div>
 </div>
 
 <script type="module">
@@ -122,6 +92,7 @@ import {
   orderBy,
   where,
   getDocs,
+  getDoc,
   doc,
   updateDoc,
   arrayUnion,
@@ -152,19 +123,16 @@ onAuthStateChanged(auth, async(user)=>{
 
   feedEl.innerHTML="";
 
-  const messagesQuery=query(
+  const messagesSnap=await getDocs(query(
     collection(db,"messages"),
     where("published","==",true),
     orderBy("createdAt","desc")
-  );
+  ));
 
-  const postsQuery=query(
+  const postsSnap=await getDocs(query(
     collection(db,"posts"),
     orderBy("createdAt","desc")
-  );
-
-  const messagesSnap=await getDocs(messagesQuery);
-  const postsSnap=await getDocs(postsQuery);
+  ));
 
   const allDocs=[];
 
@@ -181,41 +149,73 @@ onAuthStateChanged(auth, async(user)=>{
     return b.createdAt.seconds - a.createdAt.seconds;
   });
 
-  if(allDocs.length===0){
-    feedEl.innerHTML="<p>No hay nada por aquí todavía 🌱</p>";
-    return;
-  }
-
   for(const data of allDocs){
 
     const post=document.createElement("div");
     post.className="post";
 
-    // ===== PREGUNTA USERNAME (sin avatar) =====
+    // ===== FUNCIÓN PARA OBTENER USER POR UID =====
 
-    const username=document.createElement("div");
-    username.className="username";
+    async function getUserByUid(uid){
+      const userRef=doc(db,"users",uid);
+      const snap=await getDoc(userRef);
+      if(snap.exists()) return {id:snap.id, ...snap.data()};
+      return null;
+    }
 
-    if(data.source==="posts"){
-      username.textContent=data.authorAlias || "anónimo";
-      username.onclick=()=>{
-        location.href=`user.html?alias=${data.authorAlias}`;
-      };
-    }else{
+    // ===== FUNCIÓN PARA OBTENER USER POR ALIAS =====
+
+    async function getUserByAlias(alias){
+      const snap=await getDocs(query(
+        collection(db,"users"),
+        where("alias","==",alias)
+      ));
+      if(!snap.empty) return {id:snap.docs[0].id, ...snap.docs[0].data()};
+      return null;
+    }
+
+    // ===== PREGUNTA =====
+
+    let senderUser=null;
+
+    if(data.source==="messages"){
       if(data.fromAlias){
-        username.textContent=data.fromAlias;
-        username.onclick=()=>{
-          location.href=`user.html?alias=${data.fromAlias}`;
-        };
-      }else{
-        username.textContent="anónimo";
-        username.style.cursor="default";
+        senderUser=await getUserByAlias(data.fromAlias);
+      }
+    }else{
+      if(data.authorAlias){
+        senderUser=await getUserByAlias(data.authorAlias);
       }
     }
 
-    post.appendChild(username);
+    const senderRow=document.createElement("div");
+    senderRow.className="user-row";
 
-    // ===== MENSAJE =====
+    const senderAvatar=document.createElement("img");
+    senderAvatar.className="avatar";
+
+    const senderName=document.createElement("div");
+    senderName.className="username";
+
+    if(senderUser){
+      senderAvatar.src=senderUser.photoURL || "";
+      senderName.textContent=senderUser.alias;
+      senderRow.onclick=()=>{
+        if(user.uid===senderUser.id){
+          location.href="profile.html";
+        }else{
+          location.href=`user.html?alias=${senderUser.alias}`;
+        }
+      };
+    }else{
+      senderAvatar.src="";
+      senderName.textContent="anónimo";
+      senderRow.style.cursor="default";
+    }
+
+    senderRow.appendChild(senderAvatar);
+    senderRow.appendChild(senderName);
+    post.appendChild(senderRow);
 
     if(data.text){
       const messageBox=document.createElement("div");
@@ -228,49 +228,46 @@ onAuthStateChanged(auth, async(user)=>{
 
     if(data.reply){
 
+      let replyUser=null;
+
+      if(data.source==="messages" && data.to){
+        replyUser=await getUserByUid(data.to);
+      }
+
+      if(data.source==="posts" && data.authorAlias){
+        replyUser=await getUserByAlias(data.authorAlias);
+      }
+
       const replyBox=document.createElement("div");
       replyBox.className="reply-box";
       replyBox.textContent=data.reply;
       post.appendChild(replyBox);
 
-      const replyRow=document.createElement("div");
-      replyRow.className="reply-row";
+      if(replyUser){
 
-      const avatar=document.createElement("img");
-      avatar.className="avatar";
+        const replyRow=document.createElement("div");
+        replyRow.className="user-row";
 
-      const replyName=document.createElement("div");
-      replyName.className="reply-name";
+        const replyAvatar=document.createElement("img");
+        replyAvatar.className="avatar";
+        replyAvatar.src=replyUser.photoURL || "";
 
-      if(data.source==="posts"){
-        avatar.src=data.authorPhoto || "";
-        replyName.textContent=data.authorAlias || "";
+        const replyName=document.createElement("div");
+        replyName.className="username";
+        replyName.textContent=replyUser.alias;
+
         replyRow.onclick=()=>{
-          location.href=`user.html?alias=${data.authorAlias}`;
+          if(user.uid===replyUser.id){
+            location.href="profile.html";
+          }else{
+            location.href=`user.html?alias=${replyUser.alias}`;
+          }
         };
-      }else{
-        const userDoc=await getDocs(query(
-          collection(db,"users"),
-          where("__name__","==",data.to)
-        ));
 
-        if(!userDoc.empty){
-          const userData=userDoc.docs[0].data();
-          avatar.src=userData.photoURL || "";
-          replyName.textContent=userData.alias;
-          replyRow.onclick=()=>{
-            if(user.uid===data.to){
-              location.href="profile.html";
-            }else{
-              location.href=`user.html?alias=${userData.alias}`;
-            }
-          };
-        }
+        replyRow.appendChild(replyAvatar);
+        replyRow.appendChild(replyName);
+        post.appendChild(replyRow);
       }
-
-      replyRow.appendChild(avatar);
-      replyRow.appendChild(replyName);
-      post.appendChild(replyRow);
     }
 
     // ===== LIKES =====
@@ -286,14 +283,10 @@ onAuthStateChanged(auth, async(user)=>{
       const ref=doc(db,data.source,data.id);
 
       if(hasLiked){
-        await updateDoc(ref,{
-          likes: arrayRemove(user.uid)
-        });
+        await updateDoc(ref,{ likes: arrayRemove(user.uid) });
         likeDiv.textContent=`♡ ${likesArray.length-1}`;
       }else{
-        await updateDoc(ref,{
-          likes: arrayUnion(user.uid)
-        });
+        await updateDoc(ref,{ likes: arrayUnion(user.uid) });
         likeDiv.textContent=`♥︎ ${likesArray.length+1}`;
 
         if(data.to && data.to!==user.uid){
@@ -313,8 +306,6 @@ onAuthStateChanged(auth, async(user)=>{
     feedEl.appendChild(post);
   }
 });
-
-window.goBack=()=>location.href="profile.html";
 </script>
 
 </body>
