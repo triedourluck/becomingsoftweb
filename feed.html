@@ -113,7 +113,7 @@ h1{
     <h1>Feed</h1>
     <div class="nav-buttons">
       <button class="gear" onclick="location.href='settings.html'">⚙️</button>
-      <button class="icon-btn active" onclick="location.href='feed.html'">Feed</button>
+      <button class="icon-btn" id="profileBtn">Profile</button>
       <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
       <button class="icon-btn" id="wallBtn">SHHH!</button>
     </div>
@@ -156,6 +156,7 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 const feedEl=document.getElementById("feed");
 const wallBtn=document.getElementById("wallBtn");
+const profileBtn=document.getElementById("profileBtn");
 
 onAuthStateChanged(auth, async(user)=>{
   if(!user){
@@ -164,6 +165,8 @@ onAuthStateChanged(auth, async(user)=>{
   }
   
   wallBtn.onclick=()=>location.href=`wall.html?uid=${user.uid}`;
+  
+  profileBtn.onclick=()=>location.href="profile.html";
 
   feedEl.innerHTML="";
 
