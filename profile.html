@@ -493,19 +493,19 @@ onSnapshot(q,(snapshot)=>{
 
   div.addEventListener("click", async ()=>{
 
+  try{
     await updateDoc(doc(db,"notifications",docSnap.id),{
       read:true
     });
+  }catch(e){}
 
-    const messageId = data.messageId || data.postId || data.replyId;
+  if(data.messageId){
+    location.href = `wall.html?uid=${data.toUserId}&highlight=${data.messageId}`;
+  }else{
+    location.href = `wall.html?uid=${data.toUserId}`;
+  }
 
-    if(messageId){
-      location.href = `wall.html?uid=${data.toUserId}&highlight=${messageId}`;
-    }else{
-      location.href = `wall.html?uid=${data.toUserId}`;
-    }
-
-  });
+});
 
 }
 
