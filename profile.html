@@ -493,7 +493,7 @@ onSnapshot(q,(snapshot)=>{
   });
 
   div.addEventListener("click",()=>{
-    location.href = `wall.html?highlight=${data.messageId}`;
+    location.href = `wall.html?uid=${data.toUserId}&highlight=${data.messageId}`;
   });
 
 }
