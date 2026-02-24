@@ -123,8 +123,8 @@ import {
   getFirestore,
   collection,
   query,
+  where,
   orderBy,
-  getDoc,
   addDoc,
   updateDoc,
   doc,
@@ -156,9 +156,9 @@ onAuthStateChanged(auth, async(user)=>{
   }
 
   const q=query(
-    collection(db,"messages")
-    where("published","==",true)
-    orderBy("createdAt","desc")
+    collection(db,"posts"),
+    where("published","==",true),
+    orderBy("createdAt","desc"),
     limit(15)
   );
 
@@ -257,6 +257,7 @@ onAuthStateChanged(auth, async(user)=>{
             await addDoc(collection(db,"notifications"),{
               type:"like",
               fromUid:user.uid,
+              fromUsername:data.authorAlias || "",
               toUserId:data.to,
               postId:postDoc.id,
               createdAt:serverTimestamp(),
