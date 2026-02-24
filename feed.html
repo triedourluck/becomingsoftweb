@@ -22,7 +22,37 @@ body{
   box-shadow:0 10px 30px rgba(0,0,0,0.08);
 }
 
-h1{ margin-top:0; font-size:22px; }
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.nav-buttons{
+  display:flex;
+  gap:8px;
+}
+
+.gear,
+.icon-btn{
+  padding:8px 12px;
+  border:none;
+  border-radius:10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.icon-btn.active{
+  background:#444;
+}
+
+h1{ 
+  margin:0; 
+  font-size:22px; 
+}
 
 .post{
   border:1px solid #eee;
@@ -72,40 +102,24 @@ h1{ margin-top:0; font-size:22px; }
   cursor:pointer;
   user-select:none;
 }
-
-.bottom{
-  margin-top:30px;
-  display:flex;
-  gap:12px;
-  justify-content:center;
-}
-
-.gear,
-.icon-btn{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:#111;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-}
 </style>
 </head>
 
 <body>
 
 <div class="container">
-<h1>Feed</h1>
 
-<div id="feed"></div>
+  <div class="top-bar">
+    <h1>Feed</h1>
+    <div class="nav-buttons">
+      <button class="gear" onclick="location.href='settings.html'">⚙️</button>
+      <button class="icon-btn active" onclick="location.href='feed.html'">Feed</button>
+      <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
+      <button class="icon-btn" id="wallBtn">SHHH!</button>
+    </div>
+  </div>
 
-<div class="bottom">
-  <button class="gear" onclick="location.href='settings.html'">⚙️</button>
-  <button class="icon-btn" onclick="location.href='feed.html'">Feed</button>
-  <button class="icon-btn" onclick="location.href='inbox.html'">✉️</button>
-  <button class="icon-btn" id="wallBtn">SHHH!</button>
-</div>
+  <div id="feed"></div>
 
 </div>
 
@@ -179,7 +193,6 @@ onAuthStateChanged(auth, async(user)=>{
     return b.createdAt.seconds - a.createdAt.seconds;
   });
 
-  // 🔥 SOLO MOSTRAR 20
   const limitedDocs = allDocs.slice(0,20);
 
   for(const data of limitedDocs){
