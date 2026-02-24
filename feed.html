@@ -77,8 +77,6 @@ h1{
   cursor:pointer;
 }
 
-.responder-row:hover{ opacity:0.8; }
-
 .avatar{
   width:44px;
   height:44px;
@@ -123,16 +121,14 @@ import {
   getFirestore,
   collection,
   query,
-  where,
   orderBy,
-  addDoc,
-  updateDoc,
+  onSnapshot,
   doc,
-  limit,
+  updateDoc,
+  addDoc,
   serverTimestamp,
   arrayUnion,
-  arrayRemove,
-  onSnapshot
+  arrayRemove
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
@@ -149,48 +145,54 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 const feedEl=document.getElementById("feed");
 
-onAuthStateChanged(auth, async(user)=>{
+onAuthStateChanged(auth,(user)=>{
   if(!user){
     location.href="login.html";
     return;
   }
 
-  const q=query(
-    collection(db,"posts"),
-    where("published","==",true),
-    orderBy("createdAt","desc"),
-    limit(15)
+  const messagesQuery = query(
+    collection(db,"messages"),
+    orderBy("createdAt","desc")
   );
 
-  onSnapshot(q,(snap)=>{
+  const postsQuery = query(
+    collection(db,"posts"),
+    orderBy("createdAt","desc")
+  );
+
+  let messagesData = [];
+  let postsData = [];
+
+  function renderFeed(){
+
+    const combined = [...messagesData, ...postsData];
+
+    combined.sort((a,b)=>{
+      const aTime = a.createdAt?.seconds || 0;
+      const bTime = b.createdAt?.seconds || 0;
+      return bTime - aTime;
+    });
 
     feedEl.innerHTML="";
 
-    if(snap.empty){
+    if(combined.length===0){
       feedEl.innerHTML="<p>No hay nada por aquí todavía 🌱</p>";
       return;
     }
 
-    snap.forEach((postDoc)=>{
+    combined.forEach((item)=>{
 
-      const data=postDoc.data();
+      const data=item.data;
+      const id=item.id;
+      const source=item.source;
+
       const post=document.createElement("div");
       post.className="post";
 
       const senderDiv=document.createElement("div");
       senderDiv.className="sender";
-      senderDiv.textContent = data.senderAlias || "anónimo";
-
-      senderDiv.onclick = () => {
-        if(!data.senderAlias || data.senderAlias === "anónimo"){
-          return;
-        }
-        if(data.senderUid === user.uid){
-          location.href = "profile.html";
-        }else{
-          location.href = `user.html?alias=${data.senderAlias}`;
-        }
-      };
+      senderDiv.textContent = data.senderAlias || data.fromAlias || "anónimo";
 
       post.appendChild(senderDiv);
 
@@ -199,41 +201,19 @@ onAuthStateChanged(auth, async(user)=>{
       messageBox.textContent=data.text || "";
       post.appendChild(messageBox);
 
-      const replyBox=document.createElement("div");
-      replyBox.className="reply-box";
-      replyBox.textContent=data.reply || "";
+      if(data.reply){
+        const replyBox=document.createElement("div");
+        replyBox.className="reply-box";
+        replyBox.textContent=data.reply;
+        post.appendChild(replyBox);
+      }
 
       if(data.replyImage){
         const img=document.createElement("img");
         img.src=data.replyImage;
         img.className="reply-image";
-        replyBox.appendChild(img);
+        post.appendChild(img);
       }
-
-      post.appendChild(replyBox);
-
-      const responderRow=document.createElement("div");
-      responderRow.className="responder-row";
-
-      const avatar=document.createElement("img");
-      avatar.className="avatar";
-      avatar.src=data.authorPhoto || "";
-      responderRow.appendChild(avatar);
-
-      const responderName=document.createElement("div");
-      responderName.className="responder-name";
-      responderName.textContent=data.authorAlias || "";
-      responderRow.appendChild(responderName);
-
-      responderRow.onclick = () => {
-        if(data.authorUid === user.uid){
-          location.href = "profile.html";
-        }else{
-          location.href = `user.html?alias=${data.authorAlias}`;
-        }
-      };
-
-      post.appendChild(responderRow);
 
       const likesArray=data.likes||[];
       const hasLiked=likesArray.includes(user.uid);
@@ -244,12 +224,14 @@ onAuthStateChanged(auth, async(user)=>{
 
       likeDiv.onclick=async()=>{
 
+        const ref = doc(db, source, id);
+
         if(hasLiked){
-          await updateDoc(doc(db,"posts",postDoc.id),{
+          await updateDoc(ref,{
             likes: arrayRemove(user.uid)
           });
         }else{
-          await updateDoc(doc(db,"posts",postDoc.id),{
+          await updateDoc(ref,{
             likes: arrayUnion(user.uid)
           });
 
@@ -257,9 +239,8 @@ onAuthStateChanged(auth, async(user)=>{
             await addDoc(collection(db,"notifications"),{
               type:"like",
               fromUid:user.uid,
-              fromUsername:data.authorAlias || "",
-              toUserId:data.to,
-              postId:postDoc.id,
+              toUserId:data.to || data.authorUid || null,
+              postId:id,
               createdAt:serverTimestamp(),
               read:false
             });
@@ -269,9 +250,25 @@ onAuthStateChanged(auth, async(user)=>{
 
       post.appendChild(likeDiv);
       feedEl.appendChild(post);
-
     });
+  }
 
+  onSnapshot(messagesQuery,(snap)=>{
+    messagesData = snap.docs.map(docSnap=>({
+      id: docSnap.id,
+      data: docSnap.data(),
+      source: "messages"
+    }));
+    renderFeed();
+  });
+
+  onSnapshot(postsQuery,(snap)=>{
+    postsData = snap.docs.map(docSnap=>({
+      id: docSnap.id,
+      data: docSnap.data(),
+      source: "posts"
+    }));
+    renderFeed();
   });
 
 });
