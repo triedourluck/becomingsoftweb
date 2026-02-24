@@ -422,9 +422,6 @@ const newOrder = Array.from(photosContainer.children).map(img => img.src || "");
 onAuthStateChanged(auth,async(user)=>{
 if(!user){location.href="login.html";return;}
 uid=user.uid;
-/* =========================
-   LISTEN NOTIFICATIONS
-========================= */
 
 /* =========================
    LISTEN NOTIFICATIONS
@@ -449,6 +446,8 @@ onSnapshot(q,(snapshot)=>{
     div.className = "notif-item";
     div.style.cursor = "pointer";
 
+    /* ================= FOLLOW ================= */
+
     if(data.type==="follow"){
       div.textContent = `${data.fromUsername} started following you`;
       div.addEventListener("click",()=>{
@@ -456,92 +455,58 @@ onSnapshot(q,(snapshot)=>{
       });
     }
 
+    /* ================= LIKE ================= */
+
     else if(data.type==="like"){
 
-  div.innerHTML = "";
+      div.innerHTML = "";
 
-  let fromAlias = "alguien";
-  let messagePreview = "...";
+      let fromAlias = "alguien";
+      let messagePreview = "...";
 
-  if(data.messagePreview){
-    messagePreview = data.messagePreview.slice(0,30);
-  }
+      if(data.messagePreview){
+        messagePreview = data.messagePreview.slice(0,30);
+      }
 
-  getDoc(doc(db,"users",data.fromUid)).then(userSnap=>{
+      getDoc(doc(db,"users",data.fromUid)).then(userSnap=>{
 
-    if(userSnap.exists()){
-      fromAlias = userSnap.data().alias || "alguien";
+        if(userSnap.exists()){
+          fromAlias = userSnap.data().alias || "alguien";
+        }
+
+        const userSpan = document.createElement("span");
+        userSpan.textContent = fromAlias;
+        userSpan.style.fontWeight = "600";
+        userSpan.style.cursor = "pointer";
+
+        userSpan.addEventListener("click",(e)=>{
+          e.stopPropagation();
+          location.href = `user.html?alias=${fromAlias}`;
+        });
+
+        const textSpan = document.createElement("span");
+        textSpan.textContent = ` le dio like a: "${messagePreview}"`;
+
+        div.appendChild(userSpan);
+        div.appendChild(textSpan);
+      });
+
+      div.addEventListener("click", async ()=>{
+        await updateDoc(doc(db,"notifications",docSnap.id),{
+          read:true
+        });
+
+        const messageId = data.messageId || data.postId;
+
+        if(messageId){
+          location.href = `wall.html?uid=${data.toUserId}&highlight=${messageId}`;
+        }else{
+          location.href = `wall.html?uid=${data.toUserId}`;
+        }
+      });
     }
 
-    const userSpan = document.createElement("span");
-    userSpan.textContent = fromAlias;
-    userSpan.style.fontWeight = "600";
-    userSpan.style.cursor = "pointer";
-
-    userSpan.addEventListener("click",(e)=>{
-      e.stopPropagation();
-      location.href = `user.html?alias=${fromAlias}`;
-    });
-
-    const textSpan = document.createElement("span");
-    textSpan.textContent = ` le dio like a: "${messagePreview}"`;
-
-    div.appendChild(userSpan);
-    div.appendChild(textSpan);
-
-  });
-
-  div.addEventListener("click", async ()=>{
-  await updateDoc(doc(db,"notifications",docSnap.id),{
-    read:true
-  });
-
-  const messageId = data.messageId || data.postId;
-
-  if(messageId){
-    location.href = `wall.html?uid=${data.toUserId}&highlight=${messageId}`;
-  }else{
-    location.href = `wall.html?uid=${data.toUserId}`;
-  }
-});
-
-}
-
-  // obtener alias real desde users usando fromUid
-  getDoc(doc(db,"users",data.fromUid)).then(userSnap=>{
-
-    if(userSnap.exists()){
-      fromAlias = userSnap.data().alias || "alguien";
-    }
-
-    const userSpan = document.createElement("span");
-    userSpan.textContent = fromAlias;
-    userSpan.style.fontWeight = "600";
-    userSpan.style.cursor = "pointer";
-
-    userSpan.addEventListener("click",(e)=>{
-      e.stopPropagation();
-      location.href = `user.html?alias=${fromAlias}`;
-    });
-
-    const textSpan = document.createElement("span");
-    textSpan.textContent = ` le dio like a: "${messagePreview}"`;
-
-    div.appendChild(userSpan);
-    div.appendChild(textSpan);
-
-  });
-
-  div.addEventListener("click", async ()=>{
-
-  await updateDoc(doc(db,"notifications",docSnap.id),{
-    read:true
-  });
-
-  location.href = `wall.html?uid=${data.toUserId}&highlight=${data.messageId}`;
-});
-
-}
+    /* ================= MESSAGE ================= */
 
     else if(data.type==="message"){
       div.textContent = `${data.fromUsername} sent you a message`;
@@ -549,13 +514,15 @@ onSnapshot(q,(snapshot)=>{
         location.href = `inbox.html?alias=${data.fromUsername}`;
       });
     }
-    
+
+    /* ================= REPLY ================= */
+
     else if(data.type==="reply"){
-  div.textContent = `${data.fromUsername} respondió tu mensaje`;
-  div.addEventListener("click",()=>{
-    location.href = "feed.html";
-  });
-}
+      div.textContent = `${data.fromUsername} respondió tu mensaje`;
+      div.addEventListener("click",()=>{
+        location.href = "feed.html";
+      });
+    }
 
     else{
       div.textContent = "new activity";
@@ -567,7 +534,6 @@ onSnapshot(q,(snapshot)=>{
   notifDot.style.display = unread > 0 ? "block" : "none";
 });
 
-const wallBtn=document.getElementById("wallBtn");
 wallBtn.onclick=()=>location.href=`wall.html?uid=${uid}`;
 
 const snap=await getDoc(doc(db,"users",uid));
