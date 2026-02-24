@@ -362,62 +362,138 @@ onSnapshot(q, async (snap) => {
 
   for(const docSnap of snap.docs){
 
-    const data=docSnap.data();
-    const div=document.createElement("div");
-    div.className="msg";
+  const data=docSnap.data();
+  const div=document.createElement("div");
+  div.className="msg";
 
-    if(data.text){
-      const original=document.createElement("div");
-      original.style.opacity="0.75";
-      original.style.fontSize="14px";
-      original.style.marginBottom="6px";
-      original.textContent=data.text;
-      div.appendChild(original);
+  /* ===== SENDER ===== */
+
+  let fromAlias="anónimo";
+  let fromPhoto="anon.png";
+
+  let possibleUid = data.senderUid || data.fromUserId || data.fromAlias;
+
+  if(possibleUid){
+    const fromSnap = await getDoc(doc(db,"users", possibleUid));
+    if(fromSnap.exists()){
+      const fromData = fromSnap.data();
+      fromAlias = fromData.alias || "anónimo";
+      fromPhoto = fromData.photoURL || "anon.png";
+    } else {
+      fromAlias = data.fromAlias || "anónimo";
     }
-
-    if(data.reply){
-      const reply=document.createElement("div");
-      reply.textContent=data.reply;
-      div.appendChild(reply);
-    }
-
-    if(data.replyImage){
-      const img=document.createElement("img");
-      img.src=data.replyImage;
-      img.className="reply-img";
-      div.appendChild(img);
-    }
-
-    const actions=document.createElement("div");
-    actions.className="actions";
-
-    if(user && uid === user.uid){
-
-      const editBtn=document.createElement("button");
-      editBtn.className="edit-btn";
-      editBtn.textContent="Editar";
-
-      editBtn.onclick=async()=>{
-        await updateDoc(doc(db,"messages",docSnap.id),{
-          published:false
-        });
-        location.href=`inbox.html?edit=${docSnap.id}`;
-      };
-
-      actions.appendChild(editBtn);
-    }
-
-    const likesArray=data.likes||[];
-    const hasLiked=user ? likesArray.includes(user.uid) : false;
-
-    const likeDiv=document.createElement("div");
-    likeDiv.className="like";
-    likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
-
-    actions.appendChild(likeDiv);
-    div.appendChild(actions);
-    wallEl.appendChild(div);
   }
+
+  const userRow=document.createElement("div");
+  userRow.className="user-row";
+
+  const userAvatar=document.createElement("img");
+  userAvatar.className="user-avatar";
+  userAvatar.src=fromPhoto;
+
+  const username=document.createElement("div");
+  username.className="username";
+  username.textContent=fromAlias;
+
+  userRow.appendChild(userAvatar);
+  userRow.appendChild(username);
+  div.appendChild(userRow);
+
+  /* ===== ORIGINAL MESSAGE ===== */
+
+  if(data.text){
+    const original=document.createElement("div");
+    original.style.opacity="0.6";
+    original.style.fontSize="14px";
+    original.style.marginBottom="8px";
+    original.textContent=data.text;
+    div.appendChild(original);
+  }
+
+  /* ===== REPLY ===== */
+
+  if(data.reply){
+    const reply=document.createElement("div");
+    reply.style.fontSize="20px";
+    reply.style.marginBottom="12px";
+    reply.textContent=data.reply;
+    div.appendChild(reply);
+  }
+
+  if(data.replyImage){
+    const img=document.createElement("img");
+    img.src=data.replyImage;
+    img.className="reply-img";
+    div.appendChild(img);
+  }
+
+  /* ===== ACTIONS ===== */
+
+  const actions=document.createElement("div");
+  actions.className="actions";
+
+  const leftSide=document.createElement("div");
+  leftSide.style.display="flex";
+  leftSide.style.alignItems="center";
+  leftSide.style.gap="8px";
+
+  const likesArray=data.likes||[];
+  const hasLiked=user ? likesArray.includes(user.uid) : false;
+
+  const likeDiv=document.createElement("div");
+  likeDiv.className="like";
+  likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
+
+  if(user){
+    likeDiv.onclick = async () => {
+      const hasLiked = likesArray.includes(user.uid);
+      if(hasLiked){
+        await updateDoc(doc(db,"messages",docSnap.id),{
+          likes: arrayRemove(user.uid)
+        });
+      } else {
+        await updateDoc(doc(db,"messages",docSnap.id),{
+          likes: arrayUnion(user.uid)
+        });
+
+        if(user.uid !== data.to){
+          await addDoc(collection(db,"notifications"),{
+            type:"like",
+            fromUid:user.uid,
+            toUserId:data.to,
+            messageId:docSnap.id,
+            createdAt:serverTimestamp(),
+            read:false
+          });
+        }
+      }
+    };
+  }
+
+  leftSide.appendChild(likeDiv);
+  actions.appendChild(leftSide);
+
+  /* ===== EDIT BUTTON ===== */
+
+  if(user && data.to === user.uid){
+
+    const editBtn=document.createElement("button");
+    editBtn.className="edit-btn";
+    editBtn.textContent="Editar";
+
+    editBtn.onclick=async()=>{
+      await updateDoc(doc(db,"messages",docSnap.id),{
+        published:false
+      });
+      location.href=`inbox.html?edit=${docSnap.id}`;
+    };
+
+    actions.appendChild(editBtn);
+  }
+
+  div.appendChild(actions);
+  wallEl.appendChild(div);
+}
 
 });
 
