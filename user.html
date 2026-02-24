@@ -461,7 +461,7 @@ async function setupFollow(){
   const currentSnap = await getDoc(currentUserRef);
   const currentData = currentSnap.data();
 
-  const isFollowing = currentData.following?.includes(viewedUid);
+  let isFollowing = currentData.following?.includes(viewedUid);
 
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
@@ -506,7 +506,13 @@ async function setupFollow(){
       });
     }
 
-    setupFollow();
+    if (isFollowing) {
+  isFollowing = false;
+  followBtn.textContent = "Follow";
+} else {
+  isFollowing = true;
+  followBtn.textContent = "Unfollow";
+}
   };
 }
 
