@@ -282,6 +282,8 @@ userAvatar.src=fromPhoto;
 const username=document.createElement("div");
 username.className="username";
 username.textContent=fromAlias;
+username.style.fontSize="15px";
+username.style.fontWeight="600";
 
 userRow.appendChild(userAvatar);
 userRow.appendChild(username);
@@ -403,22 +405,24 @@ onSnapshot(q, async (snap) => {
 
   if(data.text){
     const original=document.createElement("div");
-    original.style.opacity="0.6";
-    original.style.fontSize="14px";
-    original.style.marginBottom="8px";
-    original.textContent=data.text;
+    original.textContent = data.text;
+    original.style.opacity="0.75";
+    original.style.fontSize="17px";
+    original.style.fontWeight="500";
+    original.style.marginBottom="10px";
     div.appendChild(original);
   }
 
   /* ===== REPLY ===== */
 
   if(data.reply){
-    const reply=document.createElement("div");
-    reply.style.fontSize="20px";
-    reply.style.marginBottom="12px";
-    reply.textContent=data.reply;
-    div.appendChild(reply);
-  }
+  const reply=document.createElement("div");
+  reply.textContent = data.reply;
+  reply.style.fontSize="16px";
+  reply.style.fontWeight="400";
+  reply.style.marginBottom="14px";
+  div.appendChild(reply);
+}
 
   if(data.replyImage){
     const img=document.createElement("img");
