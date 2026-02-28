@@ -658,7 +658,7 @@ if(possibleUid){
 
 });
 
-const loadStatuses = async (uid) => {
+async function loadStatuses(profileUid){
 
   const statusList = document.getElementById("statusList");
   if(!statusList) return;
@@ -668,7 +668,7 @@ const loadStatuses = async (uid) => {
   const snap = await getDocs(
     query(
       collection(db,"statusPosts"),
-      where("authorUid","==",uid),
+      where("authorUid", "==", profileUid),
       orderBy("createdAt","desc")
     )
   );
