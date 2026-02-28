@@ -203,9 +203,8 @@ statusSnap.forEach(d=>{
 });
 
   allDocs.sort((a,b)=>{
-  const aTime = a.createdAt?.seconds || 0;
-  const bTime = b.createdAt?.seconds || 0;
-  return bTime - aTime;
+  if(!a.createdAt || !b.createdAt) return 0;
+  return b.createdAt.seconds - a.createdAt.seconds;
 });
 
   const limitedDocs = allDocs.slice(0,20);
