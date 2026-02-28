@@ -191,21 +191,40 @@ const statusSnap = await getDocs(query(
   const allDocs=[];
 
   messagesSnap.forEach(d=>{
-    allDocs.push({id:d.id, ...d.data(), source:"messages"});
+  const data = d.data();
+  allDocs.push({
+    id: d.id,
+    ...data,
+    source: "messages",
+    createdAt: typeof data.createdAt === "number"
+      ? Math.floor(data.createdAt / 1000)
+      : data.createdAt?.seconds || 0
   });
-
-  postsSnap.forEach(d=>{
-    allDocs.push({id:d.id, ...d.data(), source:"posts"});
-  });
-
-statusSnap.forEach(d=>{
-  allDocs.push({id:d.id, ...d.data(), source:"statusPosts"});
 });
 
-  allDocs.sort((a,b)=>{
-    if(!a.createdAt || !b.createdAt) return 0;
-    return b.createdAt.seconds - a.createdAt.seconds;
+  postsSnap.forEach(d=>{
+  const data = d.data();
+  allDocs.push({
+    id: d.id,
+    ...data,
+    source: "posts",
+    createdAt: typeof data.createdAt === "number"
+      ? Math.floor(data.createdAt / 1000)
+      : data.createdAt?.seconds || 0
   });
+});
+
+statusSnap.forEach(d=>{
+  const data = d.data();
+  allDocs.push({
+    id: d.id,
+    ...data,
+    source: "statusPosts",
+    createdAt: data.createdAt?.seconds || 0
+  });
+});
+
+ allDocs.sort((a,b)=> b.createdAt - a.createdAt);
 
   const limitedDocs = allDocs.slice(0,20);
 
