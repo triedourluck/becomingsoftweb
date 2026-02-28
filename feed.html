@@ -233,31 +233,6 @@ statusSnap.forEach(d=>{
     const post=document.createElement("div");
     post.className="post";
 
-if(data.source === "statusPosts"){
-
-  if(data.text){
-    const text = document.createElement("div");
-    text.textContent = data.text;
-    text.style.fontSize="16px";
-    text.style.marginBottom="10px";
-    post.appendChild(text);
-  }
-
-  if(data.mediaURL){
-    const img = document.createElement("img");
-    img.src = data.mediaURL;
-    img.style.width = "100%";
-    img.style.borderRadius = "14px";
-    img.style.marginTop = "10px";
-    post.appendChild(img);
-  }
-  
-feedEl.appendChild(post);
-
-continue;
-
-}
-
     async function getUserByUid(uid){
       const userRef=doc(db,"users",uid);
       const snap=await getDoc(userRef);
@@ -279,11 +254,15 @@ continue;
     if (data.source === "messages") {
 
       if (data.fromAlias) {
-        senderUser = await getUserByAlias(data.fromAlias);
-        if (!senderUser) {
-          senderUser = await getUserByUid(data.fromAlias);
-        }
-      }
+
+  // primero intentar como UID
+  senderUser = await getUserByUid(data.fromAlias);
+
+  // si no existe como UID, intentar como alias
+  if (!senderUser) {
+    senderUser = await getUserByAlias(data.fromAlias);
+  }
+}
 
     } else {
 
