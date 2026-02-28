@@ -138,7 +138,8 @@ import {
   updateDoc,
   arrayUnion,
   arrayRemove,
-  addDoc
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig={
@@ -153,7 +154,6 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
-
 const feedEl=document.getElementById("feed");
 const wallBtn=document.getElementById("wallBtn");
 const profileBtn=document.getElementById("profileBtn");
@@ -163,33 +163,30 @@ onAuthStateChanged(auth, async(user)=>{
     location.href="login.html";
     return;
   }
-
+  
   wallBtn.onclick=()=>location.href=`wall.html?uid=${user.uid}`;
+  
   profileBtn.onclick=()=>location.href="profile.html";
 
   feedEl.innerHTML="";
 
   const messagesSnap = await getDocs(
-    query(
-      collection(db,"messages"),
-      where("published","==",true),
-      orderBy("createdAt","desc")
-    )
-  );
+  query(
+    collection(db,"messages"),
+    where("published","==",true),
+    orderBy("createdAt","desc")
+  )
+);
 
-  const postsSnap = await getDocs(
-    query(
-      collection(db,"posts"),
-      orderBy("createdAt","desc")
-    )
-  );
+  const postsSnap=await getDocs(query(
+    collection(db,"posts"),
+    orderBy("createdAt","desc")
+  ));
 
-  const statusSnap = await getDocs(
-    query(
-      collection(db,"statusPosts"),
-      orderBy("createdAt","desc")
-    )
-  );
+const statusSnap = await getDocs(query(
+  collection(db,"statusPosts"),
+  orderBy("createdAt","desc")
+));
 
   const allDocs=[];
 
@@ -201,38 +198,101 @@ onAuthStateChanged(auth, async(user)=>{
     allDocs.push({id:d.id, ...d.data(), source:"posts"});
   });
 
-  statusSnap.forEach(d=>{
-    allDocs.push({id:d.id, ...d.data(), source:"statusPosts"});
-  });
+statusSnap.forEach(d=>{
+  allDocs.push({id:d.id, ...d.data(), source:"statusPosts"});
+});
 
   allDocs.sort((a,b)=>{
-    const aTime = a.createdAt?.seconds || 0;
-    const bTime = b.createdAt?.seconds || 0;
-    return bTime - aTime;
-  });
+  const aTime = a.createdAt?.seconds 
+    || a.createdAt?.toDate?.().getTime()/1000 
+    || 0;
+
+  const bTime = b.createdAt?.seconds 
+    || b.createdAt?.toDate?.().getTime()/1000 
+    || 0;
+
+  return bTime - aTime;
+});
 
   const limitedDocs = allDocs.slice(0,20);
-
-  async function getUserByUid(uid){
-    const userRef=doc(db,"users",uid);
-    const snap=await getDoc(userRef);
-    if(snap.exists()) return {id:snap.id, ...snap.data()};
-    return null;
-  }
-
-  async function getUserByAlias(alias){
-    const snap=await getDocs(query(
-      collection(db,"users"),
-      where("alias","==",alias)
-    ));
-    if(!snap.empty) return {id:snap.docs[0].id, ...snap.docs[0].data()};
-    return null;
-  }
 
   for(const data of limitedDocs){
 
     const post=document.createElement("div");
     post.className="post";
+    
+if(data.source === "statusPosts"){
+
+  const senderRow=document.createElement("div");
+  senderRow.className="user-row";
+
+  const senderAvatar=document.createElement("img");
+  senderAvatar.className="avatar";
+  senderAvatar.src=""; 
+
+  const senderName=document.createElement("div");
+  senderName.className="username";
+  senderName.textContent=data.authorAlias || "usuario";
+
+  senderRow.appendChild(senderAvatar);
+  senderRow.appendChild(senderName);
+  post.appendChild(senderRow);
+
+  if(data.text){
+    const text = document.createElement("div");
+    text.className="message-box";
+    text.textContent = data.text;
+    post.appendChild(text);
+  }
+
+  if(data.mediaURL){
+    const img = document.createElement("img");
+    img.src = data.mediaURL;
+    img.style.width="100%";
+    img.style.borderRadius="14px";
+    img.style.marginTop="10px";
+    post.appendChild(img);
+  }
+
+  const likesArray=data.likes||[];
+  const hasLiked=likesArray.includes(user.uid);
+
+  const likeDiv=document.createElement("div");
+  likeDiv.className="like";
+  likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
+
+  likeDiv.onclick=async()=>{
+    const ref=doc(db,"statusPosts",data.id);
+
+    if(hasLiked){
+      await updateDoc(ref,{ likes: arrayRemove(user.uid) });
+    }else{
+      await updateDoc(ref,{ likes: arrayUnion(user.uid) });
+    }
+  };
+
+  post.appendChild(likeDiv);
+
+  feedEl.appendChild(post);
+
+  continue;
+}
+
+    async function getUserByUid(uid){
+      const userRef=doc(db,"users",uid);
+      const snap=await getDoc(userRef);
+      if(snap.exists()) return {id:snap.id, ...snap.data()};
+      return null;
+    }
+
+    async function getUserByAlias(alias){
+      const snap=await getDocs(query(
+        collection(db,"users"),
+        where("alias","==",alias)
+      ));
+      if(!snap.empty) return {id:snap.docs[0].id, ...snap.docs[0].data()};
+      return null;
+    }
 
     let senderUser = null;
 
@@ -292,20 +352,48 @@ onAuthStateChanged(auth, async(user)=>{
       post.appendChild(messageBox);
     }
 
-    if(data.mediaURL){
-      const img=document.createElement("img");
-      img.src=data.mediaURL;
-      img.style.width="100%";
-      img.style.borderRadius="14px";
-      img.style.marginTop="10px";
-      post.appendChild(img);
-    }
-
     if(data.reply){
+
+      let replyUser=null;
+
+      if(data.source==="messages" && data.to){
+        replyUser=await getUserByUid(data.to);
+      }
+
+      if(data.source==="posts" && data.authorAlias){
+        replyUser=await getUserByAlias(data.authorAlias);
+      }
+
       const replyBox=document.createElement("div");
       replyBox.className="reply-box";
       replyBox.textContent=data.reply;
       post.appendChild(replyBox);
+
+      if(replyUser){
+
+        const replyRow=document.createElement("div");
+        replyRow.className="user-row";
+
+        const replyAvatar=document.createElement("img");
+        replyAvatar.className="avatar";
+        replyAvatar.src=replyUser.photoURL || "";
+
+        const replyName=document.createElement("div");
+        replyName.className="username";
+        replyName.textContent=replyUser.alias;
+
+        replyRow.onclick=()=>{
+          if(user.uid===replyUser.id){
+            location.href="profile.html";
+          }else{
+            location.href=`user.html?alias=${replyUser.alias}`;
+          }
+        };
+
+        replyRow.appendChild(replyAvatar);
+        replyRow.appendChild(replyName);
+        post.appendChild(replyRow);
+      }
     }
 
     const likesArray=data.likes||[];
@@ -317,17 +405,30 @@ onAuthStateChanged(auth, async(user)=>{
 
     likeDiv.onclick=async()=>{
       const ref=doc(db,data.source,data.id);
+
       if(hasLiked){
         await updateDoc(ref,{ likes: arrayRemove(user.uid) });
+        likeDiv.textContent=`♡ ${likesArray.length-1}`;
       }else{
         await updateDoc(ref,{ likes: arrayUnion(user.uid) });
+        likeDiv.textContent=`♥︎ ${likesArray.length+1}`;
+
+        if(data.to && data.to!==user.uid){
+          await addDoc(collection(db,"notifications"),{
+            type:"like",
+            fromUid:user.uid,
+            toUserId:data.to,
+            postId:data.id,
+            createdAt:serverTimestamp(),
+            read:false
+          });
+        }
       }
     };
 
     post.appendChild(likeDiv);
     feedEl.appendChild(post);
   }
-
 });
 </script>
 
