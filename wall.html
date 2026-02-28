@@ -679,30 +679,112 @@ async function loadStatuses(profileUid){
   );
 
   const now = new Date();
+  const currentUser = auth.currentUser;
 
-  snap.forEach(docSnap => {
+  for(const docSnap of snap.docs){
 
     const data = docSnap.data();
 
     if(data.expiresAt){
-  const expireDate = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
-  if(expireDate < now){
-    return;
-  }
-}
+      const expireDate = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
+      if(expireDate < now){
+        continue;
+      }
+    }
 
-    const post = document.createElement("div");
-    post.className = "post";
+    const div = document.createElement("div");
+    div.className = "msg";
+
+    /* ===== USER ROW ===== */
+
+    const userRow = document.createElement("div");
+    userRow.className = "user-row";
+
+    const userAvatar = document.createElement("img");
+    userAvatar.className = "user-avatar";
+    userAvatar.src = avatarEl.src || "anon.png";
+
+    const username = document.createElement("div");
+    username.className = "username";
+    username.textContent = aliasEl.textContent;
+
+    userRow.appendChild(userAvatar);
+    userRow.appendChild(username);
+    div.appendChild(userRow);
+
+    /* ===== TEXT ===== */
 
     const text = document.createElement("div");
     text.textContent = data.text;
+    text.style.fontSize = "16px";
+    text.style.marginBottom = "14px";
 
-    post.appendChild(text);
-    statusList.appendChild(post);
+    div.appendChild(text);
 
-  });
+    /* ===== ACTIONS ===== */
 
-};
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    const leftSide = document.createElement("div");
+    leftSide.style.display = "flex";
+    leftSide.style.alignItems = "center";
+    leftSide.style.gap = "8px";
+
+    const likesArray = data.likes || [];
+    const hasLiked = currentUser ? likesArray.includes(currentUser.uid) : false;
+
+    const likeDiv = document.createElement("div");
+    likeDiv.className = "like";
+    likeDiv.textContent = `${hasLiked ? "♥︎" : "♡"} ${likesArray.length}`;
+
+    if(currentUser){
+      likeDiv.onclick = async () => {
+
+        const statusRef = doc(db,"statusPosts",docSnap.id);
+        const freshSnap = await getDoc(statusRef);
+        const freshData = freshSnap.data();
+        const freshLikes = freshData.likes || [];
+        const alreadyLiked = freshLikes.includes(currentUser.uid);
+
+        if(alreadyLiked){
+          await updateDoc(statusRef,{
+            likes: arrayRemove(currentUser.uid)
+          });
+        }else{
+          await updateDoc(statusRef,{
+            likes: arrayUnion(currentUser.uid)
+          });
+        }
+      };
+    }
+
+    leftSide.appendChild(likeDiv);
+    actions.appendChild(leftSide);
+
+    /* ===== EDIT BUTTON ===== */
+
+    if(currentUser && currentUser.uid === profileUid){
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "edit-btn";
+      editBtn.textContent = "Editar";
+
+      editBtn.onclick = async () => {
+        await updateDoc(doc(db,"statusPosts",docSnap.id),{
+          text: prompt("Editar estado:", data.text) || data.text
+        });
+      };
+
+      actions.appendChild(editBtn);
+    }
+
+    div.appendChild(actions);
+    statusList.appendChild(div);
+
+  }
+
+}
 
 window.goFeed=()=>location.href="feed.html";
 window.goProfile=()=>location.href="profile.html";
