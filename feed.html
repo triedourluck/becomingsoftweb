@@ -189,15 +189,10 @@ const statusSnap = await getDocs(query(
 ));
 
   const allDocs=[];
-  
-  const seen = new Set();
 
   messagesSnap.forEach(d=>{
-  if(!seen.has(d.id)){
-    seen.add(d.id);
     allDocs.push({id:d.id, ...d.data(), source:"messages"});
-  }
-});
+  });
 
   postsSnap.forEach(d=>{
     allDocs.push({id:d.id, ...d.data(), source:"posts"});
@@ -208,24 +203,9 @@ statusSnap.forEach(d=>{
 });
 
   allDocs.sort((a,b)=>{
-  const getTime = (doc)=>{
-    if(!doc.createdAt) return 0;
-
-    // Si es Timestamp de Firestore
-    if(typeof doc.createdAt === "object" && doc.createdAt.seconds){
-      return doc.createdAt.seconds;
-    }
-
-    // Si es número (milisegundos)
-    if(typeof doc.createdAt === "number"){
-      return Math.floor(doc.createdAt / 1000);
-    }
-
-    return 0;
-  };
-
-  return getTime(b) - getTime(a);
-});
+    if(!a.createdAt || !b.createdAt) return 0;
+    return b.createdAt.seconds - a.createdAt.seconds;
+  });
 
   const limitedDocs = allDocs.slice(0,20);
 
@@ -233,62 +213,28 @@ statusSnap.forEach(d=>{
 
     const post=document.createElement("div");
     post.className="post";
-    
+
 if(data.source === "statusPosts"){
-
-  const senderRow=document.createElement("div");
-  senderRow.className="user-row";
-
-  const senderAvatar=document.createElement("img");
-  senderAvatar.className="avatar";
-  senderAvatar.src=""; 
-
-  const senderName=document.createElement("div");
-  senderName.className="username";
-  senderName.textContent=data.authorAlias || "usuario";
-
-  senderRow.appendChild(senderAvatar);
-  senderRow.appendChild(senderName);
-  post.appendChild(senderRow);
 
   if(data.text){
     const text = document.createElement("div");
-    text.className="message-box";
     text.textContent = data.text;
+    text.style.fontSize="16px";
+    text.style.marginBottom="10px";
     post.appendChild(text);
   }
 
   if(data.mediaURL){
     const img = document.createElement("img");
     img.src = data.mediaURL;
-    img.style.width="100%";
-    img.style.borderRadius="14px";
-    img.style.marginTop="10px";
+    img.style.width = "100%";
+    img.style.borderRadius = "14px";
+    img.style.marginTop = "10px";
     post.appendChild(img);
   }
+  
+feedEl.appendChild(post);
 
-  const likesArray=data.likes||[];
-  const hasLiked=likesArray.includes(user.uid);
-
-  const likeDiv=document.createElement("div");
-  likeDiv.className="like";
-  likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
-
-  likeDiv.onclick=async()=>{
-    const ref=doc(db,"statusPosts",data.id);
-
-    if(hasLiked){
-      await updateDoc(ref,{ likes: arrayRemove(user.uid) });
-    }else{
-      await updateDoc(ref,{ likes: arrayUnion(user.uid) });
-    }
-  };
-
-  post.appendChild(likeDiv);
-
-  feedEl.appendChild(post);
-
-  continue;
 }
 
     async function getUserByUid(uid){
@@ -309,31 +255,25 @@ if(data.source === "statusPosts"){
 
     let senderUser = null;
 
-if (data.source === "messages") {
+    if (data.source === "messages") {
 
-  if (data.fromAlias) {
-    senderUser = await getUserByAlias(data.fromAlias);
-    if (!senderUser) {
-      senderUser = await getUserByUid(data.fromAlias);
+      if (data.fromAlias) {
+        senderUser = await getUserByAlias(data.fromAlias);
+        if (!senderUser) {
+          senderUser = await getUserByUid(data.fromAlias);
+        }
+      }
+
+    } else {
+
+      if (data.authorUid) {
+        senderUser = await getUserByUid(data.authorUid);
+      }
+
+      if (!senderUser && data.authorAlias) {
+        senderUser = await getUserByAlias(data.authorAlias);
+      }
     }
-  }
-
-} else if (data.source === "statusPosts") {
-
-  if (data.authorUid) {
-    senderUser = await getUserByUid(data.authorUid);
-  }
-
-} else {
-
-  if (data.authorUid) {
-    senderUser = await getUserByUid(data.authorUid);
-  }
-
-  if (!senderUser && data.authorAlias) {
-    senderUser = await getUserByAlias(data.authorAlias);
-  }
-}
 
     const senderRow=document.createElement("div");
     senderRow.className="user-row";
