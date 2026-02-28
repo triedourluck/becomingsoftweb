@@ -390,10 +390,10 @@ if(targetUserId && targetUserId !== user.uid){
   await addDoc(collection(db,"notifications"),{
     type:"like",
     fromUid:user.uid,
-    toUserId:targetUserId,
-    postId:data.id,
-    createdAt:serverTimestamp(),
-    read:false
+    toUserId: targetUserId,
+    postId: data.id,
+    createdAt: serverTimestamp(),
+    read: false
   });
 }
       }
