@@ -329,7 +329,7 @@ for(const docSnap of snap.docs){
         }
       }
 
-      await addDoc(collection(db,"posts"),{
+      const newPostRef = await addDoc(collection(db,"posts"),{
   senderUid: user.uid,
   senderAlias: userData.alias,
   authorUid: data.authorUid || null,
