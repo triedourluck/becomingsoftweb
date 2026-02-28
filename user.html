@@ -594,6 +594,60 @@ window.searchUser = function(){
   if(!value) return;
   window.location.href = `user.html?alias=${value}`;
 };
+
+async function sendMessage(){
+
+  const currentUser = auth.currentUser;
+  if(!viewedUid) return;
+
+  const text = msgInput.value.trim();
+  if(!text) return;
+
+  const mode = document.querySelector('input[name="mode"]:checked')?.value || "anon";
+
+  let fromUserId = null;
+  let fromAlias = null;
+
+  if(mode === "alias" && currentUser){
+    const userSnap = await getDoc(doc(db,"users",currentUser.uid));
+    const userData = userSnap.data();
+    fromUserId = currentUser.uid;
+    fromAlias = userData?.alias || null;
+  }
+
+  await addDoc(collection(db,"messages"),{
+    to: viewedUid,
+    text: text,
+    fromUserId: fromUserId,
+    fromAlias: fromAlias,
+    createdAt: serverTimestamp(),
+    published: false
+  });
+
+  // 🔔 Crear notificación de mensaje
+  if(currentUser && currentUser.uid !== viewedUid){
+
+    const userSnap = await getDoc(doc(db,"users",currentUser.uid));
+    const fromUsername = userSnap.data()?.alias || "alguien";
+
+    await addDoc(collection(db,"notifications"),{
+      type:"message",
+      toUserId:viewedUid,
+      fromUid:currentUser.uid,
+      fromUsername:fromUsername,
+      createdAt:serverTimestamp(),
+      read:false
+    });
+
+  }
+
+  msgInput.value = "";
+  alert("Mensaje enviado ✨");
+
+}
+
+window.sendMessage = sendMessage;
+
 </script>
 
 </body>
