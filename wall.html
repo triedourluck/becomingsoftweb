@@ -373,74 +373,6 @@ const publishStatusBtn = document.getElementById("publishStatusBtn");
 
 console.log("Botón:", publishStatusBtn);
 
-if(publishStatusBtn){
-
-  publishStatusBtn.onclick = async () => {
-
-  const user = auth.currentUser;
-  if(!user) return;
-
-  const text = statusInput.value.trim();
-  if(!text) return;
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
-
-  // Contar posts de hoy
-  const todaySnap = await getDocs(
-    query(
-      collection(db,"statusPosts"),
-      where("authorUid","==",user.uid),
-      where("createdAt",">=",today)
-    )
-  );
-
-  if(todaySnap.size >= 10){
-    alert("Límite diario alcanzado (10)");
-    return;
-  }
-
-  const duration = document.querySelector('input[name="duration"]:checked')?.value;
-
-  let expiresAt = null;
-  if(duration === "24h"){
-    const expires = new Date();
-    expires.setHours(expires.getHours()+24);
-    expiresAt = expires;
-  }
-
-  const userSnap = await getDoc(doc(db,"users",user.uid));
-  const userData = userSnap.data();
-
-  let mediaURL = null;
-
-  const fileInput = document.getElementById("statusMedia");
-  const file = fileInput.files[0];
-
-  if(file){
-    const storageRef = ref(storage,`statusMedia/${user.uid}_${Date.now()}`);
-    await uploadBytes(storageRef,file);
-    mediaURL = await getDownloadURL(storageRef);
-  }
-
-  await addDoc(collection(db,"statusPosts"),{
-    authorUid:user.uid,
-    authorAlias:userData.alias,
-    text:text,
-    mediaURL:mediaURL,
-    createdAt:new Date(),
-    expiresAt:expiresAt,
-    likes:[]
-  });
-  
-  await loadStatuses(user.uid);
-
-  statusInput.value="";
-  fileInput.value="";
-};
-
-}
-
 const wallEl=document.getElementById("wall");
 const emptyEl=document.getElementById("empty");
 const avatarEl=document.getElementById("avatar");
@@ -937,6 +869,52 @@ async function loadStatuses(profileUid){
 window.goFeed=()=>location.href="feed.html";
 window.goProfile=()=>location.href="profile.html";
 window.goInbox=()=>location.href="inbox.html";
+
+const publishStatusBtn = document.getElementById("publishStatusBtn");
+
+publishStatusBtn.addEventListener("click", async () => {
+
+  const user = auth.currentUser;
+  if(!user){
+    alert("Debes iniciar sesión");
+    return;
+  }
+
+  const text = statusInput.value.trim();
+  const file = fileInput?.files?.[0];
+
+  if(!text && !file){
+    alert("Escribe algo o sube un archivo");
+    return;
+  }
+
+  let mediaURL = null;
+
+  if(file){
+    const storageRef = ref(storage, `statusMedia/${user.uid}_${Date.now()}`);
+    await uploadBytes(storageRef, file);
+    mediaURL = await getDownloadURL(storageRef);
+  }
+
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  const userData = userSnap.data();
+
+  await addDoc(collection(db, "statusPosts"), {
+    authorUid: user.uid,
+    authorAlias: userData.alias,
+    text: text,
+    mediaURL: mediaURL,
+    createdAt: serverTimestamp(),
+    likes: []
+  });
+
+  statusInput.value = "";
+  fileInput.value = "";
+
+  location.reload(); // refresca para que aparezca inmediato
+
+});
+
 </script>
 
 </body>
