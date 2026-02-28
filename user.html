@@ -423,6 +423,8 @@ async function setupFollow(){
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
+    
+    const wasFollowing = isFollowing;
 
     await runTransaction(db, async (transaction) => {
 
@@ -446,6 +448,22 @@ async function setupFollow(){
       }
 
     });
+
+if(!wasFollowing){
+
+  const userSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
+  const fromAlias = userSnap.data()?.alias || "alguien";
+
+  await addDoc(collection(db,"notifications"),{
+    type:"follow",
+    toUserId:viewedUid,
+    fromUid:auth.currentUser.uid,
+    fromUsername:fromAlias,
+    createdAt:serverTimestamp(),
+    read:false
+  });
+
+}
 
     if(isFollowing){
       isFollowing = false;
