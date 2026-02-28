@@ -684,9 +684,12 @@ async function loadStatuses(profileUid){
 
     const data = docSnap.data();
 
-    if(data.expiresAt && data.expiresAt.toDate() < now){
-      return;
-    }
+    if(data.expiresAt){
+  const expireDate = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt);
+  if(expireDate < now){
+    return;
+  }
+}
 
     const post = document.createElement("div");
     post.className = "post";
