@@ -189,6 +189,8 @@ const statusSnap = await getDocs(query(
 ));
 
   const allDocs=[];
+  
+  const seenIds = new Set();
 
   messagesSnap.forEach(d=>{
     allDocs.push({id:d.id, ...d.data(), source:"messages"});
