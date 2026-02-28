@@ -191,6 +191,32 @@ body{
   display:inline-block;
 }
 
+.media-preview{
+  position:relative;
+  margin-top:12px;
+}
+
+.media-preview img,
+.media-preview video{
+  width:100%;
+  border-radius:14px;
+  max-height:350px;
+  object-fit:cover;
+}
+
+.remove-media{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:rgba(0,0,0,0.7);
+  color:white;
+  border:none;
+  border-radius:50%;
+  width:28px;
+  height:28px;
+  cursor:pointer;
+}
+
 </style>
 </head>
 
@@ -219,6 +245,11 @@ body{
   
 <label for="statusMedia" class="media-btn">📷</label>
 <input type="file" id="statusMedia" accept="image/*,video/*" hidden>
+  
+  <div id="mediaPreview" class="media-preview" style="display:none;">
+  <button id="removeMedia" class="remove-media">✕</button>
+  <div id="previewContent"></div>
+</div>
 
   <div class="status-actions">
     <div class="status-options">
@@ -288,6 +319,44 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 const statusInput = document.getElementById("statusInput");
 const storage = getStorage(app);
+
+const fileInput = document.getElementById("statusMedia");
+const mediaPreview = document.getElementById("mediaPreview");
+const previewContent = document.getElementById("previewContent");
+const removeMediaBtn = document.getElementById("removeMedia");
+
+if(fileInput){
+  fileInput.addEventListener("change", () => {
+
+    const file = fileInput.files[0];
+    if(!file) return;
+
+    previewContent.innerHTML = "";
+
+    const fileURL = URL.createObjectURL(file);
+
+    if(file.type.startsWith("video")){
+      const video = document.createElement("video");
+      video.src = fileURL;
+      video.controls = true;
+      previewContent.appendChild(video);
+    } else {
+      const img = document.createElement("img");
+      img.src = fileURL;
+      previewContent.appendChild(img);
+    }
+
+    mediaPreview.style.display = "block";
+  });
+}
+
+if(removeMediaBtn){
+  removeMediaBtn.onclick = () => {
+    fileInput.value = "";
+    previewContent.innerHTML = "";
+    mediaPreview.style.display = "none";
+  };
+}
 
 if(statusInput){
   statusInput.addEventListener("input",()=>{
