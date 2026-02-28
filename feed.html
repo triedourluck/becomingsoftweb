@@ -183,6 +183,11 @@ onAuthStateChanged(auth, async(user)=>{
     orderBy("createdAt","desc")
   ));
 
+const statusSnap = await getDocs(query(
+  collection(db,"statusPosts"),
+  orderBy("createdAt","desc")
+));
+
   const allDocs=[];
 
   messagesSnap.forEach(d=>{
@@ -192,6 +197,10 @@ onAuthStateChanged(auth, async(user)=>{
   postsSnap.forEach(d=>{
     allDocs.push({id:d.id, ...d.data(), source:"posts"});
   });
+
+statusSnap.forEach(d=>{
+  allDocs.push({id:d.id, ...d.data(), source:"statusPosts"});
+});
 
   allDocs.sort((a,b)=>{
     if(!a.createdAt || !b.createdAt) return 0;
@@ -204,6 +213,29 @@ onAuthStateChanged(auth, async(user)=>{
 
     const post=document.createElement("div");
     post.className="post";
+
+if(data.source === "statusPosts"){
+
+  if(data.text){
+    const text = document.createElement("div");
+    text.textContent = data.text;
+    text.style.fontSize="16px";
+    text.style.marginBottom="10px";
+    post.appendChild(text);
+  }
+
+  if(data.mediaURL){
+    const img = document.createElement("img");
+    img.src = data.mediaURL;
+    img.style.width = "100%";
+    img.style.borderRadius = "14px";
+    img.style.marginTop = "10px";
+    post.appendChild(img);
+  }
+  
+feedEl.appendChild(post);
+
+}
 
     async function getUserByUid(uid){
       const userRef=doc(db,"users",uid);
