@@ -296,25 +296,31 @@ if(data.source === "statusPosts"){
 
     let senderUser = null;
 
-    if (data.source === "messages") {
+if (data.source === "messages") {
 
-      if (data.fromAlias) {
-        senderUser = await getUserByAlias(data.fromAlias);
-        if (!senderUser) {
-          senderUser = await getUserByUid(data.fromAlias);
-        }
-      }
-
-    } else {
-
-      if (data.authorUid) {
-        senderUser = await getUserByUid(data.authorUid);
-      }
-
-      if (!senderUser && data.authorAlias) {
-        senderUser = await getUserByAlias(data.authorAlias);
-      }
+  if (data.fromAlias) {
+    senderUser = await getUserByAlias(data.fromAlias);
+    if (!senderUser) {
+      senderUser = await getUserByUid(data.fromAlias);
     }
+  }
+
+} else if (data.source === "statusPosts") {
+
+  if (data.authorUid) {
+    senderUser = await getUserByUid(data.authorUid);
+  }
+
+} else {
+
+  if (data.authorUid) {
+    senderUser = await getUserByUid(data.authorUid);
+  }
+
+  if (!senderUser && data.authorAlias) {
+    senderUser = await getUserByAlias(data.authorAlias);
+  }
+}
 
     const senderRow=document.createElement("div");
     senderRow.className="user-row";
