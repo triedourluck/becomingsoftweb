@@ -319,7 +319,6 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 const statusInput = document.getElementById("statusInput");
 const storage = getStorage(app);
-
 const fileInput = document.getElementById("statusMedia");
 const mediaPreview = document.getElementById("mediaPreview");
 const previewContent = document.getElementById("previewContent");
@@ -366,6 +365,8 @@ if(statusInput){
 }
 
 const publishStatusBtn = document.getElementById("publishStatusBtn");
+
+console.log("Botón:", publishStatusBtn);
 
 if(publishStatusBtn){
 
