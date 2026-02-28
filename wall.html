@@ -658,9 +658,11 @@ if(possibleUid){
 
 });
 
-async function loadStatuses(uid){
+const loadStatuses = async (uid) => {
 
   const statusList = document.getElementById("statusList");
+  if(!statusList) return;
+
   statusList.innerHTML = "";
 
   const snap = await getDocs(
@@ -691,6 +693,8 @@ async function loadStatuses(uid){
     statusList.appendChild(post);
 
   });
+
+};
 
 }
 
