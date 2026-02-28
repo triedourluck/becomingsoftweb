@@ -213,11 +213,13 @@ statusSnap.forEach(d=>{
   const limitedDocs = allDocs.slice(0,20);
 
   for(const data of limitedDocs){
-
+if(data.source === "statusPosts"){
+  renderStatusPost(data, user);
+  continue;
+}
     const post=document.createElement("div");
     post.className="post";
     
-if(data.source === "statusPosts"){
 
   const senderRow=document.createElement("div");
   senderRow.className="user-row";
