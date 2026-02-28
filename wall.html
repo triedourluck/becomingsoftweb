@@ -294,39 +294,65 @@ if(publishStatusBtn){
 
   publishStatusBtn.onclick = async () => {
 
-    const user = auth.currentUser;
-    if(!user) return;
+  const user = auth.currentUser;
+  if(!user) return;
 
-    const text = statusInput.value.trim();
-    if(!text) return;
+  const text = statusInput.value.trim();
+  if(!text) return;
 
-    const duration = document.querySelector('input[name="duration"]:checked')?.value;
+  const today = new Date();
+  today.setHours(0,0,0,0);
 
-    let expiresAt = null;
+  // Contar posts de hoy
+  const todaySnap = await getDocs(
+    query(
+      collection(db,"statusPosts"),
+      where("authorUid","==",user.uid),
+      where("createdAt",">=",today)
+    )
+  );
 
-    if(duration === "24h"){
-      const expires = new Date();
-      expires.setHours(expires.getHours()+24);
-      expiresAt = expires;
-    }
+  if(todaySnap.size >= 10){
+    alert("Límite diario alcanzado (10)");
+    return;
+  }
 
-    const userSnap = await getDoc(doc(db,"users",user.uid));
-    const userData = userSnap.data();
+  const duration = document.querySelector('input[name="duration"]:checked')?.value;
 
-    await addDoc(collection(db,"statusPosts"),{
-      authorUid:user.uid,
-      authorAlias:userData.alias,
-      text:text,
-      createdAt:serverTimestamp(),
-      expiresAt:expiresAt,
-      likes:[]
-    });
+  let expiresAt = null;
+  if(duration === "24h"){
+    const expires = new Date();
+    expires.setHours(expires.getHours()+24);
+    expiresAt = expires;
+  }
 
-    statusInput.value="";
-    statusInput.style.height="auto";
+  const userSnap = await getDoc(doc(db,"users",user.uid));
+  const userData = userSnap.data();
 
-    alert("Publicado ✨");
-  };
+  let mediaURL = null;
+
+  const fileInput = document.getElementById("statusMedia");
+  const file = fileInput.files[0];
+
+  if(file){
+    const storageRef = ref(storage,`statusMedia/${user.uid}_${Date.now()}`);
+    await uploadBytes(storageRef,file);
+    mediaURL = await getDownloadURL(storageRef);
+  }
+
+  await addDoc(collection(db,"statusPosts"),{
+    authorUid:user.uid,
+    authorAlias:userData.alias,
+    text:text,
+    mediaURL:mediaURL,
+    createdAt:new Date(),
+    expiresAt:expiresAt,
+    likes:[]
+  });
+
+  statusInput.value="";
+  fileInput.value="";
+};
 
 }
 
