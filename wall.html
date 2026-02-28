@@ -656,40 +656,40 @@ if(possibleUid){
 
 });
 
-async function loadStatuses(){
+async function loadStatuses(uid){
 
   const statusList = document.getElementById("statusList");
-  statusList.innerHTML="";
+  statusList.innerHTML = "";
 
   const snap = await getDocs(
     query(
       collection(db,"statusPosts"),
-      where("authorUid","==",profileUid),
+      where("authorUid","==",uid),
       orderBy("createdAt","desc")
     )
   );
 
   const now = new Date();
 
-  snap.forEach(docSnap=>{
+  snap.forEach(docSnap => {
 
     const data = docSnap.data();
 
-    // ocultar expirados
     if(data.expiresAt && data.expiresAt.toDate() < now){
       return;
     }
 
     const post = document.createElement("div");
-    post.className="post";
+    post.className = "post";
 
     const text = document.createElement("div");
     text.textContent = data.text;
 
     post.appendChild(text);
-
     statusList.appendChild(post);
+
   });
+
 }
 
 window.goFeed=()=>location.href="feed.html";
