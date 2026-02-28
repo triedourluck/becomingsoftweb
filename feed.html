@@ -381,16 +381,21 @@ statusSnap.forEach(d=>{
         await updateDoc(ref,{ likes: arrayUnion(user.uid) });
         likeDiv.textContent=`♥︎ ${likesArray.length+1}`;
 
-        if(data.to && data.to!==user.uid){
-          await addDoc(collection(db,"notifications"),{
-            type:"like",
-            fromUid:user.uid,
-            toUserId:data.to,
-            postId:data.id,
-            createdAt:serverTimestamp(),
-            read:false
-          });
-        }
+        const targetUserId =
+  data.source === "statusPosts"
+    ? data.authorUid
+    : data.to;
+
+if(targetUserId && targetUserId !== user.uid){
+  await addDoc(collection(db,"notifications"),{
+    type:"like",
+    fromUid:user.uid,
+    toUserId:targetUserId,
+    postId:data.id,
+    createdAt:serverTimestamp(),
+    read:false
+  });
+}
       }
     };
 
