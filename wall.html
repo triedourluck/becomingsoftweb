@@ -184,6 +184,13 @@ body{
   font-size:14px;
 }
 
+.media-btn{
+  cursor:pointer;
+  font-size:20px;
+  margin-top:8px;
+  display:inline-block;
+}
+
 </style>
 </head>
 
@@ -210,7 +217,8 @@ body{
 <div id="statusBox" class="status-box">
   <textarea id="statusInput" placeholder="What's on your mind?"></textarea>
   
-<input type="file" id="statusMedia" accept="image/*,video/*,image/gif" style="margin-top:10px;">
+<label for="statusMedia" class="media-btn">📷</label>
+<input type="file" id="statusMedia" accept="image/*,video/*" hidden>
 
   <div class="status-actions">
     <div class="status-options">
