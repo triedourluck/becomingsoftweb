@@ -470,28 +470,43 @@ if(possibleUid){
 
   if(user){
     likeDiv.onclick = async () => {
-      const hasLiked = likesArray.includes(user.uid);
-      if(hasLiked){
-        await updateDoc(doc(db,"messages",docSnap.id),{
-          likes: arrayRemove(user.uid)
-        });
-      } else {
-        await updateDoc(doc(db,"messages",docSnap.id),{
-          likes: arrayUnion(user.uid)
-        });
 
-        if(user.uid !== data.to){
-          await addDoc(collection(db,"notifications"),{
-            type:"like",
-            fromUid:user.uid,
-            toUserId:data.to,
-            messageId:docSnap.id,
-            createdAt:serverTimestamp(),
-            read:false
-          });
-        }
-      }
-    };
+  const messageRef = doc(db,"messages",docSnap.id);
+  const freshSnap = await getDoc(messageRef);
+  const freshData = freshSnap.data();
+  const freshLikes = freshData.likes || [];
+  const hasLiked = freshLikes.includes(user.uid);
+
+  if(hasLiked){
+
+    await updateDoc(messageRef,{
+      likes: arrayRemove(user.uid)
+    });
+
+  } else {
+
+    await updateDoc(messageRef,{
+      likes: arrayUnion(user.uid)
+    });
+
+    if(user.uid !== freshData.to){
+
+      const userSnap = await getDoc(doc(db,"users",user.uid));
+      const fromAlias = userSnap.data()?.alias || "alguien";
+
+      await addDoc(collection(db,"notifications"),{
+        type:"like",
+        toUserId:freshData.to,
+        fromUid:user.uid,
+        fromUsername:fromAlias,
+        messageId:docSnap.id,
+        createdAt:serverTimestamp(),
+        read:false
+      });
+
+    }
+  }
+};
   }
 
   leftSide.appendChild(likeDiv);
