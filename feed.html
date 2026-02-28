@@ -213,28 +213,62 @@ statusSnap.forEach(d=>{
 
     const post=document.createElement("div");
     post.className="post";
-
+    
 if(data.source === "statusPosts"){
+
+  const senderRow=document.createElement("div");
+  senderRow.className="user-row";
+
+  const senderAvatar=document.createElement("img");
+  senderAvatar.className="avatar";
+  senderAvatar.src=""; 
+
+  const senderName=document.createElement("div");
+  senderName.className="username";
+  senderName.textContent=data.authorAlias || "usuario";
+
+  senderRow.appendChild(senderAvatar);
+  senderRow.appendChild(senderName);
+  post.appendChild(senderRow);
 
   if(data.text){
     const text = document.createElement("div");
+    text.className="message-box";
     text.textContent = data.text;
-    text.style.fontSize="16px";
-    text.style.marginBottom="10px";
     post.appendChild(text);
   }
 
   if(data.mediaURL){
     const img = document.createElement("img");
     img.src = data.mediaURL;
-    img.style.width = "100%";
-    img.style.borderRadius = "14px";
-    img.style.marginTop = "10px";
+    img.style.width="100%";
+    img.style.borderRadius="14px";
+    img.style.marginTop="10px";
     post.appendChild(img);
   }
-  
-feedEl.appendChild(post);
 
+  const likesArray=data.likes||[];
+  const hasLiked=likesArray.includes(user.uid);
+
+  const likeDiv=document.createElement("div");
+  likeDiv.className="like";
+  likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
+
+  likeDiv.onclick=async()=>{
+    const ref=doc(db,"statusPosts",data.id);
+
+    if(hasLiked){
+      await updateDoc(ref,{ likes: arrayRemove(user.uid) });
+    }else{
+      await updateDoc(ref,{ likes: arrayUnion(user.uid) });
+    }
+  };
+
+  post.appendChild(likeDiv);
+
+  feedEl.appendChild(post);
+
+  continue;
 }
 
     async function getUserByUid(uid){
