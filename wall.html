@@ -656,6 +656,42 @@ if(possibleUid){
 
 });
 
+async function loadStatuses(){
+
+  const statusList = document.getElementById("statusList");
+  statusList.innerHTML="";
+
+  const snap = await getDocs(
+    query(
+      collection(db,"statusPosts"),
+      where("authorUid","==",profileUid),
+      orderBy("createdAt","desc")
+    )
+  );
+
+  const now = new Date();
+
+  snap.forEach(docSnap=>{
+
+    const data = docSnap.data();
+
+    // ocultar expirados
+    if(data.expiresAt && data.expiresAt.toDate() < now){
+      return;
+    }
+
+    const post = document.createElement("div");
+    post.className="post";
+
+    const text = document.createElement("div");
+    text.textContent = data.text;
+
+    post.appendChild(text);
+
+    statusList.appendChild(post);
+  });
+}
+
 window.goFeed=()=>location.href="feed.html";
 window.goProfile=()=>location.href="profile.html";
 window.goInbox=()=>location.href="inbox.html";
