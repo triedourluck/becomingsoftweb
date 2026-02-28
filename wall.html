@@ -161,6 +161,28 @@ body{
   </div>
 </div>
 
+<div id="statusBox" class="status-box" style="display:none;">
+  <textarea id="statusInput" placeholder="What's on your mind?"></textarea>
+
+  <div class="status-actions">
+    <div class="status-options">
+      <label>
+        <input type="radio" name="duration" value="permanent" checked>
+        Permanente
+      </label>
+
+      <label>
+        <input type="radio" name="duration" value="24h">
+        24h
+      </label>
+    </div>
+
+    <button id="publishStatusBtn">Publicar</button>
+  </div>
+</div>
+
+<div id="statusList"></div>
+
 <div id="wall"></div>
 <div id="empty" class="empty" style="display:none;">
 Aún no hay mensajes publicados 🌙
@@ -199,6 +221,56 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
+const statusInput = document.getElementById("statusInput");
+
+if(statusInput){
+  statusInput.addEventListener("input",()=>{
+    statusInput.style.height="auto";
+    statusInput.style.height=statusInput.scrollHeight+"px";
+  });
+}
+
+const publishStatusBtn = document.getElementById("publishStatusBtn");
+
+if(publishStatusBtn){
+
+  publishStatusBtn.onclick = async () => {
+
+    const user = auth.currentUser;
+    if(!user) return;
+
+    const text = statusInput.value.trim();
+    if(!text) return;
+
+    const duration = document.querySelector('input[name="duration"]:checked')?.value;
+
+    let expiresAt = null;
+
+    if(duration === "24h"){
+      const expires = new Date();
+      expires.setHours(expires.getHours()+24);
+      expiresAt = expires;
+    }
+
+    const userSnap = await getDoc(doc(db,"users",user.uid));
+    const userData = userSnap.data();
+
+    await addDoc(collection(db,"statusPosts"),{
+      authorUid:user.uid,
+      authorAlias:userData.alias,
+      text:text,
+      createdAt:serverTimestamp(),
+      expiresAt:expiresAt,
+      likes:[]
+    });
+
+    statusInput.value="";
+    statusInput.style.height="auto";
+
+    alert("Publicado ✨");
+  };
+
+}
 
 const wallEl=document.getElementById("wall");
 const emptyEl=document.getElementById("empty");
