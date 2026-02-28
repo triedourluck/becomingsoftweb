@@ -416,7 +416,7 @@ if(data.source === "statusPosts"){
             fromUid:user.uid,
             toUserId:data.to,
             postId:data.id,
-            createdAt:serverTimestamp(),
+            createdAt: new Date(),
             read:false
           });
         }
