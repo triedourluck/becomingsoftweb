@@ -298,6 +298,15 @@ statusSnap.forEach(d=>{
       messageBox.textContent=data.text;
       post.appendChild(messageBox);
     }
+    
+    if(data.mediaURL){
+  const img=document.createElement("img");
+  img.src=data.mediaURL;
+  img.style.width="100%";
+  img.style.borderRadius="14px";
+  img.style.marginTop="10px";
+  post.appendChild(img);
+}
 
     if(data.reply){
 
