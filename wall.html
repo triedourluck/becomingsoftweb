@@ -324,42 +324,6 @@ const mediaPreview = document.getElementById("mediaPreview");
 const previewContent = document.getElementById("previewContent");
 const removeMediaBtn = document.getElementById("removeMedia");
 
-publishStatusBtn.addEventListener("click", async () => {
-
-  const user = auth.currentUser;
-  if(!user){
-    alert("Debes iniciar sesión");
-    return;
-  }
-
-  const text = statusInput.value.trim();
-  const file = fileInput?.files?.[0];
-
-  if(!text && !file) return;
-
-  let mediaURL = null;
-
-  if(file){
-    const storageRef = ref(storage, `statusMedia/${user.uid}_${Date.now()}`);
-    await uploadBytes(storageRef, file);
-    mediaURL = await getDownloadURL(storageRef);
-  }
-
-  const userSnap = await getDoc(doc(db,"users",user.uid));
-  const userData = userSnap.data();
-
-  await addDoc(collection(db,"statusPosts"),{
-    authorUid:user.uid,
-    authorAlias:userData.alias,
-    text:text,
-    mediaURL:mediaURL,
-    createdAt:serverTimestamp(),
-    likes:[]
-  });
-
-  statusInput.value="";
-  fileInput.value="";
-});
 
 if(fileInput){
   fileInput.addEventListener("change", () => {
