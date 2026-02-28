@@ -368,14 +368,12 @@ if(!data.likes){
   data.likes = [];
 }
 
-if(!data.likes){
-  data.likes = [];
-}
 const likesArray = data.likes;
+const hasLiked = likesArray.includes(user.uid);
 
-    const likeDiv=document.createElement("div");
-    likeDiv.className="like";
-    likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
+const likeDiv = document.createElement("div");
+likeDiv.className = "like";
+likeDiv.textContent = `${hasLiked ? "♥︎" : "♡"} ${likesArray.length}`;
 
     likeDiv.onclick = async () => {
 
