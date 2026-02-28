@@ -681,6 +681,12 @@ async function loadStatuses(profileUid){
   const now = new Date();
   const currentUser = auth.currentUser;
 
+  // Obtener datos del usuario para avatar real
+  const userSnap = await getDoc(doc(db,"users",profileUid));
+  const userData = userSnap.data();
+  const realAvatar = userData?.photoURL || "anon.png";
+  const realAlias = userData?.alias || "usuario";
+
   for(const docSnap of snap.docs){
 
     const data = docSnap.data();
@@ -702,11 +708,11 @@ async function loadStatuses(profileUid){
 
     const userAvatar = document.createElement("img");
     userAvatar.className = "user-avatar";
-    userAvatar.src = avatarEl.src || "anon.png";
+    userAvatar.src = realAvatar;
 
     const username = document.createElement("div");
     username.className = "username";
-    username.textContent = aliasEl.textContent;
+    username.textContent = realAlias;
 
     userRow.appendChild(userAvatar);
     userRow.appendChild(username);
@@ -762,21 +768,41 @@ async function loadStatuses(profileUid){
     leftSide.appendChild(likeDiv);
     actions.appendChild(leftSide);
 
-    /* ===== EDIT BUTTON ===== */
+    /* ===== EDIT + DELETE ===== */
 
     if(currentUser && currentUser.uid === profileUid){
+
+      const rightSide = document.createElement("div");
+      rightSide.style.display = "flex";
+      rightSide.style.gap = "8px";
 
       const editBtn = document.createElement("button");
       editBtn.className = "edit-btn";
       editBtn.textContent = "Editar";
 
       editBtn.onclick = async () => {
-        await updateDoc(doc(db,"statusPosts",docSnap.id),{
-          text: prompt("Editar estado:", data.text) || data.text
-        });
+        const newText = prompt("Editar estado:", data.text);
+        if(newText){
+          await updateDoc(doc(db,"statusPosts",docSnap.id),{
+            text:newText
+          });
+        }
       };
 
-      actions.appendChild(editBtn);
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "edit-btn";
+      deleteBtn.textContent = "Eliminar";
+
+      deleteBtn.onclick = async () => {
+        const confirmDelete = confirm("¿Eliminar este estado?");
+        if(confirmDelete){
+          await deleteDoc(doc(db,"statusPosts",docSnap.id));
+        }
+      };
+
+      rightSide.appendChild(editBtn);
+      rightSide.appendChild(deleteBtn);
+      actions.appendChild(rightSide);
     }
 
     div.appendChild(actions);
