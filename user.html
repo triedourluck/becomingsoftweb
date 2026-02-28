@@ -423,57 +423,65 @@ async function setupFollow(){
   followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
 
   followBtn.onclick = async () => {
-    
-    const wasFollowing = isFollowing;
 
-    await runTransaction(db, async (transaction) => {
+  const currentUser = auth.currentUser;
+  if(!currentUser) return;
 
-      const currentDoc = await transaction.get(currentUserRef);
-      const currentFollowing = currentDoc.data().following || [];
+  const currentUserRef = doc(db,"users",currentUser.uid);
+  const viewedUserRef = doc(db,"users",viewedUid);
 
-      if(currentFollowing.includes(viewedUid)){
-        transaction.update(currentUserRef,{
-          following: arrayRemove(viewedUid)
-        });
-        transaction.update(viewedUserRef,{
-          followers: arrayRemove(currentUser.uid)
-        });
-      }else{
-        transaction.update(currentUserRef,{
-          following: arrayUnion(viewedUid)
-        });
-        transaction.update(viewedUserRef,{
-          followers: arrayUnion(currentUser.uid)
-        });
-      }
+  // 🔎 Estado REAL antes del click
+  const currentSnap = await getDoc(currentUserRef);
+  const currentFollowing = currentSnap.data().following || [];
+  const wasFollowing = currentFollowing.includes(viewedUid);
 
-    });
+  await runTransaction(db, async (transaction) => {
 
-if(!wasFollowing){
+    const freshSnap = await transaction.get(currentUserRef);
+    const freshFollowing = freshSnap.data().following || [];
 
-  const userSnap = await getDoc(doc(db,"users",auth.currentUser.uid));
-  const fromAlias = userSnap.data()?.alias || "alguien";
+    if(freshFollowing.includes(viewedUid)){
+      transaction.update(currentUserRef,{
+        following: arrayRemove(viewedUid)
+      });
+      transaction.update(viewedUserRef,{
+        followers: arrayRemove(currentUser.uid)
+      });
+    }else{
+      transaction.update(currentUserRef,{
+        following: arrayUnion(viewedUid)
+      });
+      transaction.update(viewedUserRef,{
+        followers: arrayUnion(currentUser.uid)
+      });
+    }
 
-  await addDoc(collection(db,"notifications"),{
-    type:"follow",
-    toUserId:viewedUid,
-    fromUid:auth.currentUser.uid,
-    fromUsername:fromAlias,
-    createdAt:serverTimestamp(),
-    read:false
   });
 
-}
+  // 📬 Crear notificación SOLO si acaba de seguir
+  if(!wasFollowing){
 
-    if(isFollowing){
-      isFollowing = false;
-      followersCount--;
-      followBtn.textContent = "Follow";
-    }else{
-      isFollowing = true;
-      followersCount++;
-      followBtn.textContent = "Unfollow";
-    }
+    const userSnap = await getDoc(doc(db,"users",currentUser.uid));
+    const fromAlias = userSnap.data()?.alias || "alguien";
+
+    await addDoc(collection(db,"notifications"),{
+      type:"follow",
+      toUserId:viewedUid,
+      fromUid:currentUser.uid,
+      fromUsername:fromAlias,
+      createdAt:serverTimestamp(),
+      read:false
+    });
+
+  }
+
+  // 🔄 Refrescar visual
+  const viewedSnap = await getDoc(viewedUserRef);
+  const updatedData = viewedSnap.data();
+  followersLink.textContent = `${updatedData.followers?.length||0} followers`;
+
+  followBtn.textContent = wasFollowing ? "Follow" : "Unfollow";
+};
 
     followersLink.textContent = `${followersCount} followers`;
 
