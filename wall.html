@@ -342,6 +342,8 @@ const userData=userSnap.data();
 aliasEl.textContent=userData?.alias||"sin alias";
 statsEl.textContent=`${userData?.followers?.length||0} followers · ${userData?.following?.length||0} following`;
 
+  await loadStatuses(uid);
+
 if(userData?.photoURL) avatarEl.src=userData.photoURL;
 
 if(user && uid===user.uid){
