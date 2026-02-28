@@ -364,6 +364,10 @@ statusSnap.forEach(d=>{
       }
     }
 
+if(!data.likes){
+  data.likes = [];
+}
+
     const likesArray=data.likes||[];
     const hasLiked=likesArray.includes(user.uid);
 
@@ -371,33 +375,47 @@ statusSnap.forEach(d=>{
     likeDiv.className="like";
     likeDiv.textContent=`${hasLiked?"♥︎":"♡"} ${likesArray.length}`;
 
-    likeDiv.onclick=async()=>{
-      const ref=doc(db,data.source,data.id);
+    likeDiv.onclick = async () => {
 
-      if(hasLiked){
-        await updateDoc(ref,{ likes: arrayRemove(user.uid) });
-        likeDiv.textContent=`♡ ${likesArray.length-1}`;
-      }else{
-        await updateDoc(ref,{ likes: arrayUnion(user.uid) });
-        likeDiv.textContent=`♥︎ ${likesArray.length+1}`;
+  const ref = doc(db, data.source, data.id);
 
-        const targetUserId =
-  data.source === "statusPosts"
-    ? data.authorUid
-    : data.to;
+  const alreadyLiked = (data.likes || []).includes(user.uid);
 
-if(targetUserId && targetUserId !== user.uid){
-  await addDoc(collection(db,"notifications"),{
-    type:"like",
-    fromUid:user.uid,
-    toUserId: targetUserId,
-    postId: data.id,
-    createdAt: serverTimestamp(),
-    read: false
-  });
-}
-      }
-    };
+  if(alreadyLiked){
+    await updateDoc(ref,{
+      likes: arrayRemove(user.uid)
+    });
+
+    data.likes = (data.likes || []).filter(id => id !== user.uid);
+
+  } else {
+
+    await updateDoc(ref,{
+      likes: arrayUnion(user.uid)
+    });
+
+    data.likes = [...(data.likes || []), user.uid];
+
+    const targetUserId =
+      data.source === "statusPosts"
+        ? data.authorUid
+        : data.to;
+
+    if(targetUserId && targetUserId !== user.uid){
+      await addDoc(collection(db,"notifications"),{
+        type:"like",
+        fromUid:user.uid,
+        toUserId: targetUserId,
+        postId: data.id,
+        createdAt: serverTimestamp(),
+        read:false
+      });
+    }
+  }
+
+  likeDiv.textContent =
+    `${data.likes.includes(user.uid) ? "♥︎" : "♡"} ${data.likes.length}`;
+};
 
     post.appendChild(likeDiv);
     feedEl.appendChild(post);
