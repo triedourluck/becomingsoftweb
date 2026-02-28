@@ -178,11 +178,6 @@ onAuthStateChanged(auth, async(user)=>{
   )
 );
 
-  const postsSnap=await getDocs(query(
-    collection(db,"posts"),
-    orderBy("createdAt","desc")
-  ));
-
 const statusSnap = await getDocs(query(
   collection(db,"statusPosts"),
   orderBy("createdAt","desc")
@@ -201,21 +196,6 @@ const statusSnap = await getDocs(query(
     ...data,
     source: "messages",
     createdAt: data.createdAt?.seconds || 0
-  });
-});
-
-  postsSnap.forEach(d=>{
-  if(seenIds.has(d.id)) return;
-  seenIds.add(d.id);
-
-  const data = d.data();
-  allDocs.push({
-    id: d.id,
-    ...data,
-    source: "posts",
-    createdAt: typeof data.createdAt === "number"
-      ? Math.floor(data.createdAt / 1000)
-      : data.createdAt?.seconds || 0
   });
 });
 
