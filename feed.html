@@ -368,8 +368,10 @@ if(!data.likes){
   data.likes = [];
 }
 
-    const likesArray=data.likes||[];
-    const hasLiked=likesArray.includes(user.uid);
+if(!data.likes){
+  data.likes = [];
+}
+const likesArray = data.likes;
 
     const likeDiv=document.createElement("div");
     likeDiv.className="like";
