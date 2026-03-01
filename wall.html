@@ -328,9 +328,19 @@ const db=getFirestore(app);
 onAuthStateChanged(auth, (user) => {
 
   const createBox = document.getElementById("statusBox");
+  const privateNav = document.getElementById("privateNav");
+  const publicNav = document.getElementById("publicNav");
 
   if (!user) {
+    // Vista pública
     if (createBox) createBox.style.display = "none";
+    if (privateNav) privateNav.style.display = "none";
+    if (publicNav) publicNav.style.display = "flex";
+  } else {
+    // Usuario logueado
+    if (createBox) createBox.style.display = "block";
+    if (privateNav) privateNav.style.display = "flex";
+    if (publicNav) publicNav.style.display = "none";
   }
 
 });
