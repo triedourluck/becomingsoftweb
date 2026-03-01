@@ -321,6 +321,15 @@ const firebaseConfig={
 const app=initializeApp(firebaseConfig);
 const auth=getAuth(app);
 const db=getFirestore(app);
+onAuthStateChanged(auth, (user) => {
+
+  const createBox = document.getElementById("createPostBox");
+
+  if (!user) {
+    if (createBox) createBox.style.display = "none";
+  }
+
+});
 const statusInput = document.getElementById("statusInput");
 const storage = getStorage(app);
 const fileInput = document.getElementById("statusMedia");
