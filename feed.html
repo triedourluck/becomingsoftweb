@@ -511,6 +511,9 @@ if (user) {
   commentBtn.className = "comment-btn";
   
   commentBtn.onclick = async () => {
+    
+  const currentUser = auth.currentUser;
+  if (!currentUser) return;
 
   const text = commentInput.value.trim();
   if (!text) return;
