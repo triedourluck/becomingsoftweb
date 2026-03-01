@@ -141,6 +141,30 @@ h1{
   font-weight: 400;
 }
 
+.comment-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.comment-input {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 14px;
+  border: 1px solid #ddd;
+  font-size: 13px;
+}
+
+.comment-btn {
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: none;
+  background: black;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+}
+
 </style>
 </head>
 
@@ -448,6 +472,28 @@ likeDiv.textContent = `${hasLiked ? "♥︎" : "♡"} ${likesArray.length}`;
     const commentsContainer = document.createElement("div");
     commentsContainer.className = "comments";
     post.appendChild(commentsContainer);
+    
+    // --- formulario de comentario ---
+if (user) {
+
+  const commentForm = document.createElement("div");
+  commentForm.className = "comment-form";
+
+  const commentInput = document.createElement("input");
+  commentInput.type = "text";
+  commentInput.placeholder = "Escribe un comentario...";
+  commentInput.className = "comment-input";
+
+  const commentBtn = document.createElement("button");
+  commentBtn.textContent = "Enviar";
+  commentBtn.className = "comment-btn";
+
+  commentForm.appendChild(commentInput);
+  commentForm.appendChild(commentBtn);
+
+  post.appendChild(commentForm);
+
+}
     
     const commentsRef = collection(db, "statusPosts", data.id, "comments");
     const commentsQuery = query(commentsRef, orderBy("createdAt", "asc"));
