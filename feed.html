@@ -418,6 +418,32 @@ likeDiv.textContent = `${hasLiked ? "♥︎" : "♡"} ${likesArray.length}`;
 };
 
     post.appendChild(likeDiv);
+    
+    const commentsContainer = document.createElement("div");
+    commentsContainer.className = "comments";
+    post.appendChild(commentsContainer);
+    
+    const commentsRef = collection(db, "statusPosts", data.id, "comments");
+    const commentsQuery = query(commentsRef, orderBy("createdAt", "asc"));
+
+  onSnapshot(commentsQuery, snapshot => {
+  commentsContainer.innerHTML = "";
+
+  snapshot.forEach(docSnap => {
+    const comment = docSnap.data();
+
+    const commentDiv = document.createElement("div");
+    commentDiv.className = "comment";
+
+    commentDiv.innerHTML = `
+<span class="comment-author">${comment.authorAlias}</span>
+<span class="comment-text">${comment.text}</span>
+`;
+
+    commentsContainer.appendChild(commentDiv);
+  });
+});
+
     feedEl.appendChild(post);
   }
 });
