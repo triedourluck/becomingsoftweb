@@ -921,13 +921,14 @@ publishStatusBtn.addEventListener("click", async () => {
   const userData = userSnap.data();
 
   await addDoc(collection(db, "statusPosts"), {
-    authorUid: user.uid,
-    authorAlias: userData.alias,
-    text: text,
-    mediaURL: mediaURL,
-    createdAt: serverTimestamp(),
-    likes: []
-  });
+  authorUid: user.uid,
+  authorAlias: userData.alias,
+  text: text,
+  mediaURL: mediaURL,
+  createdAt: serverTimestamp(),
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  likes: []
+});
 
   statusInput.value = "";
   fileInput.value = "";
