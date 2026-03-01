@@ -228,10 +228,14 @@ body{
 
 <div class="container">
 
-<div class="top-nav">
-<button onclick="goFeed()">Feed</button>
-<button onclick="goProfile()">Mi perfil</button>
-<button onclick="goInbox()">Inbox</button>
+<div id="privateNav" class="top-nav">
+  <button onclick="goFeed()">Feed</button>
+  <button onclick="goProfile()">Mi perfil</button>
+  <button onclick="goInbox()">Inbox</button>
+</div>
+
+<div id="publicNav" class="top-nav" style="display:none;">
+  <button onclick="window.location.href='/index.html'">🏠</button>
 </div>
 
 <div class="header">
