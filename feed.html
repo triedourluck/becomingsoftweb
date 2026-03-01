@@ -485,8 +485,26 @@ if (user) {
   commentInput.className = "comment-input";
 
   const commentBtn = document.createElement("button");
-  commentBtn.textContent = "Enviar";
+  commentBtn.textContent = "Postear";
   commentBtn.className = "comment-btn";
+  
+  commentBtn.onclick = async () => {
+
+  const text = commentInput.value.trim();
+  if (!text) return;
+
+  await addDoc(
+    collection(db, "statusPosts", data.id, "comments"),
+    {
+      authorUid: user.uid,
+      authorAlias: user.displayName || "anon",
+      text: text,
+      createdAt: serverTimestamp()
+    }
+  );
+
+  commentInput.value = "";
+};
 
   commentForm.appendChild(commentInput);
   commentForm.appendChild(commentBtn);
