@@ -165,6 +165,27 @@ h1{
   cursor: pointer;
 }
 
+.comment-author {
+  font-weight: 600;
+  text-decoration: none;
+  color: black;
+  margin-right: 4px;
+}
+
+.comment-author:hover {
+  text-decoration: underline;
+}
+
+.comment-delete {
+  font-size: 12px;
+  color: #888;
+  cursor: pointer;
+}
+
+.comment-delete:hover {
+  color: red;
+}
+
 </style>
 </head>
 
@@ -492,12 +513,15 @@ if (user) {
 
   const text = commentInput.value.trim();
   if (!text) return;
+  
+  const userSnap = await getDoc(doc(db, "users", user.uid));
+  const userData = userSnap.data();
 
   await addDoc(
     collection(db, "statusPosts", data.id, "comments"),
     {
       authorUid: user.uid,
-      authorAlias: user.displayName || "anon",
+      authorAlias: userData.alias,
       text: text,
       createdAt: serverTimestamp()
     }
@@ -526,9 +550,29 @@ if (user) {
     commentDiv.className = "comment";
 
     commentDiv.innerHTML = `
-<span class="comment-author">${comment.authorAlias}</span>
-<span class="comment-text">${comment.text}</span>
+  <a href="/user.html?uid=${comment.authorUid}" class="comment-author">
+    ${comment.authorAlias}
+  </a>
+  <span class="comment-text">${comment.text}</span>
 `;
+
+if (
+  user &&
+  (user.uid === comment.authorUid || user.uid === data.authorUid)
+) {
+
+  const deleteBtn = document.createElement("span");
+  deleteBtn.textContent = " · eliminar";
+  deleteBtn.className = "comment-delete";
+
+  deleteBtn.onclick = async () => {
+    await deleteDoc(
+      doc(db, "statusPosts", data.id, "comments", docSnap.id)
+    );
+  };
+
+  commentDiv.appendChild(deleteBtn);
+}
 
     commentsContainer.appendChild(commentDiv);
   });
