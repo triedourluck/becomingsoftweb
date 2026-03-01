@@ -521,7 +521,7 @@ if (user) {
   await addDoc(
     collection(db, "statusPosts", data.id, "comments"),
     {
-      authorUid: user.uid,
+      authorUid: currentUser.uid,
       authorAlias: userData.alias,
       text: text,
       createdAt: serverTimestamp()
