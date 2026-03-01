@@ -551,10 +551,10 @@ if (user) {
     commentDiv.className = "comment";
 
     commentDiv.innerHTML = `
-  <a href="/user.html?uid=${comment.authorUid}" class="comment-author">
+  <a href="/user.html?alias=${comment.authorAlias}" class="comment-author">
     ${comment.authorAlias}
   </a>
-  <span class="comment-text">${comment.text}</span>
+  <span>${comment.text}</span>
 `;
 
 if (
