@@ -323,7 +323,7 @@ const auth=getAuth(app);
 const db=getFirestore(app);
 onAuthStateChanged(auth, (user) => {
 
-  const createBox = document.getElementById("createPostBox");
+  const createBox = document.getElementById("statusBox");
 
   if (!user) {
     if (createBox) createBox.style.display = "none";
