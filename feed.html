@@ -551,9 +551,13 @@ if (user) {
     commentDiv.className = "comment";
 
     commentDiv.innerHTML = `
-  <a href="/user.html?alias=${comment.authorAlias}" class="comment-author">
-    ${comment.authorAlias}
-  </a>
+  <a href="${
+  user && user.uid === comment.authorUid
+    ? '/profile.html'
+    : `/user.html?alias=${comment.authorAlias}`
+}">
+  ${comment.authorAlias}
+</a>
   <span>${comment.text}</span>
 `;
 
